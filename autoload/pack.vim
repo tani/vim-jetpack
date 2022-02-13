@@ -121,7 +121,7 @@ function pack#bundle()
   call delete(s:packdir() .. '/start', 'rf')
   let destdir = s:packdir() .. '/start/_'
   for package in bundle
-    let srcdir = package.path .. '/' .. package.dir
+    let srcdir = package.path .. '/' .. package.subdir
     for srcfile in s:allfiles(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '') 
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
@@ -129,8 +129,9 @@ function pack#bundle()
       call writefile(blob, destfile, 'b')
     endfor
   endfor
+  execute 'helptags ' .. destdir
   for package in unbundle
-    let srcdir = package.path .. '/' .. package.dir
+    let srcdir = package.path .. '/' .. package.subdir
     let destdir = s:packdir() .. '/' .. package.packtype .. '/' .. package.name
     for srcfile in s:allfiles(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
@@ -138,6 +139,7 @@ function pack#bundle()
       let blob = readfile(srcfile, 'b')
       call writefile(blob, destfile, 'b')
     endfor
+    execute 'helptags ' .. destdir
   endfor
 endfunction
 
@@ -157,12 +159,10 @@ function pack#sync()
   call pack#install()
   echomsg 'Updating plugins ...'
   call pack#update()
-  echomsg 'Switching plugins ...'
+  echomsg 'Bundling plugins ...'
   call pack#bundle()
   echomsg "Running hooks ..."
   call pack#hook()
-  echomsg "Generating helptags ..."
-  helptags ALL
   echomsg 'Complete'
 endfunction
 
@@ -172,7 +172,7 @@ endfunction
 
 function pack#add(plugin, ...)
   let options = {
-        \ 'name': fnamemodify(a:plugin, ':t'),
+        \ 'as': fnamemodify(a:plugin, ':t'),
         \ 'opt': 0,
         \ 'for': [],
         \ 'do': '',
@@ -194,12 +194,12 @@ function pack#add(plugin, ...)
   else
     let package.packtype = 'start'
   endif
-  let ft = get(options, 'for') 
-  if ft != [] && type(ft) == v:t_list
+  let ft = get(options, 'for')
+  if type(ft) == v:t_list && ft != []
     let package.packtype = 'opt'
     execute 'autocmd FileType '  .. join(ft, ',') .. ' silent! packadd ' .. package.name
   endif
-  if ft != '' && type(ft) == v:t_string
+  if type(ft) == v:t_string && ft != ''
     let package.packtype = 'opt'
     execute 'autocmd FileType '  .. ft .. ' silent! packadd ' .. package.name
   endif
