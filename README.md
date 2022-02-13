@@ -98,7 +98,7 @@ Because we bundle the all plugins as possible to reduce runtimepath, which takes
 a long time at startup. This is the same algorithm of the plugin manager
 dein.vim.
 
-### Is this plugin faster than Dein?
+### Is this plugin faster than dein?
 
 No if you are vim-wizard. Dein provides many option to tune the startup.
 Thus, dein takes milli-seconds to do many things. Our plugin does as the

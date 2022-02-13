@@ -4,7 +4,7 @@ function setup(config)
     if (type(plugin) == 'string') then
       vim.fn['pack#add'](plugin)
     else
-      vim.fn['pack#add'](plugin[0], plugin)
+      vim.fn['pack#add'](plugin[1], plugin)
     end
   end)
   vim.fn['pack#end']()
