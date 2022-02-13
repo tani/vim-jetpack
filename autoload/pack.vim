@@ -6,13 +6,11 @@
 
 let g:pack#optimization = 1
 
-if has('nvim')
-  let s:homedir = expand('~/.local/share/nvim/site')
-else
-  let s:homedir = expand('~/.vim')
-endif
+let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
+let s:packdir = s:home .. '/pack/jetpack'
 
-let s:packages = []
+let s:pkgs = []
+let s:plugs = []
 let s:ignores = [
   \ "**/.*",
   \ "**/.*/**/*",
@@ -30,148 +28,140 @@ let s:ignores = [
   \ "**/NEWS*",
   \ ]
 
-function s:packdir()
-  return s:homedir .. '/pack/jetpack'
-endfunction
-
-function s:allfiles(path)
+fu s:files(path)
   let files = []
   for item in glob(a:path .. '/**/*', '', 1)
     if glob(item .. '/') == ''
-      call add(files, item)
-    endif
-  endfor
-  return files
-endfunction
+      cal add(files, item)
+    en
+  endfo
+  retu files
+endf
 
-function s:ignorable(filename)
+fu s:ignorable(filename)
   for ignore in s:ignores
     if a:filename =~ glob2regpat(ignore)
-      return 1
-    endif
-  endfor
-  return 0
-endfunction
+      retu 1
+    en
+  endfo
+  retu 0
+endf
 
-function s:mergable(packages, package)
-  for package in a:packages
-    for abspath1 in s:allfiles(package.path)
-      let relpath1 = substitute(abspath1, package.path, '', '')
+fu s:mergable(pkgs, pkg)
+  for pkg in a:pkgs
+    for abspath1 in s:files(pkg.path)
+      let relpath1 = substitute(abspath1, pkg.path, '', '')
       if !s:ignorable(relpath1)
-        for abspath2 in s:allfiles(a:package.path)
-          let relpath2 = substitute(abspath2, a:package.path, '', '')
+        for abspath2 in s:files(a:pkg.path)
+          let relpath2 = substitute(abspath2, a:pkg.path, '', '')
           if (relpath1 == relpath2)
-            return 0
-          endif
-        endfor
-      endif
-    endfor
-  endfor
-  return 1
-endfunction
+            retu 0
+          en
+        endfo
+      en
+    endfo
+  endfo
+  retu 1
+endf
 
-function s:wait(jobs)
+fu s:wait(jobs)
   let running = 1
-  while running 
+  wh running 
     let running = 0
     for job in a:jobs
       if job_status(job) == 'run'
         let running = 1
-      endif
-    endfor
-    sleep 1
-  endwhile
-endfunction
+      en
+    endfo
+    sl 1
+  endw
+endf
 
-function pack#install()
+fu pack#install()
   let jobs = []
-  for package in s:packages
-    if glob(package.path .. '/') == ''
-      if package.branch != ''
-        call add(jobs, job_start(['git', 'clone', '-b', package.branch, package.url, package.path]))
-      else
-        call add(jobs, job_start(['git', 'clone', package.url, package.path]))
-      endif
-    endif
-  endfor
-  call s:wait(jobs)
-endfunction
+  for pkg in s:pkgs
+    if glob(pkg.path .. '/') == ''
+      if pkg.branch != ''
+        cal add(jobs, job_start(['git', 'clone', '-b', pkg.branch, pkg.url, pkg.path]))
+      el
+        cal add(jobs, job_start(['git', 'clone', pkg.url, pkg.path]))
+      en
+    en
+  endfo
+  cal s:wait(jobs)
+endf
 
-function pack#update()
+fu pack#update()
   let jobs = []
-  for package in s:packages
-    if glob(package.path .. '/') != ''
-      call add(jobs, job_start(['git', '-C', package.path, 'pull']))
-    endif
-  endfor
-  call s:wait(jobs)
-endfunction
+  for pkg in s:pkgs
+    if glob(pkg.path .. '/') != ''
+      cal add(jobs, job_start(['git', '-C', pkg.path, 'pull']))
+    en
+  endfo
+  cal s:wait(jobs)
+endf
 
-function pack#bundle()
+fu pack#bundle()
   let bundle = []
   let unbundle = []
-  for package in s:packages
-    if (g:pack#optimization >= 1 && package.packtype == 'start' && (g:pack#optimization == 2 || s:mergable(bundle, package)))
-      call add(bundle, package)
-    else
-      call add(unbundle, package)
-    endif
-  endfor
-  call delete(s:packdir() .. '/opt', 'rf')
-  call delete(s:packdir() .. '/start', 'rf')
-  let destdir = s:packdir() .. '/start/_'
-  for package in bundle
-    let srcdir = package.path .. '/' .. package.subdir
-    for srcfile in s:allfiles(srcdir)
+  for pkg in s:pkgs
+    if (g:pack#optimization >= 1 && pkg.packtype == 'start' && (g:pack#optimization == 2 || s:mergable(bundle, pkg)))
+      cal add(bundle, pkg)
+    el
+      cal add(unbundle, pkg)
+    en
+  endfo
+  cal delete(s:packdir .. '/opt', 'rf')
+  cal delete(s:packdir .. '/start', 'rf')
+  let destdir = s:packdir .. '/start/_'
+  for pkg in bundle
+    let srcdir = pkg.path .. '/' .. pkg.subdir
+    for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '') 
-      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
+      cal mkdir(fnamemodify(destfile, ':p:h'), 'p')
       let blob = readfile(srcfile, 'b')
-      call writefile(blob, destfile, 'b')
-    endfor
-  endfor
-  execute 'helptags ' .. destdir
-  for package in unbundle
-    let srcdir = package.path .. '/' .. package.subdir
-    let destdir = s:packdir() .. '/' .. package.packtype .. '/' .. package.name
-    for srcfile in s:allfiles(srcdir)
+      cal writefile(blob, destfile, 'b')
+    endfo
+  endfo
+  exe 'helptags ' .. destdir
+  for pkg in unbundle
+    let srcdir = pkg.path .. '/' .. pkg.subdir
+    let destdir = s:packdir .. '/' .. pkg.packtype .. '/' .. pkg.name
+    for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
-      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
+      cal mkdir(fnamemodify(destfile, ':p:h'), 'p')
       let blob = readfile(srcfile, 'b')
-      call writefile(blob, destfile, 'b')
-    endfor
-    execute 'helptags ' .. destdir
-  endfor
-endfunction
+      cal writefile(blob, destfile, 'b')
+    endfo
+    exe 'helptags ' .. destdir
+  endfo
+endf
 
-function pack#hook()
-  packloadall
-  for package in s:packages
-    if type(package.hook) == v:t_func
-      call package.hook()
-    else
-      execute package.hook
-    endif
-  endfor
-endfunction
+fu pack#hook()
+  packl 
+  for pkg in s:pkgs
+    if type(pkg.hook) == v:t_func
+      cal pkg.hook()
+    el
+      exe pkg.hook
+    en
+  endfo
+endf
 
-function pack#sync()
-  echomsg 'Installing plugins ...'
-  call pack#install()
-  echomsg 'Updating plugins ...'
-  call pack#update()
-  echomsg 'Bundling plugins ...'
-  call pack#bundle()
-  echomsg "Running hooks ..."
-  call pack#hook()
-  echomsg 'Complete'
-endfunction
+fu pack#sync()
+  echom 'Installing plugins ...'
+  cal pack#install()
+  echom 'Updating plugins ...'
+  cal pack#update()
+  echom 'Bundling plugins ...'
+  cal pack#bundle()
+  echom 'Running hooks...'
+  cal pack#hook()
+  echom 'Complete'
+endf
 
-function pack#clean()
-  delete(s:packdir, 'rf')
-endfunction
-
-function pack#add(plugin, ...)
-  let options = {
+fu pack#add(plugin, ...)
+  let opts = {
         \ 'as': fnamemodify(a:plugin, ':t'),
         \ 'opt': 0,
         \ 'for': [],
@@ -181,51 +171,51 @@ function pack#add(plugin, ...)
         \ 'on': [],
         \ }
   if a:0 > 0
-    call extend(options, a:1)
-  endif
-  let package  = {}
-  let package.url = 'https://github.com/' .. a:plugin
-  let package.branch = get(options, 'branch')
-  let package.hook = get(options, 'do')
-  let package.subdir = get(options, 'rtp')
-  let package.name = get(options, 'as')
-  let package.path = s:packdir() .. '/src/' .. package.name
-  if get(options, 'opt')
-    let package.packtype = 'opt'
-  else
-    let package.packtype = 'start'
-  endif
-  let ft = get(options, 'for')
+    cal extend(opts, a:1)
+  en
+  let pkg  = {
+        \  'url': 'https://github.com/' .. a:plugin,
+        \  'branch': get(opts, 'branch'),
+        \  'hook': get(opts, 'do'),
+        \  'subdir': get(opts, 'rtp'),
+        \  'name': get(opts, 'as'),
+        \  'command': get(opts, 'on'),
+        \  'filetype': get(opts, 'for'),
+        \  'path': s:packdir .. '/src/' .. get(opts, 'as'),
+        \  'packtype': get(opts, 'opt') ? 'opt' : 'start',
+        \ }
+  let ft = get(pkg, 'filetype')
   if type(ft) == v:t_list && ft != []
-    let package.packtype = 'opt'
-    execute 'autocmd FileType '  .. join(ft, ',') .. ' silent! packadd ' .. package.name
-  endif
+    let pkg.packtype = 'opt'
+    exe 'au FileType '  .. join(ft, ',') .. ' sil! pa ' .. pkg.name
+  en
   if type(ft) == v:t_string && ft != ''
-    let package.packtype = 'opt'
-    execute 'autocmd FileType '  .. ft .. ' silent! packadd ' .. package.name
-  endif
-  let cmd = get(options, 'on')
+    let pkg.packtype = 'opt'
+    exe 'au FileType '  .. ft .. ' sil! pa ' .. pkg.name
+  en
+  let cmd = get(pkg, 'command')
   if type(cmd) == v:t_list && cmd != []
-    let package.packtype = 'opt'
-    execute 'autocmd CmdUndefined '  .. join(cmd, ',') .. ' silent! packadd ' .. package.name
-  endif
+    let pkg.packtype = 'opt'
+    exe 'au CmdUndefined '  .. join(cmd, ',') .. ' sil! pa ' .. pkg.name
+  en
   if type(cmd) == v:t_string && cmd != ''
-    let package.packtype = 'opt'
-    execute 'autocmd CmdUndefined '  .. cmd .. ' silent! packadd ' .. package.name
-  endif
-  call add(s:packages, package)
-endfunction
+    let pkg.packtype = 'opt'
+    exe 'au CmdUndefined '  .. cmd .. ' sil! pa ' .. pkg.name
+  en
+  cal add(s:pkgs, pkg)
+endf
 
-function pack#begin(...)
+fu pack#begin(...)
   if a:0 != 0
-    let s:homedir = a:1
-  endif
-  execute 'set packpath^=' .. s:homedir
-  command! -nargs=+ Pack call pack#add(<args>)
-endfunction
+    let s:home = a:1
+    let s:packdir = s:home .. '/pack/jetpack'
+    exe 'se pp^=' .. s:home
+  en
+  com! -nargs=+ Pack cal pack#add(<args>)
+endf
 
-function pack#end()
-  delcommand Pack
-endfunction
+fu pack#end()
+  delc Pack
+endf
 
-command! PackSync call pack#sync()
+com! PackSync cal pack#sync()
