@@ -1,6 +1,6 @@
 # 🚀 JETPACK.vim
 
-The lightning-fast plugin manager for Vim/Neovim.
+The **lightning-fast** minimalist plugin manager for Vim/ Neovim.
 
 ## Benchmark
 
@@ -16,9 +16,14 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 
 Download pack.vim and put it in the `autoload` directory.
 
+###  Vim
 ```
-curl -fLo ~/.vim/autoload/pack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
+curl -fLo ~/.vim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
+```
+
+### Neovim
+```
+curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
 
 ## Supported options
@@ -41,8 +46,8 @@ curl -fLo ~/.vim/autoload/pack.vim --create-dirs \
 call pack#begin()
 Pack 'junegunn/fzf.vim'
 Pack 'junegunn/fzf', { 'do': {-> fzf#install()} }
-Pack 'neoclide/coc.nvim', {'branch': 'release'}
-Pack 'neoclide/coc.nvim', {'branch': 'master', 'do': '!yarn install --frozen-lockfile'}
+Pack 'neoclide/coc.nvim', { 'branch': 'release' }
+Pack 'neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' }
 Pack 'vlime/vlime', { 'rtp': 'vim' }
 Pack 'dracula/vim', { 'as': 'dracula' }
 Pack 'tpope/vim-fireplace', { 'for': 'clojure' }
@@ -55,8 +60,8 @@ call pack#end()
 call pack#begin()
 pack#add('junegunn/fzf.vim')
 pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
-pack#add('neoclide/coc.nvim', {'branch': 'release'})
-pack#add('neoclide/coc.nvim', {'branch': 'master', 'do': '!yarn install --frozen-lockfile'})
+pack#add('neoclide/coc.nvim', { 'branch': 'release' })
+pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' })
 pack#add('vlime/vlime', { 'rtp': 'vim' })
 pack#add('dracula/vim', { 'as': 'dracula' })
 pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
@@ -93,11 +98,11 @@ Because we bundle the all plugins as possible to reduce runtimepath, which takes
 a long time at startup. This is the same algorithm of the plugin manager
 dein.vim.
 
-### Is this plugin faster than dein?
+### Is this plugin faster than Dein?
 
-No if you are vim-wizard. Dein provides many option to tune the startup. This is
-a trade-off. Dein takes milli-seconds to do many things. Our plugin do as the
-same as the vim-plug, i.e., this plugin provides less feature than dein.
+No if you are vim-wizard. Dein provides many option to tune the startup.
+Thus, dein takes milli-seconds to do many things. Our plugin does as the
+same as vim-plug, i.e., this plugin provides less options than dein.
 
 ## Copyright and License
 
