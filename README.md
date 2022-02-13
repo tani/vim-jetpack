@@ -18,7 +18,7 @@ Download pack.vim and put it in the `autoload` directory.
 
 ```
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/jetpack/master/pack.vim
+    https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
 
 ## Supported options
