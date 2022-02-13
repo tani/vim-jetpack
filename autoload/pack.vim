@@ -178,6 +178,7 @@ function pack#add(plugin, ...)
         \ 'do': '',
         \ 'branch': '',
         \ 'rtp': '.',
+        \ 'on': [],
         \ }
   if a:0 > 0
     call extend(options, a:1)
@@ -203,6 +204,15 @@ function pack#add(plugin, ...)
     let package.packtype = 'opt'
     execute 'autocmd FileType '  .. ft .. ' silent! packadd ' .. package.name
   endif
+  let cmd = get(options, 'on')
+  if type(cmd) == v:t_list && cmd != []
+    let package.packtype = 'opt'
+    execute 'autocmd CmdUndefined '  .. join(cmd, ',') .. ' silent! packadd ' .. package.name
+  endif
+  if type(cmd) == v:t_string && cmd != ''
+    let package.packtype = 'opt'
+    execute 'autocmd CmdUndefined '  .. cmd .. ' silent! packadd ' .. package.name
+  endif
   call add(s:packages, package)
 endfunction
 
@@ -211,11 +221,11 @@ function pack#begin(...)
     let s:homedir = a:1
   endif
   execute 'set packpath^=' .. s:homedir
-  command! -nargs=+ Pack :call pack#add(<args>)
+  command! -nargs=+ Pack call pack#add(<args>)
 endfunction
 
 function pack#end()
   delcommand Pack
 endfunction
 
-command! PackSync :call pack#sync()
+command! PackSync call pack#sync()

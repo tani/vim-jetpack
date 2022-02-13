@@ -29,7 +29,8 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 | `branch` |      `sring`       | git branch                        |
 |  `rtp`   |      `string`      | path to plugin                    |
 |   `as`   |      `string`      | name of plugin                    |
-|  `for`   | `string` or `list` | lazy loading for given filetypes  |
+|  `for`   | `string` or `list` | lazy loading for filetypes        |
+|   `on`   | `string` or `list` | lazy loading for commands         |
 |  `opt`   |     `boolean`      | lazy loading for `packadd {name}` |
 
 ## Example configuration
