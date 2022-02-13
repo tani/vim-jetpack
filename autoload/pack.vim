@@ -144,7 +144,9 @@ endfunction
 function pack#hook()
   packloadall
   for package in s:packages
-    if package.hook != ''
+    if type(package.hook) == v:t_func
+      call package.hook()
+    else
       execute package.hook
     endif
   endfor
@@ -193,11 +195,11 @@ function pack#add(plugin, ...)
     let package.packtype = 'start'
   endif
   let ft = get(options, 'for') 
-  if ft != [] && type(ft) == type([])
+  if ft != [] && type(ft) == v:t_list
     let package.packtype = 'opt'
     execute 'autocmd FileType '  .. join(ft, ',') .. ' silent! packadd ' .. package.name
   endif
-  if ft != '' && type(ft) == type('')
+  if ft != '' && type(ft) == v:t_string
     let package.packtype = 'opt'
     execute 'autocmd FileType '  .. ft .. ' silent! packadd ' .. package.name
   endif

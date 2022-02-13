@@ -25,11 +25,11 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 
 |   name   |        type        | description                       |
 | :------: | :----------------: | :-------------------------------- |
-|   `do`   |      `string`      | post-update hook                  |
+|   `do`   | `string` or `func` | post-update hook                  |
 | `branch` |      `sring`       | git branch                        |
 |  `rtp`   |      `string`      | path to plugin                    |
 |   `as`   |      `string`      | name of plugin                    |
-|  `for`   | `string` or `list` | lazy loading for given filetype   |
+|  `for`   | `string` or `list` | lazy loading for given filetypes  |
 |  `opt`   |     `boolean`      | lazy loading for `packadd {name}` |
 
 ## Example configuration
@@ -39,7 +39,7 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 ```vim
 call pack#begin()
 Pack 'junegunn/fzf.vim'
-Pack 'junegunn/fzf', { 'do': 'call fzf#install()' }
+Pack 'junegunn/fzf', { 'do': {-> fzf#install()} }
 Pack 'neoclide/coc.nvim', {'branch': 'release'}
 Pack 'neoclide/coc.nvim', {'branch': 'master', 'do': '!yarn install --frozen-lockfile'}
 Pack 'vlime/vlime', { 'rtp': 'vim' }
@@ -53,7 +53,7 @@ call pack#end()
 ```vim
 call pack#begin()
 pack#add('junegunn/fzf.vim')
-pack#add('junegunn/fzf', { 'do': 'call fzf#install()' })
+pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
 pack#add('neoclide/coc.nvim', {'branch': 'release'})
 pack#add('neoclide/coc.nvim', {'branch': 'master', 'do': '!yarn install --frozen-lockfile'})
 pack#add('vlime/vlime', { 'rtp': 'vim' })
