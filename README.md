@@ -17,7 +17,7 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 Download pack.vim and put it in the `autoload` directory.
 
 ```
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+curl -fLo ~/.vim/autoload/pack.vim --create-dirs \
     https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
 
