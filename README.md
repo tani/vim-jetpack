@@ -23,14 +23,14 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 
 ## Supported options
 
-|   name   | description                         |
-| :------: | :---------------------------------- |
-|   `do`   | Post-update hook                    |
-| `branch` | git branch                          |
-|  `rtp`   | subdirectory is placed a plugin     |
-|   `as`   | name of plugin                      |
-|  `for`   | lazy loading for the given filetype |
-|  `opt`   | lazy loading for `packadd {name}`   |
+|   name   |        type        | description                       |
+| :------: | :----------------: | :-------------------------------- |
+|   `do`   |      `string`      | post-update hook                  |
+| `branch` |      `sring`       | git branch                        |
+|  `rtp`   |      `string`      | path to plugin                    |
+|   `as`   |      `string`      | name of plugin                    |
+|  `for`   | `string` or `list` | lazy loading for given filetype   |
+|  `opt`   |     `boolean`      | lazy loading for `packadd {name}` |
 
 ## Example configuration
 
