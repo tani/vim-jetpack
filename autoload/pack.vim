@@ -64,17 +64,29 @@ fu s:mergable(pkgs, pkg)
 endf
 
 fu s:wait(jobs)
-  let running = 1
-  wh running 
-    let running = 0
-    for job in a:jobs
-      if job_status(job) == 'run'
-        let running = 1
-      en
-    endfo
-    sl 1
-  endw
+  if has('nvim')
+    call jobwait(a:jobs)
+  el
+    let running = 1
+    wh running 
+      let running = 0
+      for job in a:jobs
+        if job_status(job) == 'run'
+          let running = 1
+        en
+      endfo
+      sl 1
+    endw
+  en
 endf
+
+fu s:jobstart(cmd)
+  if has('nvim')
+    return jobstart(a:cmd)
+  el
+    return job_start(a:cmd)
+  endif
+endfu
 
 fu pack#install()
   let jobs = []
@@ -85,7 +97,7 @@ fu pack#install()
         cal extend(cmd, ['-b', pkg.branch])
       en
       cal extend(cmd, [pkg.url, pkg.path])
-      cal add(jobs, job_start(cmd))
+      cal add(jobs, s:jobstart(cmd))
     en
   endfo
   cal s:wait(jobs)
@@ -95,7 +107,7 @@ fu pack#update()
   let jobs = []
   for pkg in s:pkgs
     if !pkg.frozen && glob(pkg.path .. '/') != ''
-      cal add(jobs, job_start(['git', '-C', pkg.path, 'pull']))
+      cal add(jobs, s:jobstart(['git', '-C', pkg.path, 'pull']))
     en
   endfo
   cal s:wait(jobs)
