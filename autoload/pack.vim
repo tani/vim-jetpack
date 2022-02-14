@@ -123,7 +123,6 @@ fu pack#bundle()
       cal writefile(blob, destfile, 'b')
     endfo
   endfo
-  exe 'helptags ' .. destdir
   for pkg in unbundle
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let destdir = s:packdir .. '/' .. pkg.packtype .. '/' .. pkg.name
@@ -133,8 +132,11 @@ fu pack#bundle()
       let blob = readfile(srcfile, 'b')
       cal writefile(blob, destfile, 'b')
     endfo
-    exe 'helptags ' .. destdir
   endfo
+endf
+
+fu pack#helptags()
+  packl | sil! helpt ALL
 endf
 
 fu pack#hook()
@@ -159,8 +161,10 @@ fu pack#sync()
   cal pack#update()
   echom 'Bundling plugins ...'
   cal pack#bundle()
-  echom 'Running hooks...'
+  echom 'Running hooks ...'
   cal pack#hook()
+  echom 'Generating helptags ...'
+  cal pack#helptags()
   echom 'Complete'
 endf
 
