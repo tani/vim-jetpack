@@ -105,7 +105,9 @@ fu pack#bundle()
   let bundle = []
   let unbundle = []
   for pkg in s:pkgs
-    if (g:pack#optimization >= 1 && pkg.packtype == 'start' && (g:pack#optimization == 2 || s:mergable(bundle, pkg)))
+    if g:pack#optimization >= 1
+         \ && pkg.packtype == 'start'
+         \ && (g:pack#optimization || s:mergable(bundle, pkg))
       cal add(bundle, pkg)
     el
       cal add(unbundle, pkg)
