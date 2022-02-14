@@ -30,6 +30,8 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 ## Supported options
 
+The JETPACK.vim is 90% compatible with vim-plug.
+
 |      name       |        type        | description                           |
 | :-------------: | :----------------: | :------------------------------------ |
 | `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use  |
@@ -41,6 +43,8 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 |      `for`      | `string` or `list` | On-demand loading: File types         |
 |      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
 |    `frozen`     |     `boolean`      | Do not update                         |
+
+We welcome to merge a new option if you create a pull request to add the `commit` option.
 
 ## Configuration
 
