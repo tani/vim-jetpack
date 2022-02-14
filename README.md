@@ -44,21 +44,20 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 - `g:pack#optimization` -- The optimization level for the bundle algorithm.
 
-  | speed | 0 | 1 | 2 |
-  | :----:| :-:| :-:| :-:|
-  | install | fastest | slow | faster |
-  | startup | slow | faster | fastest |
+  |  speed  |    0    |   1    |    2    |
+  | :-----: | :-----: | :----: | :-----: |
+  | install | fastest |  slow  | faster  |
+  | startup |  slow   | faster | fastest |
   - `0` -- Bundle nothing. This is the same as vim-plug and is the safest level.
   - `1` -- Bundle if there are no conflicts. It tries to bundle plgins as
     possible. This is default and is safer than `3`.
   - `2` -- Bundle everything. This may be the same as dein.vim, and is the
     fastest level. It overwrites some duplicated files.
-    
-
 
 ## Commands
 
-- `:PackSync` -- Synchronize configuration and state. It performs to install, update, and bundle.
+- `:PackSync` -- Synchronize configuration and state. It performs to install,
+  update, and bundle.
 
 ## Example Usage
 
