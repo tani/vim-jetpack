@@ -1,10 +1,14 @@
 # 🚀 JETPACK.vim
 
-The **lightning-fast** minimalist plugin manager for Vim/ Neovim.
+The **lightning-fast** minimalist plugin manager for Vim/ Neovim. JETPACK.vim is
+a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
+the built-in plugin manager only.
 
 ## Benchmark
 
-In the simple cases, JETPACK.vim is the fastest plugin manager.
+In the simple cases, JETPACK.vim is the fastest plugin manager. Remark that
+JETPACK.vim is 2 times faster than vim-plug even if it supports the most of
+options of vim-plug.
 
 |  name   | time (ms) |
 | :-----: | --------: |
@@ -13,8 +17,8 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 |  plug   |       155 |
 | packer  |       190 |
 
-You can run the benchmarks in your local environment.
-See the `benchmark` directory for more detail
+You can run the benchmarks in your local environment. See the `benchmark`
+directory for more detail
 
 ## Installation
 
@@ -36,19 +40,19 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 JETPACK.vim is 90% compatible with vim-plug.
 
-|      name       |        type        | description                           |
-| :-------------: | :----------------: | :------------------------------------ |
-| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use  |
-|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin |
-|      `dir`      |      `string`      | Custom directory for the plugin       |
-|      `as`       |      `string`      | Use different name for plugin         |
-|      `do`       | `string` or `func` | Post-updat hook                       |
-|      `on`       | `string` or `list` | On-demand loading: Commands           |
-|      `for`      | `string` or `list` | On-demand loading: File types         |
-|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
-|    `frozen`     |     `boolean`      | Do not update                         |
+|      name       |        type        | description                              |
+| :-------------: | :----------------: | :--------------------------------------- |
+| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use     |
+|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin    |
+|      `dir`      |      `string`      | Custom directory for the plugin          |
+|      `as`       |      `string`      | Use different name for plugin            |
+|      `do`       | `string` or `func` | Post-updat hook                          |
+|      `on`       | `string` or `list` | On-demand loading: Commands and `<Plug>` |
+|      `for`      | `string` or `list` | On-demand loading: File types            |
+|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`      |
+|    `frozen`     |     `boolean`      | Do not update                            |
 
-We welcome to merge a new option if you create a pull request to add the `commit` option.
+We welcome a pull request to add  the `on` option for non-normal mode and the `commit` option.
 
 ## Configuration
 
@@ -73,7 +77,8 @@ We welcome to merge a new option if you create a pull request to add the `commit
 
 ### vim-plug style
 
-The most of vim-plug users can migrate to JETPACK.vim by `:%s/plug/pack/g` and `:%s/Plug/Pack/g`.
+The most of vim-plug users can migrate to JETPACK.vim by `:%s/plug/pack/g` and
+`:%s/Plug/Pack/g`.
 
 ```vim
 call pack#begin()

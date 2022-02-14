@@ -51,7 +51,7 @@ endf
 fu s:mergable(pkgs, pkg)
   let path = []
   for pkg in a:pkgs
-    call add(path, pkg.path)
+    cal add(path, pkg.path)
   endfo
   let path = join(path, ',')
   for abspath in s:files(a:pkg.path)
@@ -160,7 +160,7 @@ fu pack#hook()
       cal pkg.hook()
     el
       if pkg.hook =~ '^:'
-        call system(pkg.hook)
+        cal system(pkg.hook)
       el
         exe pkg.hook
       en
@@ -221,11 +221,21 @@ fu pack#add(plugin, ...)
   let cmd = get(pkg, 'command')
   if type(cmd) == v:t_list && cmd != []
     let pkg.packtype = 'opt'
-    exe 'au CmdUndefined '  .. join(cmd, ',') .. ' sil! pa ' .. pkg.name
+    for it in cmd
+      if it =~ '^<Plug>'
+        exe printf('nn %s :exe ' .. "'" .. 'pa %s \| cal feedkeys("\%s")' .. "'" .. '<CR>', it, pkg.name, it)
+      el
+        exe 'au CmdUndefined '  .. it .. ' sil! pa ' .. pkg.name
+      en
+    endfo
   en
   if type(cmd) == v:t_string && cmd != ''
     let pkg.packtype = 'opt'
-    exe 'au CmdUndefined '  .. cmd .. ' sil! pa ' .. pkg.name
+    if cmd =~ '^<Plug>'
+      exe printf('nn %s :exe ' .. "'" .. 'pa %s \| cal feedkeys("\%s")' .. "'" .. '<CR>', cmd, pkg.name, cmd)
+    el
+      exe 'au CmdUndefined '  .. cmd .. ' sil! pa ' .. pkg.name
+    en
   en
   cal add(s:pkgs, pkg)
 endf
