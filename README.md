@@ -40,6 +40,7 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 |   `on`   | `string` or `list` | On-demand loading: Commands           |
 |  `for`   | `string` or `list` | On-demand loading: File types         |
 |  `opt`   |     `boolean`      | On-demand loading: `packadd {name}`   |
+| `frozen` |     `boolean`      | Do not update                         |
 
 ## Configuration
 

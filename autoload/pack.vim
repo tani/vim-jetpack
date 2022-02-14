@@ -93,7 +93,7 @@ endf
 fu pack#update()
   let jobs = []
   for pkg in s:pkgs
-    if glob(pkg.path .. '/') != ''
+    if !pkg.frozen && glob(pkg.path .. '/') != ''
       cal add(jobs, job_start(['git', '-C', pkg.path, 'pull']))
     en
   endfo
@@ -172,6 +172,7 @@ fu pack#add(plugin, ...)
         \ 'branch': '',
         \ 'rtp': '.',
         \ 'on': [],
+        \ 'frozen': 0,
         \ }
   if a:0 > 0
     cal extend(opts, a:1)
@@ -184,6 +185,7 @@ fu pack#add(plugin, ...)
         \  'name': get(opts, 'as'),
         \  'command': get(opts, 'on'),
         \  'filetype': get(opts, 'for'),
+        \  'frozen': get(opts, 'frozen'),
         \  'path': get(opts, 'dir', s:packdir .. '/src/' .. get(opts, 'as')),
         \  'packtype': get(opts, 'opt') ? 'opt' : 'start',
         \ }
