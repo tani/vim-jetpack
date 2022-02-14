@@ -69,6 +69,8 @@ We welcome to merge a new option if you create a pull request to add the `commit
 
 ### vim-plug style
 
+The most of vim-plug users can migrate to JETPACK.vim by `:%s/plug/pack/g` and `:%s/Plug/Pack/g`.
+
 ```vim
 call pack#begin()
 Pack 'junegunn/fzf.vim'
