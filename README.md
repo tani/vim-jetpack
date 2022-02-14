@@ -8,9 +8,13 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 
 |  name   | time (ms) |
 | :-----: | --------: |
-| jetpack |        99 |
-|  dein   |       114 |
-|  plug   |       129 |
+| jetpack |        77 |
+|  dein   |        97 |
+|  plug   |       155 |
+| packer  |       190 |
+
+You can run the benchmarks in your local environment.
+See the `benchmark` directory for more detail
 
 ## Installation
 
