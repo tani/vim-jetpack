@@ -16,12 +16,14 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 
 Download pack.vim and put it in the `autoload` directory.
 
-###  Vim
+### Vim
+
 ```
 curl -fLo ~/.vim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
 
 ### Neovim
+
 ```
 curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
@@ -37,6 +39,21 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 |  `for`   | `string` or `list` | lazy loading for filetypes        |
 |   `on`   | `string` or `list` | lazy loading for commands         |
 |  `opt`   |     `boolean`      | lazy loading for `packadd {name}` |
+
+## Configuration
+
+- `g:pack#optimization` -- The optimization level for the bundle algorithm.
+  - `0` -- Bundle nothing. This is the same as vim-plug and is the safest level.
+  - `1` -- Bundle if there are no conflicts. It tries to bundle plgins as
+    possible. This is default and is safer than `3`.
+  - `2` -- Bundle everything. This may be the same as dein.vim, and is the
+    fastest level. It overwrites some duplicated files.
+
+| level | install | startup |
+| :---: | :-----: | :-----: |
+|   0   | fastest | slowest |
+|   1   | slowest | faster  |
+|   2   | slower  | fastest |
 
 ## Example configuration
 
@@ -100,9 +117,9 @@ dein.vim.
 
 ### Is this plugin faster than dein?
 
-No if you are vim-wizard. Dein provides many option to tune the startup.
-Thus, dein takes milli-seconds to do many things. Our plugin does as the
-same as vim-plug, i.e., this plugin provides less options than dein.
+No if you are vim-wizard. Dein provides many option to tune the startup. Thus,
+dein takes milli-seconds to do many things. Our plugin does as the same as
+vim-plug, i.e., this plugin provides less options than dein.
 
 ## Copyright and License
 
