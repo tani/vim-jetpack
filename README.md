@@ -58,13 +58,13 @@ call pack#end()
 
 ```vim
 call pack#begin()
-pack#add('junegunn/fzf.vim')
-pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
-pack#add('neoclide/coc.nvim', { 'branch': 'release' })
-pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' })
-pack#add('vlime/vlime', { 'rtp': 'vim' })
-pack#add('dracula/vim', { 'as': 'dracula' })
-pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call pack#add('junegunn/fzf.vim')
+call pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call pack#add('neoclide/coc.nvim', { 'branch': 'release' })
+call pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' })
+call pack#add('vlime/vlime', { 'rtp': 'vim' })
+call pack#add('dracula/vim', { 'as': 'dracula' })
+call pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
 call pack#end()
 ```
 
