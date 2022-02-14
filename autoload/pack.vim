@@ -17,6 +17,7 @@ let s:ignores = [
   \ "**/t/**/*",
   \ "**/test/**/*",
   \ "**/VimFlavor*",
+  \ "**/Flavorfile*",
   \ "**/README*",
   \ "**/Rakefile*",
   \ "**/Gemfile*",
@@ -48,18 +49,16 @@ fu s:ignorable(filename)
 endf
 
 fu s:mergable(pkgs, pkg)
+  let path = []
   for pkg in a:pkgs
-    for abspath1 in s:files(pkg.path)
-      let relpath1 = substitute(abspath1, pkg.path, '', '')
-      if !s:ignorable(relpath1)
-        for abspath2 in s:files(a:pkg.path)
-          let relpath2 = substitute(abspath2, a:pkg.path, '', '')
-          if (relpath1 == relpath2)
-            retu 0
-          en
-        endfo
-      en
-    endfo
+    call add(path, pkg.path)
+  endfo
+  let path = join(path, ',')
+  for abspath in s:files(a:pkg.path)
+    let relpath = substitute(abspath, a:pkg.path, '', '')
+    if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
+      retu 0
+    en
   endfo
   retu 1
 endf
