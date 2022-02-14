@@ -80,11 +80,12 @@ fu pack#install()
   let jobs = []
   for pkg in s:pkgs
     if glob(pkg.path .. '/') == ''
-      if pkg.branch != ''
-        cal add(jobs, job_start(['git', 'clone', '-b', pkg.branch, pkg.url, pkg.path]))
-      el
-        cal add(jobs, job_start(['git', 'clone', pkg.url, pkg.path]))
+      let cmd = ['git', 'clone']
+      if pkg.branch
+        cal extend(cmd, ['-b', pkg.branch])
       en
+      cal extend(cmd, [pkg.url, pkg.path])
+      cal add(jobs, job_start(cmd))
     en
   endfo
   cal s:wait(jobs)
@@ -168,8 +169,9 @@ fu pack#add(plugin, ...)
         \ 'as': fnamemodify(a:plugin, ':t'),
         \ 'opt': 0,
         \ 'for': [],
+        \ 'branch': 0,
+        \ 'tag': 0,
         \ 'do': '',
-        \ 'branch': '',
         \ 'rtp': '.',
         \ 'on': [],
         \ 'frozen': 0,
@@ -179,7 +181,7 @@ fu pack#add(plugin, ...)
   en
   let pkg  = {
         \  'url': 'https://github.com/' .. a:plugin,
-        \  'branch': get(opts, 'branch'),
+        \  'branch': get(opts, 'branch', get(opts, 'tag')),
         \  'hook': get(opts, 'do'),
         \  'subdir': get(opts, 'rtp'),
         \  'name': get(opts, 'as'),

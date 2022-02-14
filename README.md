@@ -30,17 +30,18 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 ## Supported options
 
-|   name   |        type        | description                           |
-| :------: | :----------------: | :------------------------------------ |
-| `branch` |      `sring`       | Branch of the repository to use       |
-|  `rtp`   |      `string`      | Subdirectory that contains Vim plugin |
-|  `dir`   |      `string`      | Custom directory for the plugin       |
-|   `as`   |      `string`      | Use different name for plugin         |
-|   `do`   | `string` or `func` | Post-updat hook                       |
-|   `on`   | `string` or `list` | On-demand loading: Commands           |
-|  `for`   | `string` or `list` | On-demand loading: File types         |
-|  `opt`   |     `boolean`      | On-demand loading: `packadd {name}`   |
-| `frozen` |     `boolean`      | Do not update                         |
+|      name       |        type        | description                           |
+| :-------------: | :----------------: | :------------------------------------ |
+| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use  |
+:q
+|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin |
+|      `dir`      |      `string`      | Custom directory for the plugin       |
+|      `as`       |      `string`      | Use different name for plugin         |
+|      `do`       | `string` or `func` | Post-updat hook                       |
+|      `on`       | `string` or `list` | On-demand loading: Commands           |
+|      `for`      | `string` or `list` | On-demand loading: File types         |
+|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
+|    `frozen`     |     `boolean`      | Do not update                         |
 
 ## Configuration
 
