@@ -142,7 +142,11 @@ fu pack#hook()
     if type(pkg.hook) == v:t_func
       cal pkg.hook()
     el
-      exe pkg.hook
+      if pkg.hook =~ '^:'
+        call system(pkg.hook)
+      el
+        exe pkg.hook
+      en
     en
   endfo
 endf
@@ -180,7 +184,7 @@ fu pack#add(plugin, ...)
         \  'name': get(opts, 'as'),
         \  'command': get(opts, 'on'),
         \  'filetype': get(opts, 'for'),
-        \  'path': s:packdir .. '/src/' .. get(opts, 'as'),
+        \  'path': get(opts, 'dir', s:packdir .. '/src/' .. get(opts, 'as')),
         \  'packtype': get(opts, 'opt') ? 'opt' : 'start',
         \ }
   let ft = get(pkg, 'filetype')

@@ -30,15 +30,16 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 ## Supported options
 
-|   name   |        type        | description                       |
-| :------: | :----------------: | :-------------------------------- |
-|   `do`   | `string` or `func` | post-update hook                  |
-| `branch` |      `sring`       | git branch                        |
-|  `rtp`   |      `string`      | path to plugin                    |
-|   `as`   |      `string`      | name of plugin                    |
-|  `for`   | `string` or `list` | lazy loading for filetypes        |
-|   `on`   | `string` or `list` | lazy loading for commands         |
-|  `opt`   |     `boolean`      | lazy loading for `packadd {name}` |
+|   name   |        type        | description                           |
+| :------: | :----------------: | :------------------------------------ |
+| `branch` |      `sring`       | Branch of the repository to use       |
+|  `rtp`   |      `string`      | Subdirectory that contains Vim plugin |
+|  `dir`   |      `string`      | Custom directory for the plugin       |
+|   `as`   |      `string`      | Use different name for plugin         |
+|   `do`   | `string` or `func` | Post-updat hook                       |
+|   `on`   | `string` or `list` | On-demand loading: Commands           |
+|  `for`   | `string` or `list` | On-demand loading: File types         |
+|  `opt`   |     `boolean`      | On-demand loading: `packadd {name}`   |
 
 ## Configuration
 
@@ -68,7 +69,7 @@ call pack#begin()
 Pack 'junegunn/fzf.vim'
 Pack 'junegunn/fzf', { 'do': {-> fzf#install()} }
 Pack 'neoclide/coc.nvim', { 'branch': 'release' }
-Pack 'neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' }
+Pack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' }
 Pack 'vlime/vlime', { 'rtp': 'vim' }
 Pack 'dracula/vim', { 'as': 'dracula' }
 Pack 'tpope/vim-fireplace', { 'for': 'clojure' }
@@ -82,7 +83,7 @@ call pack#begin()
 call pack#add('junegunn/fzf.vim')
 call pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
 call pack#add('neoclide/coc.nvim', { 'branch': 'release' })
-call pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': '!yarn install --frozen-lockfile' })
+call pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
 call pack#add('vlime/vlime', { 'rtp': 'vim' })
 call pack#add('dracula/vim', { 'as': 'dracula' })
 call pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
@@ -96,7 +97,7 @@ require('pack').setup(function(use)
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', do = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
-  use {'neoclide/coc.nvim', branch = 'master', do = '!yarn install --frozen-lockfile'}
+  use {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
   use {'tpope/vim-fireplace', for = 'clojure' }
