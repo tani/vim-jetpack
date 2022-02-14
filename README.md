@@ -55,7 +55,11 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 |   1   | slowest | faster  |
 |   2   | slower  | fastest |
 
-## Example configuration
+## Commands
+
+- `:PackSync` -- Synchronize configuration and state. It performs to install, update, and bundle.
+
+## Example Usage
 
 ### vim-plug style
 
