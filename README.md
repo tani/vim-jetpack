@@ -33,7 +33,6 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 |      name       |        type        | description                           |
 | :-------------: | :----------------: | :------------------------------------ |
 | `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use  |
-:q
 |      `rtp`      |      `string`      | Subdirectory that contains Vim plugin |
 |      `dir`      |      `string`      | Custom directory for the plugin       |
 |      `as`       |      `string`      | Use different name for plugin         |
