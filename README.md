@@ -30,7 +30,7 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 ## Supported options
 
-The JETPACK.vim is 90% compatible with vim-plug.
+JETPACK.vim is 90% compatible with vim-plug.
 
 |      name       |        type        | description                           |
 | :-------------: | :----------------: | :------------------------------------ |
