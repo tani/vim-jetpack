@@ -65,7 +65,7 @@ endf
 
 fu s:wait(jobs)
   if has('nvim')
-    call jobwait(a:jobs)
+    cal jobwait(a:jobs)
   el
     let running = 1
     wh running 
@@ -82,10 +82,10 @@ endf
 
 fu s:jobstart(cmd)
   if has('nvim')
-    return jobstart(a:cmd)
+    retu jobstart(a:cmd)
   el
-    return job_start(a:cmd)
-  endif
+    retu job_start(a:cmd)
+  en
 endfu
 
 fu pack#install()
