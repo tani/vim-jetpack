@@ -6,16 +6,15 @@ the built-in plugin manager only.
 
 ## Benchmark
 
-In the simple cases, JETPACK.vim is the fastest plugin manager. Remark that
-JETPACK.vim is 2 times faster than vim-plug even if it supports the most of
-options of vim-plug.
+In the simple cases, JETPACK.vim is the fastest plugin manager.
 
 |  name   | time (ms) |
 | :-----: | --------: |
-| jetpack |        77 |
-|  dein   |        97 |
-|  plug   |       155 |
-| packer  |       190 |
+| jetpack |        80 |
+|  dein   |        86 |
+|  paq    |        88 |
+| packer  |        89 |
+|  plug   |        93 |
 
 You can run the benchmarks in your local environment. See the `benchmark`
 directory for more detail

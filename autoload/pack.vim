@@ -119,7 +119,7 @@ fu pack#install(...)
     endif
     if glob(pkg.path .. '/') == ''
       echomsg printf('Cloning %s ...', pkg.name)
-      let cmd = ['git', 'clone']
+      let cmd = ['git', 'clone', '--depth', '1']
       if pkg.branch
         call extend(cmd, ['-b', pkg.branch])
       endif
