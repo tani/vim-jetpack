@@ -29,6 +29,28 @@ let s:ignores = [
   \ "**/NEWS*",
   \ ]
 
+let s:events = [
+  \ 'BufNewFile', 'BufReadPre', 'BufRead', 'BufReadPost', 'BufReadCmd',
+  \ 'FileReadPre', 'FileReadPost', 'FileReadCmd', 'FilterReadPre',
+  \ 'FilterReadPost', 'StdinReadPre', 'StdinReadPost', 'BufWrite',
+  \ 'BufWritePre', 'BufWritePost', 'BufWriteCmd', 'FileWritePre',
+  \ 'FileWritePost', 'FileWriteCmd', 'FileAppendPre', 'FileAppendPost',
+  \ 'FileAppendCmd', 'FilterWritePre', 'FilterWritePost', 'BufAdd', 'BufCreate',
+  \ 'BufDelete', 'BufWipeout', 'BufFilePre', 'BufFilePost', 'BufEnter',
+  \ 'BufLeave', 'BufWinEnter', 'BufWinLeave', 'BufUnload', 'BufHidden',
+  \ 'BufNew', 'SwapExists', 'FileType', 'Syntax', 'EncodingChanged',
+  \ 'TermChanged', 'VimEnter', 'GUIEnter', 'GUIFailed', 'TermResponse',
+  \ 'QuitPre', 'VimLeavePre', 'VimLeave', 'FileChangedShell',
+  \ 'FileChangedShellPost', 'FileChangedRO', 'ShellCmdPost', 'ShellFilterPost',
+  \ 'FuncUndefined', 'SpellFileMissing', 'SourcePre', 'SourceCmd', 'VimResized',
+  \ 'FocusGained', 'FocusLost', 'CursorHold', 'CursorHoldI', 'CursorMoved',
+  \ 'CursorMovedI', 'WinEnter', 'WinLeave', 'TabEnter', 'TabLeave',
+  \ 'CmdwinEnter', 'CmdwinLeave', 'InsertEnter', 'InsertChange', 'InsertLeave',
+  \ 'InsertCharPre', 'TextChanged', 'TextChangedI', 'ColorScheme',
+  \ 'RemoteReply', 'QuickFixCmdPre', 'QuickFixCmdPost', 'SessionLoadPost',
+  \ 'MenuPopup', 'CompleteDone', 'User'
+  \ ]
+
 fu s:files(path)
   let files = []
   for item in glob(a:path .. '/**/*', '', 1)
@@ -89,9 +111,12 @@ fu s:jobstart(cmd)
   endif
 endfu
 
-fu pack#install()
+fu pack#install(...)
   let jobs = []
   for pkg in s:pkgs
+    if a:0 > 0 && index(a:000, pkg.name) < 0
+      continue
+    endif
     if glob(pkg.path .. '/') == ''
       echomsg printf('Cloning %s ...', pkg.name)
       let cmd = ['git', 'clone']
@@ -105,9 +130,12 @@ fu pack#install()
   call s:wait(jobs)
 endfunction
 
-fu pack#update()
+fu pack#update(...)
   let jobs = []
   for pkg in s:pkgs
+    if a:0 > 0 && index(a:000, pkg.name) < 0
+      continue
+    endif
     if !pkg.frozen && glob(pkg.path .. '/') != ''
       echomsg printf('Updating %s ...', pkg.name)
       call add(jobs, s:jobstart(['git', '-C', pkg.path, 'pull']))
@@ -152,11 +180,7 @@ fu pack#bundle()
   endfor
 endfunction
 
-fu pack#helptags()
-  packloadall | silent! helptags ALL
-endfunction
-
-fu pack#hook()
+fu pack#postupdate()
   packloadall 
   for pkg in s:pkgs
     if type(pkg.hook) == v:t_func
@@ -170,6 +194,7 @@ fu pack#hook()
       endif
     endif
   endfor
+  packloadall | silent! helptags ALL
 endfunction
 
 fu pack#sync()
@@ -179,10 +204,8 @@ fu pack#sync()
   call pack#update()
   echomsg 'Bundling plugins ...'
   call pack#bundle()
-  echomsg 'Running hooks ...'
-  call pack#hook()
-  echomsg 'Generating helptags ...'
-  call pack#helptags()
+  echomsg 'Running the post-update hooks ...'
+  call pack#postupdate()
   echomsg 'Complete'
 endfunction
 
@@ -239,7 +262,8 @@ fu pack#end()
   delcommand Pack
 endfunction
 
+command! -nargs=* PackInstall call pack#install(<q-args>)
+command! -nargs=* PackUpdate call pack#update(<q-args>)
+command! PackBundle call pack#bundle()
+command! PackPostUpdate call pack#postupdate()
 command! PackSync call pack#sync()
-
-let s:events = ['BufNewFile', 'BufReadPre', 'BufRead', 'BufReadPost', 'BufReadCmd', 'FileReadPre', 'FileReadPost', 'FileReadCmd', 'FilterReadPre', 'FilterReadPost', 'StdinReadPre', 'StdinReadPost', 'BufWrite', 'BufWritePre', 'BufWritePost', 'BufWriteCmd', 'FileWritePre', 'FileWritePost', 'FileWriteCmd', 'FileAppendPre', 'FileAppendPost', 'FileAppendCmd', 'FilterWritePre', 'FilterWritePost', 'BufAdd', 'BufCreate', 'BufDelete', 'BufWipeout', 'BufFilePre', 'BufFilePost', 'BufEnter', 'BufLeave', 'BufWinEnter', 'BufWinLeave', 'BufUnload', 'BufHidden', 'BufNew', 'SwapExists', 'FileType', 'Syntax', 'EncodingChanged', 'TermChanged', 'VimEnter', 'GUIEnter', 'GUIFailed', 'TermResponse', 'QuitPre', 'VimLeavePre', 'VimLeave', 'FileChangedShell', 'FileChangedShellPost', 'FileChangedRO', 'ShellCmdPost', 'ShellFilterPost', 'FuncUndefined', 'SpellFileMissing', 'SourcePre', 'SourceCmd', 'VimResized', 'FocusGained', 'FocusLost', 'CursorHold', 'CursorHoldI', 'CursorMoved', 'CursorMovedI', 'WinEnter', 'WinLeave', 'TabEnter', 'TabLeave', 'CmdwinEnter', 'CmdwinLeave', 'InsertEnter', 'InsertChange', 'InsertLeave', 'InsertCharPre', 'TextChanged', 'TextChangedI', 'ColorScheme', 'RemoteReply', 'QuickFixCmdPre', 'QuickFixCmdPost', 'SessionLoadPost', 'MenuPopup', 'CompleteDone', 'User']
-
