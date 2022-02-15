@@ -5,6 +5,7 @@
 "=============================================
 
 let g:pack#optimization = 1
+let g:pack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
@@ -85,19 +86,27 @@ function s:mergable(pkgs, pkg)
   return 1
 endfunction
 
-function s:wait(jobs)
+function s:wait(jobs, njobs)
+  let running = len(a:jobs)
   if has('nvim')
-    call jobwait(a:jobs)
-  else
-    let running = 1
-    while running 
-      let running = 0
+    while running > a:njobs
       for job in a:jobs
-        if job_status(job) == 'run'
-          let running = 1
+        if jobwait([job], 0)[0] == -1
+          let running = running + 1
+        else
+          let running = running - 1
         endif
       endfor
-      sleep 1
+    endwhile
+  else
+    while running > a:njobs
+      for job in a:jobs
+        if job_status(job) == 'run'
+          let running = running + 1
+        else
+          let running = running - 1
+        endif
+      endfor
     endwhile
   endif
 endfunction
@@ -110,29 +119,29 @@ function s:jobstart(cmd, cb)
   endif
 endfunction
 
-function s:setbufline(bufnr, lnum, text, ...)
-  call setbufline(a:bufnr, a:lnum, a:text)
+function s:setbufline(lnum, text, ...)
+  call setbufline('PackStatus', a:lnum, a:text)
   redraw
 endfunction
 
-function s:createbuf(name)
-  execute 'vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber ' .. a:name
+function s:createbuf()
+  vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap PackStatus
   vertical resize 40
   redraw
 endfunction
 
-function s:deletebuf(name)
-  execute 'bdelete ' .. bufnr(a:name)
+function s:deletebuf()
+  execute 'bdelete ' .. bufnr('PackStatus')
   redraw
 endfunction
 
 function pack#install(...)
-  call s:createbuf('PackInstall')
+  call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
-    call s:setbufline('PackInstall', i+1, 'Installing ' .. s:pkgs[i].name)
+    call s:setbufline(i+1, printf('Installing %s ...', s:pkgs[i].name))
     if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || glob(s:pkgs[i].path .. '/') != ''
-      call s:setbufline('PackInstall', i+1, 'Installed ' .. s:pkgs[i].name)
+      call s:setbufline('PackInstall', i+1, printf('Installed %s', s:pkgs[i].name))
       continue
     endif
     let cmd = ['git', 'clone', '--depth', '1']
@@ -140,28 +149,30 @@ function pack#install(...)
       call extend(cmd, ['-b', s:pkgs[i].branch])
     endif
     call extend(cmd, [s:pkgs[i].url, s:pkgs[i].path])
-    let job = s:jobstart(cmd, function('<SID>setbufline', ['PackInstall', i+1, 'Installed ' .. s:pkgs[i].name]))
+    let job = s:jobstart(cmd, function('<SID>setbufline', [i+1, printf('Installed %s', s:pkgs[i].name)]))
     call add(jobs, job)
+    call s:wait(jobs, g:pack#njobs)
   endfor
-  call s:wait(jobs)
-  call s:deletebuf('PackInstall')
+  call s:wait(jobs, 0)
+  call s:deletebuf()
 endfunction
 
 function pack#update(...)
-  call s:createbuf('PackUpdate')
+  call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
-    call s:setbufline('PackUpdate', i+1, 'Updating ' .. s:pkgs[i].name)
+    call s:setbufline(i+1, printf('Updating %s ...', s:pkgs[i].name))
     if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || (s:pkgs[i].frozen || glob(s:pkgs[i].path .. '/') == '')
-      call s:setbufline('PackUpdate', i+1, 'Updated ' .. s:pkgs[i].name)
+      call s:setbufline(i+1, printf('Updated %s', s:pkgs[i].name))
       continue
     endif
     let cmd = ['git', '-C', s:pkgs[i].path, 'pull']
-    let job = s:jobstart(cmd, function('<SID>setbufline', ['PackUpdate', i+1, 'Updated ' .. s:pkgs[i].name]))
+    let job = s:jobstart(cmd, function('<SID>setbufline', [i+1, printf('Updated %s', s:pkgs[i].name)]))
     call add(jobs, job)
+    call s:wait(jobs, g:pack#njobs)
   endfor
-  call s:wait(jobs)
-  call s:deletebuf('PackUpdate')
+  call s:wait(jobs, 0)
+  call s:deletebuf()
 endfunction
 
 function pack#bundle()
