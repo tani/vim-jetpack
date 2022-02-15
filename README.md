@@ -107,10 +107,20 @@ call pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
 call pack#end()
 ```
 
-### packer style
+### Lua extension
+
+You additionally need to download the lua extension and put it in the `lua`
+directory as follows.
+
+```
+curl -fLo ~/.config/nvim/lua/pack.lua --create-dirs \
+    https://raw.githubusercontent.com/tani/jetpack/master/pack.lua
+```
+
+#### packer style
 
 ```lua
-require('pack').setup(function(use)
+require('pack').startup(function(use)
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', do = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
@@ -121,13 +131,20 @@ require('pack').setup(function(use)
 end)
 ```
 
-You additionally need to download the lua extension and put it in the `lua`
-directory as follows.
+#### paq style
 
+```lua
+require('pack').setup {
+  'junegunn/fzf.vim',
+  {'junegunn/fzf', do = 'call fzf#install()' },
+  {'neoclide/coc.nvim', branch = 'release'},
+  {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'},
+  {'vlime/vlime', rtp = 'vim' },
+  {'dracula/vim', as = 'dracula' },
+  {'tpope/vim-fireplace', for = 'clojure' },
+}
 ```
-curl -fLo ~/.config/nvim/lua/pack.lua --create-dirs \
-    https://raw.githubusercontent.com/tani/jetpack/master/pack.lua
-```
+
 
 ## Q & A
 
