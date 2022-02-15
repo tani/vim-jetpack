@@ -40,19 +40,20 @@ curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubuserc
 
 JETPACK.vim is 90% compatible with vim-plug.
 
-|      name       |        type        | description                              |
-| :-------------: | :----------------: | :--------------------------------------- |
-| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use     |
-|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin    |
-|      `dir`      |      `string`      | Custom directory for the plugin          |
-|      `as`       |      `string`      | Use different name for plugin            |
-|      `do`       | `string` or `func` | Post-updat hook                          |
-|      `on`       | `string` or `list` | On-demand loading: Commands and `<Plug>` |
-|      `for`      | `string` or `list` | On-demand loading: File types            |
-|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`      |
-|    `frozen`     |     `boolean`      | Do not update                            |
+|      name       |        type        | description                                                  |
+| :-------------: | :----------------: | :----------------------------------------------------------- |
+| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use                         |
+|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin                        |
+|      `dir`      |      `string`      | Custom directory for the plugin                              |
+|      `as`       |      `string`      | Use different name for plugin                                |
+|      `do`       | `string` or `func` | Post-updat hook                                              |
+|      `on`       | `string` or `list` | On-demand loading: Commands and `<Plug>`, autocommand-events |
+|      `for`      | `string` or `list` | On-demand loading: File types                                |
+|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`                          |
+|    `frozen`     |     `boolean`      | Do not update                                                |
 
-We welcome a pull request to add  the `on` option for non-normal mode and the `commit` option.
+We welcome a pull request to add the `on` option for non-normal mode and the
+`commit` option.
 
 ## Configuration
 

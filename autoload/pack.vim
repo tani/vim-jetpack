@@ -33,85 +33,88 @@ fu s:files(path)
   let files = []
   for item in glob(a:path .. '/**/*', '', 1)
     if glob(item .. '/') == ''
-      cal add(files, item)
-    en
-  endfo
+      call add(files, item)
+    endif
+  endfor
   retu files
-endf
+endfunction
 
 fu s:ignorable(filename)
   for ignore in s:ignores
     if a:filename =~ glob2regpat(ignore)
       retu 1
-    en
-  endfo
+    endif
+  endfor
   retu 0
-endf
+endfunction
 
 fu s:mergable(pkgs, pkg)
+  echomsg printf('Checking %s ...', pkg.name)
   let path = []
   for pkg in a:pkgs
-    cal add(path, pkg.path)
-  endfo
+    call add(path, pkg.path)
+  endfor
   let path = join(path, ',')
   for abspath in s:files(a:pkg.path)
     let relpath = substitute(abspath, a:pkg.path, '', '')
     if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
       retu 0
-    en
-  endfo
+    endif
+  endfor
   retu 1
-endf
+endfunction
 
 fu s:wait(jobs)
   if has('nvim')
-    cal jobwait(a:jobs)
-  el
+    call jobwait(a:jobs)
+  else
     let running = 1
-    wh running 
+    while running 
       let running = 0
       for job in a:jobs
         if job_status(job) == 'run'
           let running = 1
-        en
-      endfo
-      sl 1
-    endw
-  en
-endf
+        endif
+      endfor
+      sleep 1
+    endwhile
+  endif
+endfunction
 
 fu s:jobstart(cmd)
   if has('nvim')
     retu jobstart(a:cmd)
-  el
+  else
     retu job_start(a:cmd)
-  en
+  endif
 endfu
 
 fu pack#install()
   let jobs = []
   for pkg in s:pkgs
     if glob(pkg.path .. '/') == ''
+      echomsg printf('Cloning %s ...', pkg.name)
       let cmd = ['git', 'clone']
       if pkg.branch
-        cal extend(cmd, ['-b', pkg.branch])
-      en
-      cal extend(cmd, [pkg.url, pkg.path])
-      cal add(jobs, s:jobstart(cmd))
-    en
-  endfo
-  cal s:wait(jobs)
-endf
+        call extend(cmd, ['-b', pkg.branch])
+      endif
+      call extend(cmd, [pkg.url, pkg.path])
+      call add(jobs, s:jobstart(cmd))
+    endif
+  endfor
+  call s:wait(jobs)
+endfunction
 
 fu pack#update()
   let jobs = []
   for pkg in s:pkgs
     if !pkg.frozen && glob(pkg.path .. '/') != ''
-      cal add(jobs, s:jobstart(['git', '-C', pkg.path, 'pull']))
-    en
-  endfo
-  cal s:wait(jobs)
-endf
+      echomsg printf('Updating %s ...', pkg.name)
+      call add(jobs, s:jobstart(['git', '-C', pkg.path, 'pull']))
+    endif
+  endfor
+  call s:wait(jobs)
+endfunction
 
 fu pack#bundle()
   let bundle = []
@@ -120,137 +123,123 @@ fu pack#bundle()
     if g:pack#optimization >= 1
          \ && pkg.packtype == 'start'
          \ && (g:pack#optimization || s:mergable(bundle, pkg))
-      cal add(bundle, pkg)
-    el
-      cal add(unbundle, pkg)
-    en
-  endfo
-  cal delete(s:packdir .. '/opt', 'rf')
-  cal delete(s:packdir .. '/start', 'rf')
+      call add(bundle, pkg)
+    else
+      call add(unbundle, pkg)
+    endif
+  endfor
+  call delete(s:packdir .. '/opt', 'rf')
+  call delete(s:packdir .. '/start', 'rf')
   let destdir = s:packdir .. '/start/_'
   for pkg in bundle
     let srcdir = pkg.path .. '/' .. pkg.subdir
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '') 
-      cal mkdir(fnamemodify(destfile, ':p:h'), 'p')
+      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
       let blob = readfile(srcfile, 'b')
-      cal writefile(blob, destfile, 'b')
-    endfo
-  endfo
+      call writefile(blob, destfile, 'b')
+    endfor
+  endfor
   for pkg in unbundle
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let destdir = s:packdir .. '/' .. pkg.packtype .. '/' .. pkg.name
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
-      cal mkdir(fnamemodify(destfile, ':p:h'), 'p')
+      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
       let blob = readfile(srcfile, 'b')
-      cal writefile(blob, destfile, 'b')
-    endfo
-  endfo
-endf
+      call writefile(blob, destfile, 'b')
+    endfor
+  endfor
+endfunction
 
 fu pack#helptags()
-  packl | sil! helpt ALL
-endf
+  packloadall | silent! helptags ALL
+endfunction
 
 fu pack#hook()
-  packl 
+  packloadall 
   for pkg in s:pkgs
     if type(pkg.hook) == v:t_func
-      cal pkg.hook()
-    el
+      call pkg.hook()
+    endif
+    if type(pkg.hook) == v:t_string
       if pkg.hook =~ '^:'
-        cal system(pkg.hook)
-      el
-        exe pkg.hook
-      en
-    en
-  endfo
-endf
+        call system(pkg.hook)
+      else
+        execute pkg.hook
+      endif
+    endif
+  endfor
+endfunction
 
 fu pack#sync()
-  echom 'Installing plugins ...'
-  cal pack#install()
-  echom 'Updating plugins ...'
-  cal pack#update()
-  echom 'Bundling plugins ...'
-  cal pack#bundle()
-  echom 'Running hooks ...'
-  cal pack#hook()
-  echom 'Generating helptags ...'
-  cal pack#helptags()
-  echom 'Complete'
-endf
+  echomsg 'Installing plugins ...'
+  call pack#install()
+  echomsg 'Updating plugins ...'
+  call pack#update()
+  echomsg 'Bundling plugins ...'
+  call pack#bundle()
+  echomsg 'Running hooks ...'
+  call pack#hook()
+  echomsg 'Generating helptags ...'
+  call pack#helptags()
+  echomsg 'Complete'
+endfunction
 
 fu pack#add(plugin, ...)
-  let opts = {
-        \ 'as': fnamemodify(a:plugin, ':t'),
-        \ 'opt': 0,
-        \ 'for': [],
-        \ 'branch': 0,
-        \ 'tag': 0,
-        \ 'do': '',
-        \ 'rtp': '.',
-        \ 'on': [],
-        \ 'frozen': 0,
-        \ }
+  let opts = {}
   if a:0 > 0
-    cal extend(opts, a:1)
-  en
+    call extend(opts, a:1)
+  endif
+  let name = fnamemodify(a:plugin, ':t')
+  let path = s:packdir .. '/src/' .. name
   let pkg  = {
         \  'url': 'https://github.com/' .. a:plugin,
         \  'branch': get(opts, 'branch', get(opts, 'tag')),
         \  'hook': get(opts, 'do'),
-        \  'subdir': get(opts, 'rtp'),
-        \  'name': get(opts, 'as'),
-        \  'command': get(opts, 'on'),
-        \  'filetype': get(opts, 'for'),
+        \  'subdir': get(opts, 'rtp', '.'),
+        \  'name': get(opts, 'as', name),
         \  'frozen': get(opts, 'frozen'),
-        \  'path': get(opts, 'dir', s:packdir .. '/src/' .. get(opts, 'as')),
+        \  'path': get(opts, 'dir', path),
         \  'packtype': get(opts, 'opt') ? 'opt' : 'start',
         \ }
-  let ft = get(pkg, 'filetype')
-  if type(ft) == v:t_list && ft != []
+  let ft = get(opts, 'for', [])
+  let ft = type(ft) == v:t_string ? split(ft, ',') : ft
+  let ft = ft == [''] ? [] : ft
+  for it in ft
     let pkg.packtype = 'opt'
-    exe 'au FileType '  .. join(ft, ',') .. ' sil! pa ' .. pkg.name
-  en
-  if type(ft) == v:t_string && ft != ''
+    execute printf('autocmd FileType %s silent! packadd %s', it, name)
+  endfor
+  let cmd = get(opts, 'on', [])
+  let cmd = type(cmd) == v:t_string ? split(cmd, ',') : cmd
+  let cmd = cmd == [''] ? [] : cmd
+  for it in cmd
     let pkg.packtype = 'opt'
-    exe 'au FileType '  .. ft .. ' sil! pa ' .. pkg.name
-  en
-  let cmd = get(pkg, 'command')
-  if type(cmd) == v:t_list && cmd != []
-    let pkg.packtype = 'opt'
-    for it in cmd
-      if it =~ '^<Plug>'
-        exe printf('nn %s :exe ' .. "'" .. 'pa %s \| cal feedkeys("\%s")' .. "'" .. '<CR>', it, pkg.name, it)
-      el
-        exe 'au CmdUndefined '  .. it .. ' sil! pa ' .. pkg.name
-      en
-    endfo
-  en
-  if type(cmd) == v:t_string && cmd != ''
-    let pkg.packtype = 'opt'
-    if cmd =~ '^<Plug>'
-      exe printf('nn %s :exe ' .. "'" .. 'pa %s \| cal feedkeys("\%s")' .. "'" .. '<CR>', cmd, pkg.name, cmd)
-    el
-      exe 'au CmdUndefined '  .. cmd .. ' sil! pa ' .. pkg.name
-    en
-  en
-  cal add(s:pkgs, pkg)
-endf
+    if it =~ '^<Plug>'
+      execute printf("nnoremap %s :execute '".'packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
+    elseif index(s:events, it) >= 0
+      execute printf('autocmd %s silent! packadd %s', it, name)
+    else
+      execute printf('autocmd CmdUndefined %s silent! packadd %s', it, name)
+    endif
+  endfor
+  call add(s:pkgs, pkg)
+endfunction
 
 fu pack#begin(...)
   if a:0 != 0
     let s:home = a:1
     let s:packdir = s:home .. '/pack/jetpack'
-    exe 'se pp^=' .. s:home
-  en
-  com! -nargs=+ Pack cal pack#add(<args>)
-endf
+    execute 'set packpath^=' .. s:home
+  endif
+  command! -nargs=+ Pack call pack#add(<args>)
+endfunction
 
 fu pack#end()
-  delc Pack
-endf
+  delcommand Pack
+endfunction
 
-com! PackSync cal pack#sync()
+command! PackSync call pack#sync()
+
+let s:events = ['BufNewFile', 'BufReadPre', 'BufRead', 'BufReadPost', 'BufReadCmd', 'FileReadPre', 'FileReadPost', 'FileReadCmd', 'FilterReadPre', 'FilterReadPost', 'StdinReadPre', 'StdinReadPost', 'BufWrite', 'BufWritePre', 'BufWritePost', 'BufWriteCmd', 'FileWritePre', 'FileWritePost', 'FileWriteCmd', 'FileAppendPre', 'FileAppendPost', 'FileAppendCmd', 'FilterWritePre', 'FilterWritePost', 'BufAdd', 'BufCreate', 'BufDelete', 'BufWipeout', 'BufFilePre', 'BufFilePost', 'BufEnter', 'BufLeave', 'BufWinEnter', 'BufWinLeave', 'BufUnload', 'BufHidden', 'BufNew', 'SwapExists', 'FileType', 'Syntax', 'EncodingChanged', 'TermChanged', 'VimEnter', 'GUIEnter', 'GUIFailed', 'TermResponse', 'QuitPre', 'VimLeavePre', 'VimLeave', 'FileChangedShell', 'FileChangedShellPost', 'FileChangedRO', 'ShellCmdPost', 'ShellFilterPost', 'FuncUndefined', 'SpellFileMissing', 'SourcePre', 'SourceCmd', 'VimResized', 'FocusGained', 'FocusLost', 'CursorHold', 'CursorHoldI', 'CursorMoved', 'CursorMovedI', 'WinEnter', 'WinLeave', 'TabEnter', 'TabLeave', 'CmdwinEnter', 'CmdwinLeave', 'InsertEnter', 'InsertChange', 'InsertLeave', 'InsertCharPre', 'TextChanged', 'TextChangedI', 'ColorScheme', 'RemoteReply', 'QuickFixCmdPre', 'QuickFixCmdPost', 'SessionLoadPost', 'MenuPopup', 'CompleteDone', 'User']
+
