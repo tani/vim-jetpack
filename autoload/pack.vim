@@ -72,13 +72,8 @@ function s:ignorable(filename)
 endfunction
 
 function s:mergable(pkgs, pkg)
-  let path = []
-  for pkg in a:pkgs
-    call add(path, pkg.path)
-  endfor
-  let path = join(path, ',')
-  for abspath in s:files(a:pkg.path)
-    let relpath = substitute(abspath, a:pkg.path, '', '')
+  let path = join(mapnew(a:pkgs, {_, v -> v.path}), ',')
+  for replpath in map(s:files(a:pkg.path), {_, v -> substitute(v , a:pkg.path, '', '')})
     if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
       return 0
     endif
@@ -87,35 +82,18 @@ function s:mergable(pkgs, pkg)
 endfunction
 
 function s:progressbar(n)
-  let bar = '['
-  for i in range(0, 100, 3)
-    if i <= a:n
-      let bar =  bar .. '='
-    else
-      let bar =  bar .. ' '
-    endif
-  endfor
-  return bar .. ']'
+  return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
 
 function s:jobstatus(job)
   if has('nvim')
-    if jobwait([a:job], 0)[0] == -1
-      return 'run'
-    endif
-    return 'dead'
+    return jobwait([a:job], 0)[0] == -1 ? 'run' : 'dead'
   endif
   return job_status(a:job)
 endfunction
 
 function s:jobcount(jobs)
-  let c = 0
-  for job in a:jobs
-    if s:jobstatus(job) == 'run'
-      let c = c + 1
-    endif
-  endfor
-  return c
+  return len(filter(copy(a:jobs), {_, v -> s:jobstatus(v) == 'run'}))
 endfunction
 
 function s:jobwait(jobs, njobs)
@@ -128,9 +106,8 @@ endfunction
 function s:jobstart(cmd, cb)
   if has('nvim')
     return jobstart(a:cmd, { 'on_exit': a:cb })
-  else
-    return job_start(a:cmd, { 'exit_cb': a:cb })
   endif
+  return job_start(a:cmd, { 'exit_cb': a:cb })
 endfunction
 
 function s:syntax()
@@ -240,10 +217,12 @@ function pack#bundle()
     call s:setbufline(i+3, printf('Coping %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
     for srcfile in s:files(srcdir)
-      let destfile = substitute(srcfile, srcdir, destdir, '') 
-      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-      let blob = readfile(srcfile, 'b')
-      call writefile(blob, destfile, 'b')
+      if !s:ignorable(substitute(srcfile, srcdir, '', ''))
+        let destfile = substitute(srcfile, srcdir, destdir, '') 
+        call mkdir(fnamemodify(destfile, ':p:h'), 'p')
+        let blob = readfile(srcfile, 'b')
+        call writefile(blob, destfile, 'b')
+      endif
     endfor
     call s:setbufline(i+3, printf('Copied %s ...', pkg.name))
   endfor
