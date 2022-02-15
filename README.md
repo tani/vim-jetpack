@@ -4,6 +4,10 @@ The **lightning-fast** minimalist plugin manager for Vim/ Neovim. JETPACK.vim is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
 
+
+https://user-images.githubusercontent.com/5019902/154086628-d3926a43-fe8b-4f39-9035-c2cf74f456c4.mp4
+
+
 ## Benchmark
 
 In the simple cases, JETPACK.vim is the fastest plugin manager.
