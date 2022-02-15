@@ -8,13 +8,9 @@ the built-in plugin manager only.
 
 In the simple cases, JETPACK.vim is the fastest plugin manager.
 
-|  name   | time (ms) |
-| :-----: | --------: |
-| jetpack |        80 |
-|  dein   |        86 |
-|  paq    |        88 |
-| packer  |        89 |
-|  plug   |        93 |
+|   name   | jetpack | dein | paq | packer | plug |
+| :------: | ------: | ---: | --: | -----: | ---: |
+| time(ms) |      80 |   86 |  88 |     89 |   93 |
 
 You can run the benchmarks in your local environment. See the `benchmark`
 directory for more detail
@@ -143,7 +139,6 @@ require('pack').setup {
   {'tpope/vim-fireplace', for = 'clojure' },
 }
 ```
-
 
 ## Q & A
 
