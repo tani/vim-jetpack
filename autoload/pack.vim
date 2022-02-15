@@ -86,6 +86,18 @@ function s:mergable(pkgs, pkg)
   return 1
 endfunction
 
+function s:progressbar(n)
+  let bar = '['
+  for i in range(0, 100, 3)
+    if i <= a:n
+      let bar =  bar .. '='
+    else
+      let bar =  bar .. ' '
+    endif
+  endfor
+  return bar .. ']'
+endfunction
+
 function s:jobstatus(job)
   if has('nvim')
     if jobwait([a:job], 0)[0] == -1
@@ -156,10 +168,10 @@ endfunction
 
 function pack#install(...)
   call s:createbuf()
-  call s:setbufline(2, '------------------------------------------------')
   let jobs = []
   for i in range(len(s:pkgs))
     call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:pkgs)))
+    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Installing %s ...', s:pkgs[i].name))
     if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || glob(s:pkgs[i].path .. '/') != ''
       call s:setbufline('PackInstall', i+3, printf('Skipped %s', s:pkgs[i].name))
@@ -180,10 +192,10 @@ endfunction
 
 function pack#update(...)
   call s:createbuf()
-  call s:setbufline(2, '------------------------------------------------')
   let jobs = []
   for i in range(len(s:pkgs))
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:pkgs)))
+    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', s:pkgs[i].name))
     if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || (s:pkgs[i].frozen || glob(s:pkgs[i].path .. '/') == '')
       call s:setbufline(i+3, printf('Skipped %s', s:pkgs[i].name))
@@ -200,11 +212,11 @@ endfunction
 
 function pack#bundle()
   call s:createbuf()
-  call s:setbufline(2, '------------------------------------------------')
   let bundle = []
   let unbundle = []
   for i in range(len(s:pkgs))
     call s:setbufline(1, printf('Check Plugins (%d / %d)', i, len(s:pkgs)))
+    call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Checking %s ...', s:pkgs[i].name))
     if g:pack#optimization >= 1
          \ && s:pkgs[i].packtype == 'start'
@@ -221,10 +233,10 @@ function pack#bundle()
   call s:deletebuf()
 
   call s:createbuf()
-  call s:setbufline(2, '------------------------------------------------')
   for i in range(len(bundle))
     let pkg = bundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i, len(s:pkgs)))
+    call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Coping %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
     for srcfile in s:files(srcdir)
@@ -239,6 +251,7 @@ function pack#bundle()
   for i in unbundle
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+len(bundle), len(s:pkgs)))
+    call s:setbufline(2, s:progressbar(1.0 * (i+len(bundle)) / len(s:pkgs) * 100))
     call s:setbufline(i+len(bundle)+3, printf('Copying %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let destdir = s:packdir .. '/' .. pkg.packtype .. '/' .. pkg.name
