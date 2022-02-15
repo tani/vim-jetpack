@@ -111,15 +111,19 @@ function s:jobstart(cmd, cb)
 endfunction
 
 function s:setbufline(bufnr, lnum, text, ...)
-  call setbufline(a:bufnr, a:lnum, a:text) | redraw
+  call setbufline(a:bufnr, a:lnum, a:text)
+  redraw
 endfunction
 
 function s:createbuf(name)
-  execute 'vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nohidden\ filetype=nosyntax ' .. a:name | redraw
+  execute 'vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber ' .. a:name
+  vertical resize 40
+  redraw
 endfunction
 
 function s:deletebuf(name)
-  exe 'bdelete ' .. bufnr(a:name) | redraw
+  execute 'bdelete ' .. bufnr(a:name)
+  redraw
 endfunction
 
 function pack#install(...)
