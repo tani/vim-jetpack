@@ -51,27 +51,26 @@ let s:events = [
   \ 'MenuPopup', 'CompleteDone', 'User'
   \ ]
 
-fu s:files(path)
+function s:files(path)
   let files = []
   for item in glob(a:path .. '/**/*', '', 1)
     if glob(item .. '/') == ''
       call add(files, item)
     endif
   endfor
-  retu files
+  return files
 endfunction
 
-fu s:ignorable(filename)
+function s:ignorable(filename)
   for ignore in s:ignores
     if a:filename =~ glob2regpat(ignore)
-      retu 1
+      return 1
     endif
   endfor
-  retu 0
+  return 0
 endfunction
 
-fu s:mergable(pkgs, pkg)
-  echomsg printf('Checking %s ...', pkg.name)
+function s:mergable(pkgs, pkg)
   let path = []
   for pkg in a:pkgs
     call add(path, pkg.path)
@@ -80,13 +79,13 @@ fu s:mergable(pkgs, pkg)
   for abspath in s:files(a:pkg.path)
     let relpath = substitute(abspath, a:pkg.path, '', '')
     if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
-      retu 0
+      return 0
     endif
   endfor
-  retu 1
+  return 1
 endfunction
 
-fu s:wait(jobs)
+function s:wait(jobs)
   if has('nvim')
     call jobwait(a:jobs)
   else
@@ -103,48 +102,65 @@ fu s:wait(jobs)
   endif
 endfunction
 
-fu s:jobstart(cmd)
+function s:jobstart(cmd, cb)
   if has('nvim')
-    retu jobstart(a:cmd)
+    return jobstart(a:cmd, { 'on_exit': a:cb })
   else
-    retu job_start(a:cmd)
+    return job_start(a:cmd, { 'exit_cb': a:cb })
   endif
-endfu
-
-fu pack#install(...)
-  let jobs = []
-  for pkg in s:pkgs
-    if a:0 > 0 && index(a:000, pkg.name) < 0
-      continue
-    endif
-    if glob(pkg.path .. '/') == ''
-      echomsg printf('Cloning %s ...', pkg.name)
-      let cmd = ['git', 'clone', '--depth', '1']
-      if pkg.branch
-        call extend(cmd, ['-b', pkg.branch])
-      endif
-      call extend(cmd, [pkg.url, pkg.path])
-      call add(jobs, s:jobstart(cmd))
-    endif
-  endfor
-  call s:wait(jobs)
 endfunction
 
-fu pack#update(...)
-  let jobs = []
-  for pkg in s:pkgs
-    if a:0 > 0 && index(a:000, pkg.name) < 0
-      continue
-    endif
-    if !pkg.frozen && glob(pkg.path .. '/') != ''
-      echomsg printf('Updating %s ...', pkg.name)
-      call add(jobs, s:jobstart(['git', '-C', pkg.path, 'pull']))
-    endif
-  endfor
-  call s:wait(jobs)
+function s:setbufline(bufnr, lnum, text, ...)
+  call setbufline(a:bufnr, a:lnum, a:text) | redraw
 endfunction
 
-fu pack#bundle()
+function s:createbuf(name)
+  execute 'vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nohidden\ filetype=nosyntax ' .. a:name | redraw
+endfunction
+
+function s:deletebuf(name)
+  exe 'bdelete ' .. bufnr(a:name) | redraw
+endfunction
+
+function pack#install(...)
+  call s:createbuf('PackInstall')
+  let jobs = []
+  for i in range(len(s:pkgs))
+    call s:setbufline('PackInstall', i+1, 'Installing ' .. s:pkgs[i].name)
+    if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || glob(s:pkgs[i].path .. '/') != ''
+      call s:setbufline('PackInstall', i+1, 'Installed ' .. s:pkgs[i].name)
+      continue
+    endif
+    let cmd = ['git', 'clone', '--depth', '1']
+    if s:pkgs[i].branch
+      call extend(cmd, ['-b', s:pkgs[i].branch])
+    endif
+    call extend(cmd, [s:pkgs[i].url, s:pkgs[i].path])
+    let job = s:jobstart(cmd, function('<SID>setbufline', ['PackInstall', i+1, 'Installed ' .. s:pkgs[i].name]))
+    call add(jobs, job)
+  endfor
+  call s:wait(jobs)
+  call s:deletebuf('PackInstall')
+endfunction
+
+function pack#update(...)
+  call s:createbuf('PackUpdate')
+  let jobs = []
+  for i in range(len(s:pkgs))
+    call s:setbufline('PackUpdate', i+1, 'Updating ' .. s:pkgs[i].name)
+    if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || (s:pkgs[i].frozen || glob(s:pkgs[i].path .. '/') == '')
+      call s:setbufline('PackUpdate', i+1, 'Updated ' .. s:pkgs[i].name)
+      continue
+    endif
+    let cmd = ['git', '-C', s:pkgs[i].path, 'pull']
+    let job = s:jobstart(cmd, function('<SID>setbufline', ['PackUpdate', i+1, 'Updated ' .. s:pkgs[i].name]))
+    call add(jobs, job)
+  endfor
+  call s:wait(jobs)
+  call s:deletebuf('PackUpdate')
+endfunction
+
+function pack#bundle()
   let bundle = []
   let unbundle = []
   for pkg in s:pkgs
@@ -180,7 +196,7 @@ fu pack#bundle()
   endfor
 endfunction
 
-fu pack#postupdate()
+function pack#postupdate()
   packloadall 
   for pkg in s:pkgs
     if type(pkg.hook) == v:t_func
@@ -197,7 +213,7 @@ fu pack#postupdate()
   packloadall | silent! helptags ALL
 endfunction
 
-fu pack#sync()
+function pack#sync()
   echomsg 'Installing plugins ...'
   call pack#install()
   echomsg 'Updating plugins ...'
@@ -209,7 +225,7 @@ fu pack#sync()
   echomsg 'Complete'
 endfunction
 
-fu pack#add(plugin, ...)
+function pack#add(plugin, ...)
   let opts = {}
   if a:0 > 0
     call extend(opts, a:1)
@@ -249,7 +265,7 @@ fu pack#add(plugin, ...)
   call add(s:pkgs, pkg)
 endfunction
 
-fu pack#begin(...)
+function pack#begin(...)
   if a:0 != 0
     let s:home = a:1
     let s:packdir = s:home .. '/pack/jetpack'
@@ -258,7 +274,7 @@ fu pack#begin(...)
   command! -nargs=+ Pack call pack#add(<args>)
 endfunction
 
-fu pack#end()
+function pack#end()
   delcommand Pack
 endfunction
 
