@@ -26,8 +26,15 @@ In the simple cases, JETPACK.vim is the fastest plugin manager.
 
 We measured a startup time 5 times for each plugin managers. The following chart is the result.
 
-![image](https://user-images.githubusercontent.com/5019902/154187587-718ddf00-34eb-46de-ad2f-e80a01c0cf2c.png)
+![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
 
+|          |  dein | jetpack | minpac | packer |   paq |  plug |
+| :------: | ----: | ------: | -----: | -----: | ----: | ----: |
+| min      | 80.61 |   69.93 |  64.97 |  75.38 | 73.92 | 77.63 |
+| max      | 96.02 |   74.48 |  81.30 |  89.40 | 84.95 | 82.82 |
+| median   | 85.26 |   71.92 |  72.38 |  78.38 | 78.16 | 80.36 |
+| mean     | 86.24 |   71.97 |  72.48 |  80.07 | 78.21 | 80.12 |
+| variance | 27.09 |    2.07 |  23.99 |  24.56 | 10.83 |  3.57 |
 
 You can run the benchmarks in your local environment. See the `benchmark`
 directory for more detail. 
