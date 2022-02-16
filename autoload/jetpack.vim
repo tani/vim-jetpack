@@ -112,34 +112,34 @@ endfunction
 
 function s:syntax()
   syntax clear
-  syntax keyword packProgress Installing
-  syntax keyword packProgress Updating
-  syntax keyword packProgress Checking
-  syntax keyword packProgress Copying
-  syntax keyword packComplete Installed
-  syntax keyword packComplete Updated
-  syntax keyword packComplete Checked
-  syntax keyword packComplete Copied
-  syntax keyword packSkipped Skipped
-  highlight def link packProgress DiffChange
-  highlight def link packComplete DiffAdd
-  highlight def link packSkipped DiffDelete
+  syntax keyword jetpackProgress Installing
+  syntax keyword jetpackProgress Updating
+  syntax keyword jetpackProgress Checking
+  syntax keyword jetpackProgress Copying
+  syntax keyword jetpackComplete Installed
+  syntax keyword jetpackComplete Updated
+  syntax keyword jetpackComplete Checked
+  syntax keyword jetpackComplete Copied
+  syntax keyword jetpackSkipped Skipped
+  highlight def link jetpackProgress DiffChange
+  highlight def link jetpackComplete DiffAdd
+  highlight def link jetpackSkipped DiffDelete
 endfunction
 
 function s:setbufline(lnum, text, ...)
-  call setbufline('PackStatus', a:lnum, a:text)
+  call setbufline('JetpackStatus', a:lnum, a:text)
   redraw
 endfunction
 
 function s:createbuf()
-  silent vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap PackStatus
+  silent vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
   vertical resize 40
   call s:syntax()
   redraw
 endfunction
 
 function s:deletebuf()
-  execute 'bdelete ' .. bufnr('PackStatus')
+  execute 'bdelete ' .. bufnr('JetpackStatus')
   redraw
 endfunction
 
@@ -152,7 +152,7 @@ function jetpack#install(...)
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Installing %s ...', pkg.name))
     if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.path)
-      call s:setbufline('PackInstall', i+3, printf('Skipped %s', pkg.name))
+      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
     let cmd = ['git', 'clone', '--depth', '1']
