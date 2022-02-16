@@ -311,17 +311,19 @@ function pack#add(plugin, ...)
 endfunction
 
 function pack#begin(...)
+  syntax off
+  filetype off
+  command! -nargs=+ Pack call pack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
-  command! -nargs=+ Pack call pack#add(<args>)
-  filetype off
 endfunction
 
 function pack#end()
+  syntax enable
+  filetype plugin indent on
   delcommand Pack
   silent! packadd! _
-  filetype plugin indent on
 endfunction
 
 command! PackSync call pack#sync()
