@@ -1,6 +1,6 @@
-# 🚀 JETPACK.vim
+# 🚀 vim-jetpack
 
-The **lightning-fast** minimalist plugin manager for Vim/ Neovim. JETPACK.vim is
+The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
 
@@ -22,9 +22,9 @@ https://user-images.githubusercontent.com/5019902/154086628-d3926a43-fe8b-4f39-9
 
 ## Benchmark
 
-In the simple cases, JETPACK.vim is the fastest plugin manager.
+In the simple cases, vim-jetpack is the fastest plugin manager.
 
-We measured a startup time 5 times for each plugin managers. The following chart is the result.
+We measured a startup time 10 times for each plugin managers. The following chart is the result.
 
 ![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
 
@@ -63,7 +63,7 @@ git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site
 
 ## Supported options
 
-JETPACK.vim is 90% compatible with vim-plug.
+vim-jetpack is 90% compatible with vim-plug.
 
 |      name       |        type        | description                                                   |
 | :-------------: | :----------------: | :------------------------------------------------------------ |
@@ -103,7 +103,7 @@ We welcome a pull request to add the `on` option for non-normal mode and the
 
 ### vim-plug style
 
-The most of vim-plug users can migrate to JETPACK.vim by `:%s/plug/pack/g` and
+The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/pack/g` and
 `:%s/Plug/Pack/g`.
 
 ```vim
