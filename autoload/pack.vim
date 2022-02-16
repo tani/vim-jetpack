@@ -9,7 +9,6 @@ let g:pack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
-let s:installed = []
 
 let s:pkgs = []
 let s:plugs = []
@@ -56,7 +55,7 @@ let s:events = [
 function s:files(path)
   let files = []
   for item in glob(a:path .. '/**/*', '', 1)
-    if glob(item .. '/') == ''
+    if !isdirectory(item)
       call add(files, item)
     endif
   endfor
@@ -148,19 +147,20 @@ function pack#install(...)
   call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
+    let pkg = s:pkgs[i]
     call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:pkgs)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
-    call s:setbufline(i+3, printf('Installing %s ...', s:pkgs[i].name))
-    if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || glob(s:pkgs[i].path .. '/') != ''
-      call s:setbufline('PackInstall', i+3, printf('Skipped %s', s:pkgs[i].name))
+    call s:setbufline(i+3, printf('Installing %s ...', pkg.name))
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.path)
+      call s:setbufline('PackInstall', i+3, printf('Skipped %s', pkg.name))
       continue
     endif
     let cmd = ['git', 'clone', '--depth', '1']
-    if s:pkgs[i].branch
-      call extend(cmd, ['-b', s:pkgs[i].branch])
+    if pkg.branch
+      call extend(cmd, ['-b', pkg.branch])
     endif
-    call extend(cmd, [s:pkgs[i].url, s:pkgs[i].path])
-    let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Installed %s', s:pkgs[i].name)]))
+    call extend(cmd, [pkg.url, pkg.path])
+    let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Installed %s', pkg.name)]))
     call add(jobs, job)
     call s:jobwait(jobs, g:pack#njobs)
   endfor
@@ -172,15 +172,16 @@ function pack#update(...)
   call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
+    let pkg = s:pkgs[i]
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:pkgs)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
-    call s:setbufline(i+3, printf('Updating %s ...', s:pkgs[i].name))
-    if (a:0 > 0 && index(a:000, s:pkgs[i].name) < 0) || (s:pkgs[i].frozen || glob(s:pkgs[i].path .. '/') == '')
-      call s:setbufline(i+3, printf('Skipped %s', s:pkgs[i].name))
+    call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || (pkg.frozen || !isdirectory(pkg.path))
+      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
-    let cmd = ['git', '-C', s:pkgs[i].path, 'pull']
-    let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Updated %s', s:pkgs[i].name)]))
+    let cmd = ['git', '-C', pkg.path, 'pull']
+    let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Updated %s', pkg.name)]))
     call add(jobs, job)
     call s:jobwait(jobs, g:pack#njobs)
   endfor
@@ -193,17 +194,18 @@ function pack#bundle()
   let bundle = []
   let unbundle = []
   for i in range(len(s:pkgs))
+    let pkg = s:pkgs[i]
     call s:setbufline(1, printf('Check Plugins (%d / %d)', i, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
-    call s:setbufline(i+3, printf('Checking %s ...', s:pkgs[i].name))
+    call s:setbufline(i+3, printf('Checking %s ...', pkg.name))
     if g:pack#optimization >= 1
-         \ && !s:pkgs[i].opt
-         \ && (g:pack#optimization || s:mergable(bundle, s:pkgs[i]))
-      call add(bundle, s:pkgs[i])
+         \ && !pkg.opt
+         \ && (g:pack#optimization || s:mergable(bundle, pkg))
+      call add(bundle, pkg)
     else
-      call add(unbundle, s:pkgs[i])
+      call add(unbundle, pkg)
     endif
-    call s:setbufline(i+3, printf('Checked %s', s:pkgs[i].name))
+    call s:setbufline(i+3, printf('Checked %s', pkg.name))
   endfor
   call delete(s:packdir .. '/opt', 'rf')
   let destdir = s:packdir .. '/opt/_'
@@ -276,16 +278,16 @@ endfunction
 
 function pack#add(plugin, ...)
   let opts = a:0 > 0 ? a:1 : {}
-  let name = fnamemodify(a:plugin, ':t')
-  let path = s:packdir .. '/src/' .. name
+  let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
+  let path = get(opts, 'dir', s:packdir .. '/src/' .. name)
   let pkg  = {
         \  'url': 'https://github.com/' .. a:plugin,
         \  'branch': get(opts, 'branch', get(opts, 'tag')),
         \  'hook': get(opts, 'do'),
         \  'subdir': get(opts, 'rtp', '.'),
-        \  'name': get(opts, 'as', name),
+        \  'name': name,
         \  'frozen': get(opts, 'frozen'),
-        \  'path': get(opts, 'dir', path),
+        \  'path': path,
         \  'opt': get(opts, 'opt')
         \ }
   for it in flatten([get(opts, 'for', [])])
@@ -303,28 +305,23 @@ function pack#add(plugin, ...)
     endif
   endfor
   call add(s:pkgs, pkg)
-  if !pkg.opt && index(s:installed, pkg.name) >= 0
-    execute 'packadd ' .. pkg.name
+  if !pkg.opt && isdirectory(s:packdir .. '/opt/' .. name)
+    execute 'silent! packadd! ' .. name
   endif
 endfunction
 
 function pack#begin(...)
-  if a:0 != 0
-    let s:home = a:1
-    let s:packdir = s:home .. '/pack/jetpack'
-    execute 'set packpath^=' .. s:home
-  endif
-  let s:installed = glob(s:packdir .. '/opt/*', '', 1)
+  let s:home = a:0 != 0 ? a:1 : s:home
+  let s:packdir = s:home .. '/pack/jetpack'
+  execute 'set packpath^=' .. s:home
   command! -nargs=+ Pack call pack#add(<args>)
+  filetype off
 endfunction
 
 function pack#end()
   delcommand Pack
-  silent! packadd _
+  silent! packadd! _
+  filetype plugin indent on
 endfunction
 
-command! -nargs=* PackInstall call pack#install(<q-args>)
-command! -nargs=* PackUpdate call pack#update(<q-args>)
-command! PackBundle call pack#bundle()
-command! PackPostUpdate call pack#postupdate()
 command! PackSync call pack#sync()
