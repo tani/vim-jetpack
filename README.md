@@ -12,12 +12,13 @@ https://user-images.githubusercontent.com/5019902/154086628-d3926a43-fe8b-4f39-9
 
 In the simple cases, JETPACK.vim is the fastest plugin manager.
 
-|   name   | jetpack | dein | paq | packer | plug |
-| :------: | ------: | ---: | --: | -----: | ---: |
-| time(ms) |      80 |   86 |  88 |     89 |   93 |
+We measured a startup time 5 times for each plugin managers. The following chart is the result.
+
+![image](https://user-images.githubusercontent.com/5019902/154187587-718ddf00-34eb-46de-ad2f-e80a01c0cf2c.png)
+
 
 You can run the benchmarks in your local environment. See the `benchmark`
-directory for more detail
+directory for more detail. 
 
 ## Installation
 
@@ -33,6 +34,12 @@ curl -fLo ~/.vim/autoload/pack.vim --create-dirs https://raw.githubusercontent.c
 
 ```
 curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
+```
+
+If you want to install lua interface, instead of the above, you can install pack.vim together with pack.lua as follows.
+
+```
+git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/start/vim-jetpack
 ```
 
 ## Supported options
