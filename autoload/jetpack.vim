@@ -261,7 +261,7 @@ function jetpack#postupdate()
       endif
     endif
   endfor
-  packloadall | silent! helptags ALL
+  silent! helptags ALL
 endfunction
 
 function jetpack#sync()
@@ -297,7 +297,7 @@ function jetpack#add(plugin, ...)
   for it in flatten([get(opts, 'on', [])])
     let pkg.opt = 1
     if it =~ '^<Plug>'
-      execute printf("nnoremap %s :execute '".'packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
+      execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
     elseif index(s:events, it) >= 0
       execute printf('autocmd %s silent! packadd %s', it, name)
     else
