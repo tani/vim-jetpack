@@ -275,10 +275,7 @@ function pack#sync()
 endfunction
 
 function pack#add(plugin, ...)
-  let opts = {}
-  if a:0 > 0
-    call extend(opts, a:1)
-  endif
+  let opts = a:0 > 0 ? a:1 : {}
   let name = fnamemodify(a:plugin, ':t')
   let path = s:packdir .. '/src/' .. name
   let pkg  = {
@@ -291,17 +288,11 @@ function pack#add(plugin, ...)
         \  'path': get(opts, 'dir', path),
         \  'opt': get(opts, 'opt')
         \ }
-  let ft = get(opts, 'for', [])
-  let ft = type(ft) == v:t_string ? split(ft, ',') : ft
-  let ft = ft == [''] ? [] : ft
-  for it in ft
+  for it in flatten([get(opts, 'for', [])])
     let pkg.opt = 1
     execute printf('autocmd FileType %s silent! packadd %s', it, name)
   endfor
-  let cmd = get(opts, 'on', [])
-  let cmd = type(cmd) == v:t_string ? split(cmd, ',') : cmd
-  let cmd = cmd == [''] ? [] : cmd
-  for it in cmd
+  for it in flatten([get(opts, 'on', [])])
     let pkg.opt = 1
     if it =~ '^<Plug>'
       execute printf("nnoremap %s :execute '".'packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
@@ -313,7 +304,7 @@ function pack#add(plugin, ...)
   endfor
   call add(s:pkgs, pkg)
   if !pkg.opt && index(s:installed, pkg.name) >= 0
-    silent! packadd pkg.name
+    execute 'packadd ' .. pkg.name
   endif
 endfunction
 
@@ -323,8 +314,8 @@ function pack#begin(...)
     let s:packdir = s:home .. '/pack/jetpack'
     execute 'set packpath^=' .. s:home
   endif
+  let s:installed = glob(s:packdir .. '/opt/*', '', 1)
   command! -nargs=+ Pack call pack#add(<args>)
-  let s:installed = glob(s:home .. '/pack/jetpack/opt/*', '', 1)
 endfunction
 
 function pack#end()
