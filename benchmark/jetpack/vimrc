@@ -1,51 +1,254 @@
 set nocompatible
+set encoding=utf-8
+set undofile
+if has('nvim')
+  exe 'set undodir='..expand('~/.cache/nvim/undo')
+else
+  exe 'set undodir='..expand('~/.cache/vim/undo')
+endif
+set colorcolumn=80
+set title
+set tabstop=2
+set smarttab
+set expandtab
+set shiftwidth=2
+set smartindent
+set mouse=a
+set list
+set listchars=tab:»-,trail:-,eol:↲,extends:»,precedes:«,nbsp:%
+set backspace=indent,eol,start
+set number
+set cursorline
+set cursorcolumn
+set signcolumn=yes
+set clipboard^=unnamed,unnamedplus
+set smartcase
+set ignorecase
+set dictionary=/usr/share/dict/words
+set helplang=ja,en
+set t_vb=
+set visualbell
+set noerrorbells
+set termguicolors
+set timeoutlen=500
+set laststatus=2
+set updatetime=300
+set hidden
+set nobackup
+set nowritebackup
+set wildmenu
+set wildmode=longest,full
+set hlsearch
+set incsearch
+set background=dark
+if has('nvim')
+  set inccommand=split
+  set pumblend=30
+  set winblend=30
+endif
+
+set guifont=Fira\ Code:h12,HackGenNerd\ Console:h12
+if exists('g:nvui')
+  NvuiFrameless 1
+endif
+
+augroup TerminalSetup
+  autocmd!
+  if has('nvim')
+    autocmd TermOpen * setlocal norelativenumber
+    autocmd TermOpen * setlocal nonumber
+  else
+    autocmd TerminalOpen * setlocal norelativenumber
+    autocmd TerminalOpen * setlocal nonumber
+  endif
+augroup END
+tnoremap <ESC> <C-\><C-n>
+
+augroup QuickfixSetup
+  autocmd!
+  autocmd QuickFixCmdPost Subvert,vimgrep,grep,make if len(getqflist()) != 0 | cwindow | endif
+augroup END
+
 call pack#begin()
-call pack#add('vim-denops/denops.vim')
-call pack#add('thinca/vim-quickrun')
-call pack#add('skanehira/quickrun-neoterm.vim')
-call pack#add('airblade/vim-rooter')
-call pack#add('thinca/vim-qfreplace')
-call pack#add('sheerun/vim-polyglot')
-call pack#add('tpope/vim-abolish')
-call pack#add('tpope/vim-repeat')
-call pack#add('tpope/vim-unimpaired')
-call pack#add('tpope/vim-fugitive')
-call pack#add('justinmk/vim-sneak')
-call pack#add('moll/vim-bbye')
-call pack#add('vim-jp/vimdoc-ja')
-call pack#add('LeafCage/autobackup.vim')
-call pack#add('cohama/lexima.vim')
-call pack#add('itchyny/lightline.vim')
-call pack#add('ctrlpvim/ctrlp.vim')
-call pack#add('mattn/ctrlp-matchfuzzy')
-call pack#add('tani/ctrlp-matchfzy')
-call pack#add('airblade/vim-gitgutter')
-call pack#add('skanehira/translate.vim')
-call pack#add('camspiers/animate.vim')
-call pack#add('camspiers/lens.vim')
-call pack#add('mbbill/undotree')
-call pack#add('thinca/vim-ambicmd')
-call pack#add('wellle/targets.vim')
-call pack#add('machakann/vim-sandwich')
-call pack#add('kana/vim-textobj-user')
-call pack#add('kana/vim-textobj-entire')
-call pack#add('kana/vim-textobj-line')
-call pack#add('kana/vim-textobj-indent')
-call pack#add('rhysd/vim-textobj-anyblock')
-call pack#add('coderifous/textobj-word-column.vim')
-call pack#add('tommcdo/vim-exchange')
-call pack#add('tommcdo/vim-lion')
-call pack#add('svermeulen/vim-subversive')
-call pack#add('kana/vim-operator-user')
-call pack#add('tyru/caw.vim')
-call pack#add('Rigellute/rigel')
-call pack#add('sainnhe/edge')
-call pack#add('sainnhe/everforest')
-call pack#add('sainnhe/gruvbox-material')
-call pack#add('guns/vim-sexp')
-call pack#add('tpope/vim-sexp-mappings-for-regular-people')
-call pack#add('prabirshrestha/vim-lsp')
-call pack#add('mattn/vim-lsp-settings')
+Pack "thinca/vim-quickrun"
+Pack "airblade/vim-rooter"
+Pack "thinca/vim-qfreplace"
+"Pack "sheerun/vim-polyglot"
+Pack "tpope/vim-abolish"
+Pack "tpope/vim-repeat"
+Pack "tpope/vim-unimpaired"
+Pack "tpope/vim-fugitive"
+Pack "vim-jp/vimdoc-ja"
+Pack "LeafCage/autobackup.vim"
+Pack "cohama/lexima.vim"
+Pack "itchyny/lightline.vim"
+Pack "ctrlpvim/ctrlp.vim"
+Pack "mattn/ctrlp-matchfuzzy"
+Pack "airblade/vim-gitgutter"
+Pack "skanehira/translate.vim"
+Pack "mbbill/undotree"
+Pack "wellle/targets.vim"
+Pack "machakann/vim-sandwich"
+Pack "kana/vim-textobj-user"
+Pack "kana/vim-textobj-entire"
+Pack "kana/vim-textobj-line"
+Pack "kana/vim-textobj-indent"
+Pack "rhysd/vim-textobj-anyblock"
+Pack "coderifous/textobj-word-column.vim"
+Pack "tommcdo/vim-exchange"
+Pack "tommcdo/vim-lion"
+Pack "svermeulen/vim-subversive"
+Pack "kana/vim-operator-user"
+Pack "tyru/caw.vim"
+Pack "Rigellute/rigel"
+Pack "sainnhe/edge"
+Pack "sainnhe/everforest"
+Pack "sainnhe/gruvbox-material"
+Pack "guns/vim-sexp"
+Pack "tpope/vim-sexp-mappings-for-regular-people"
+Pack "prabirshrestha/vim-lsp"
+Pack "mattn/vim-lsp-settings"
+Pack "easymotion/vim-easymotion"
+Pack "prabirshrestha/asyncomplete.vim"
+Pack "prabirshrestha/asyncomplete-lsp.vim"
+Pack "rhysd/committia.vim"
+Pack "vim-denops/denops.vim"
 call pack#end()
-filetype plugin indent on
-syntax enable
+
+function! s:keymap(force_map, modes, ...) abort
+  let arg = join(a:000, ' ')
+  let cmd = (a:force_map || arg =~? '<plug>') ? 'map' : 'noremap'
+  for mode in split(a:modes, '.\zs')
+    if index(split('nvsxoilct', '.\zs'), mode) < 0
+      echoerr 'Invalid mode is detected: ' . mode
+      continue
+    endif
+    execute mode .. cmd arg
+  endfor
+endfunction
+command! -nargs=+ -bang Keymap call s:keymap(<bang>0, <f-args>)
+
+let g:quickrun_config = { '_': {} }
+if has('nvim')
+  let g:quickrun_config._.runner = 'neoterm'
+else
+  let g:quickrun_config._.runner = 'terminal'
+endif
+let g:quickrun_config['tex'] = {
+\ 'command' : 'latexmk',
+\ 'exec': ['%c %s'],
+\}
+
+let g:caw_operator_keymappings = 1
+
+Keymap nox s <plug>(SubversiveSubstitute)
+Keymap nox S <plug>(SubversiveSubstituteRange)
+Keymap nox <leader>S <plug>(SubversiveSubstituteRangeConfirm)
+
+let g:sneak#label = 1
+nnoremap <leader>/ /
+nnoremap <leader>? ?
+Keymap nox / <plug>Sneak_s
+Keymap nox ? <plug>Sneak_S
+Keymap nox t <plug>Sneak_t
+Keymap nox T <plug>Sneak_T
+Keymap nox f <plug>Sneak_f
+Keymap nox F <plug>Sneak_F
+
+cnoremap <expr> <C-j> ambicmd#expand("\<CR>")
+
+runtime macros/sandwich/keymap/surround.vim
+
+let g:ctrlp_cmd = 'CtrlPMixed'
+let g:ctrlp_match_func = { 'match': 'ctrlp_matchfuzzy#matcher' }
+
+let g:lightline = {
+      \  'tabline': {
+      \    'left': [ [ 'tabs' ] ],
+      \    'right': [ [ 'close' ] ]
+      \  },
+      \  'active': {
+      \    'left': [ [ 'mode', 'paste' ],
+      \              [ 'readonly', 'filename', 'modified' ] ],
+      \    'right': [ [ 'lineinfo' ],
+      \               [ 'percent' ],
+      \               [ 'fileformat', 'fileencoding', 'filetype' ] ]
+      \  },
+      \  'subseparator': {
+      \    'left': '\uFF5C',
+      \    'right': '\uFF5C',
+      \  },
+      \  'component_function': {}
+      \ }
+
+let g:lightline.component_function.gitbranch = 'FugitiveHead'
+call extend(g:lightline.active.left[1], ['gitbranch'])
+
+let Colorscheme = 'gruvbox_material'
+
+if (Colorscheme == 'rigel')
+  let g:lightline.colorscheme = 'rigel'
+  colorscheme rigel
+endif
+
+if (Colorscheme == 'edge')
+  let g:edge_enable_italic = 1
+  let g:lightline.colorscheme = 'edge'
+  colorscheme edge
+endif
+
+if (Colorscheme == 'everforest')
+  let g:everforest_enable_italic = 1
+  let g:lightline.colorscheme = 'everforest'
+  colorscheme everforest
+endif
+
+if (Colorscheme == 'gruvbox_material')
+  let g:gruvbox_material_background = 'hard'
+  let g:gruvbox_material_enable_italic = 1
+  let g:lightline.colorscheme = 'gruvbox_material'
+  colorscheme gruvbox-material
+endif
+
+let g#autobackup_backup_dir = expand('~/.cache/backup')
+let g#autobackup_backup_limit = 1000
+
+autocmd FileType clojure,scheme,lisp let b:lexima_disabled = 1
+function LeximaSetup()
+  if g:loaded_lexima
+    call lexima#add_rule({ 'filetype': 'tex', 'char': '{', 'at': '\\\%#', 'input_after': '\}'})
+    call lexima#add_rule({ 'filetype': 'tex', 'char': '[', 'at': '\\\%#', 'input_after': '\]'})
+    call lexima#add_rule({ 'filetype': 'tex', 'char': '(', 'at': '\\\%#', 'input_after': '\)'})
+    call lexima#add_rule({ 'filetype': 'tex', 'char': '}', 'at': '\\begin{\(\w\+\)\%#}', 'leave': 1, 'input_after': '\\end{\1}', 'with_submatch': 1})
+    call lexima#add_rule({ 'filetype': 'html', 'char': '<', 'input_after': '>'})
+    call lexima#add_rule({ 'filetype': 'html', 'char': '>', 'at': '<\(\w\+\)\%#>', 'leave': 1, 'input_after': '</\1>', 'with_submatch': 1})
+  endif
+endfunction
+autocmd VimEnter * call LeximaSetup()
+
+let g:lsp_settings_filetype_typescript = ['typescript-language-server', 'eslint-language-server', 'deno']
+
+function! s:on_lsp_buffer_enabled() abort
+  setlocal omnifunc=lsp#complete
+  setlocal signcolumn=yes
+  if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+  nmap <buffer> gd <plug>(lsp-definition)
+  nmap <buffer> gs <plug>(lsp-document-symbol-search)
+  nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+  nmap <buffer> gr <plug>(lsp-references)
+  nmap <buffer> gi <plug>(lsp-implementation)
+  nmap <buffer> gt <plug>(lsp-type-definition)
+  nmap <buffer> <leader>s <plug>(lsp-rename)
+  nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+  nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+  nmap <buffer> K <plug>(lsp-hover)
+  nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+  nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+  let g:lsp_format_sync_timeout = 1000
+  autocmd! BufWritePre *.json,*.ts,*.js,*.rs,*.go call execute('LspDocumentFormatSync')
+endfunction
+
+augroup lsp_install
+  au!
+  autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END

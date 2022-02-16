@@ -1,0 +1,108 @@
+
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.009  000.009: --- NVIM STARTING ---
+000.387  000.378: locale set
+000.783  000.396: inits 1
+000.800  000.017: window checked
+006.175  005.374: parsing arguments
+006.751  000.576: expanding arguments
+006.798  000.047: inits 2
+007.108  000.310: init highlight
+007.109  000.001: waiting for UI
+008.607  001.499: done waiting for UI
+008.761  000.153: init screen for UI
+008.781  000.020: init default mappings
+008.818  000.038: init default autocommands
+009.309  000.015  000.015: sourcing /root/.config/nvim/pack/minpac/opt/minpac/plugin/minpac.vim
+010.638  000.173  000.173: sourcing /root/.config/nvim/pack/minpac/opt/minpac/autoload/minpac.vim
+014.631  000.127  000.127: sourcing /root/.config/nvim/pack/minpac/start/vim-repeat/autoload/repeat.vim
+014.765  000.448  000.322: sourcing /root/.config/nvim/pack/minpac/start/vim-sandwich/macros/sandwich/keymap/surround.vim
+015.564  006.694  006.057: sourcing /root/.config/nvim/init.vim
+015.569  000.057: sourcing vimrc file(s)
+020.117  000.011  000.011: sourcing /root/.config/nvim/pack/minpac/start/vim-fugitive/ftdetect/fugitive.vim
+020.560  004.795  004.784: sourcing /nvim-linux64/share/nvim/runtime/filetype.vim
+020.804  000.033  000.033: sourcing /nvim-linux64/share/nvim/runtime/ftplugin.vim
+020.978  000.019  000.019: sourcing /nvim-linux64/share/nvim/runtime/indent.vim
+021.222  000.051  000.051: sourcing /nvim-linux64/share/nvim/runtime/syntax/synload.vim
+021.282  000.274  000.223: sourcing /nvim-linux64/share/nvim/runtime/syntax/syntax.vim
+021.898  000.024  000.024: sourcing /root/.config/nvim/pack/minpac/opt/minpac/plugin/minpac.vim
+022.477  000.378  000.378: sourcing /nvim-linux64/share/nvim/runtime/plugin/gzip.vim
+022.496  000.006  000.006: sourcing /nvim-linux64/share/nvim/runtime/plugin/health.vim
+022.561  000.056  000.056: sourcing /nvim-linux64/share/nvim/runtime/plugin/man.vim
+022.941  000.148  000.148: sourcing /nvim-linux64/share/nvim/runtime/pack/dist/opt/matchit/plugin/matchit.vim
+022.998  000.419  000.271: sourcing /nvim-linux64/share/nvim/runtime/plugin/matchit.vim
+023.103  000.096  000.096: sourcing /nvim-linux64/share/nvim/runtime/plugin/matchparen.vim
+023.400  000.288  000.288: sourcing /nvim-linux64/share/nvim/runtime/plugin/netrwPlugin.vim
+023.527  000.015  000.015: sourcing /root/.local/share/nvim/rplugin.vim
+023.532  000.113  000.098: sourcing /nvim-linux64/share/nvim/runtime/plugin/rplugin.vim
+023.610  000.068  000.068: sourcing /nvim-linux64/share/nvim/runtime/plugin/shada.vim
+023.641  000.015  000.015: sourcing /nvim-linux64/share/nvim/runtime/plugin/spellfile.vim
+023.769  000.115  000.115: sourcing /nvim-linux64/share/nvim/runtime/plugin/tarPlugin.vim
+023.854  000.059  000.059: sourcing /nvim-linux64/share/nvim/runtime/plugin/tohtml.vim
+023.879  000.011  000.011: sourcing /nvim-linux64/share/nvim/runtime/plugin/tutor.vim
+024.010  000.119  000.119: sourcing /nvim-linux64/share/nvim/runtime/plugin/zipPlugin.vim
+024.189  001.732: loading rtp plugins
+024.602  000.119  000.119: sourcing /root/.config/nvim/pack/minpac/start/asyncomplete-lsp.vim/plugin/asyncomplete-lsp.vim
+024.794  000.100  000.100: sourcing /root/.config/nvim/pack/minpac/start/asyncomplete.vim/plugin/asyncomplete.vim
+024.950  000.083  000.083: sourcing /root/.config/nvim/pack/minpac/start/autobackup.vim/plugin/autobackup.vim
+027.010  000.079  000.079: sourcing /root/.config/nvim/pack/minpac/start/vim-operator-user/autoload/operator/user.vim
+029.696  004.684  004.605: sourcing /root/.config/nvim/pack/minpac/start/caw.vim/plugin/caw.vim
+030.060  000.265  000.265: sourcing /root/.config/nvim/pack/minpac/start/committia.vim/plugin/committia.vim
+030.425  000.158  000.158: sourcing /root/.config/nvim/pack/minpac/start/ctrlp.vim/autoload/ctrlp/mrufiles.vim
+030.553  000.414  000.256: sourcing /root/.config/nvim/pack/minpac/start/ctrlp.vim/plugin/ctrlp.vim
+030.809  000.158  000.158: sourcing /root/.config/nvim/pack/minpac/start/lexima.vim/plugin/lexima.vim
+030.957  000.076  000.076: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/plugin/lightline.vim
+031.218  000.166  000.166: sourcing /root/.config/nvim/pack/minpac/start/targets.vim/plugin/targets.vim
+031.388  000.085  000.085: sourcing /root/.config/nvim/pack/minpac/start/textobj-word-column.vim/plugin/textobj/word-column.vim
+031.490  000.029  000.029: sourcing /root/.config/nvim/pack/minpac/start/translate.vim/plugin/translate.vim
+031.638  000.090  000.090: sourcing /root/.config/nvim/pack/minpac/start/undotree/plugin/undotree.vim
+032.175  000.452  000.452: sourcing /root/.config/nvim/pack/minpac/start/vim-abolish/plugin/abolish.vim
+035.790  003.536  003.536: sourcing /root/.config/nvim/pack/minpac/start/vim-easymotion/plugin/EasyMotion.vim
+036.270  000.281  000.281: sourcing /root/.config/nvim/pack/minpac/start/vim-exchange/plugin/exchange.vim
+037.637  001.267  001.267: sourcing /root/.config/nvim/pack/minpac/start/vim-fugitive/plugin/fugitive.vim
+038.117  000.127  000.127: sourcing /root/.config/nvim/pack/minpac/start/vim-gitgutter/autoload/gitgutter/utility.vim
+038.400  000.082  000.082: sourcing /root/.config/nvim/pack/minpac/start/vim-gitgutter/autoload/gitgutter/highlight.vim
+039.516  001.768  001.560: sourcing /root/.config/nvim/pack/minpac/start/vim-gitgutter/plugin/gitgutter.vim
+039.761  000.142  000.142: sourcing /root/.config/nvim/pack/minpac/start/vim-lion/plugin/lion.vim
+040.404  000.392  000.392: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp/autoload/lsp/utils.vim
+041.168  001.339  000.946: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp/plugin/lsp.vim
+042.371  000.960  000.960: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp-settings/autoload/lsp_settings.vim
+042.619  000.079  000.079: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp-settings/autoload/lsp_settings/utils.vim
+046.412  000.048  000.048: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp-settings/autoload/lsp_settings/profile.vim
+047.305  006.039  004.951: sourcing /root/.config/nvim/pack/minpac/start/vim-lsp-settings/plugin/lsp_settings.vim
+047.446  000.036  000.036: sourcing /root/.config/nvim/pack/minpac/start/vim-qfreplace/plugin/qfreplace.vim
+047.605  000.075  000.075: sourcing /root/.config/nvim/pack/minpac/start/vim-quickrun/plugin/quickrun.vim
+047.863  000.176  000.176: sourcing /root/.config/nvim/pack/minpac/start/vim-rooter/plugin/rooter.vim
+048.235  000.255  000.255: sourcing /root/.config/nvim/pack/minpac/start/vim-sandwich/plugin/operator/sandwich.vim
+048.433  000.185  000.185: sourcing /root/.config/nvim/pack/minpac/start/vim-sandwich/plugin/sandwich.vim
+048.598  000.148  000.148: sourcing /root/.config/nvim/pack/minpac/start/vim-sandwich/plugin/textobj/sandwich.vim
+048.970  000.018  000.018: sourcing /root/.config/nvim/pack/minpac/start/vim-repeat/autoload/repeat.vim
+053.937  005.232  005.214: sourcing /root/.config/nvim/pack/minpac/start/vim-sexp/plugin/sexp.vim
+054.408  000.318  000.318: sourcing /root/.config/nvim/pack/minpac/start/vim-sexp-mappings-for-regular-people/plugin/sexp_mappings_for_regular_people.vim
+054.785  000.302  000.302: sourcing /root/.config/nvim/pack/minpac/start/vim-subversive/plugin/subversive.vim
+055.437  000.297  000.297: sourcing /root/.config/nvim/pack/minpac/start/vim-textobj-user/autoload/textobj/user.vim
+056.376  001.510  001.213: sourcing /root/.config/nvim/pack/minpac/start/vim-textobj-anyblock/plugin/textobj/anyblock.vim
+057.381  000.896  000.896: sourcing /root/.config/nvim/pack/minpac/start/vim-textobj-entire/plugin/textobj/entire.vim
+059.042  001.564  001.564: sourcing /root/.config/nvim/pack/minpac/start/vim-textobj-indent/plugin/textobj/indent.vim
+060.001  000.862  000.862: sourcing /root/.config/nvim/pack/minpac/start/vim-textobj-line/plugin/textobj/line.vim
+066.551  006.450  006.450: sourcing /root/.config/nvim/pack/minpac/start/vim-unimpaired/plugin/unimpaired.vim
+066.681  003.392: loading packages
+066.715  000.034: loading after plugins
+066.727  000.012: inits 3
+067.319  000.591: reading ShaDa
+067.522  000.203: opening buffers
+068.143  000.561  000.561: sourcing /root/.config/nvim/pack/minpac/start/asyncomplete.vim/autoload/asyncomplete.vim
+068.270  000.038  000.038: sourcing /root/.config/nvim/pack/minpac/start/asyncomplete.vim/autoload/asyncomplete/utils/_on_change/textchangedp.vim
+068.740  000.233  000.233: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/autoload/lightline.vim
+069.346  000.037  000.037: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/autoload/lightline/tab.vim
+070.094  000.132  000.132: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/autoload/lightline/colorscheme.vim
+071.409  001.536  001.403: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/autoload/lightline/colorscheme/powerline.vim
+071.421  001.613  000.077: sourcing /root/.config/nvim/pack/minpac/start/lightline.vim/autoload/lightline/colorscheme/default.vim
+074.266  000.107  000.107: sourcing /root/.config/nvim/pack/minpac/start/vim-gitgutter/autoload/gitgutter.vim
+075.378  005.266: BufEnter autocommands
+075.383  000.005: editing files in windows
+075.599  000.120  000.120: sourcing /root/.config/nvim/pack/minpac/start/ctrlp.vim/autoload/ctrlp/utils.vim

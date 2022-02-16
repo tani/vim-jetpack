@@ -1,1 +1,1 @@
-docker run --rm -it packer sh -c '/nvim-linux64/bin/nvim -c "PackerSync" -c ":qa" && /nvim-linux64/bin/nvim --startuptime startuptime.log -c ":q" && cat startuptime.log'
+docker run --rm -it -v $(pwd):/work packer sh -c 'nvim -c "PackerSync" -c "sleep 5" -c "quitall" && nvim --startuptime "/work/startuptime_packer_$(date +%s).log" -c "quit"'
