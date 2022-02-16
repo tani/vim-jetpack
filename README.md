@@ -36,6 +36,12 @@ curl -fLo ~/.vim/autoload/pack.vim --create-dirs https://raw.githubusercontent.c
 curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
 ```
 
+If you want to install lua interface, instead of the above, you can install pack.vim together with pack.lua as follows.
+
+```
+git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/start/vim-jetpack
+```
+
 ## Supported options
 
 JETPACK.vim is 90% compatible with vim-plug.
