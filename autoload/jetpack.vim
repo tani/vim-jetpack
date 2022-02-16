@@ -4,8 +4,8 @@
 "          All Rights Reserved.
 "=============================================
 
-let g:pack#optimization = 1
-let g:pack#njobs = 8
+let g:jetpack#optimization = 1
+let g:jetpack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
@@ -143,7 +143,7 @@ function s:deletebuf()
   redraw
 endfunction
 
-function pack#install(...)
+function jetpack#install(...)
   call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
@@ -162,13 +162,13 @@ function pack#install(...)
     call extend(cmd, [pkg.url, pkg.path])
     let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Installed %s', pkg.name)]))
     call add(jobs, job)
-    call s:jobwait(jobs, g:pack#njobs)
+    call s:jobwait(jobs, g:jetpack#njobs)
   endfor
   call s:jobwait(jobs, 0)
   call s:deletebuf()
 endfunction
 
-function pack#update(...)
+function jetpack#update(...)
   call s:createbuf()
   let jobs = []
   for i in range(len(s:pkgs))
@@ -183,13 +183,13 @@ function pack#update(...)
     let cmd = ['git', '-C', pkg.path, 'pull']
     let job = s:jobstart(cmd, function('<SID>setbufline', [i+3, printf('Updated %s', pkg.name)]))
     call add(jobs, job)
-    call s:jobwait(jobs, g:pack#njobs)
+    call s:jobwait(jobs, g:jetpack#njobs)
   endfor
   call s:jobwait(jobs, 0)
   call s:deletebuf()
 endfunction
 
-function pack#bundle()
+function jetpack#bundle()
   call s:createbuf()
   let bundle = []
   let unbundle = []
@@ -198,9 +198,9 @@ function pack#bundle()
     call s:setbufline(1, printf('Check Plugins (%d / %d)', i, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Checking %s ...', pkg.name))
-    if g:pack#optimization >= 1
+    if g:jetpack#optimization >= 1
          \ && !pkg.opt
-         \ && (g:pack#optimization || s:mergable(bundle, pkg))
+         \ && (g:jetpack#optimization || s:mergable(bundle, pkg))
       call add(bundle, pkg)
     else
       call add(unbundle, pkg)
@@ -247,7 +247,7 @@ function pack#bundle()
   call s:deletebuf()
 endfunction
 
-function pack#postupdate()
+function jetpack#postupdate()
   packloadall 
   for pkg in s:pkgs
     if type(pkg.hook) == v:t_func
@@ -264,19 +264,19 @@ function pack#postupdate()
   packloadall | silent! helptags ALL
 endfunction
 
-function pack#sync()
+function jetpack#sync()
   echomsg 'Installing plugins ...'
-  call pack#install()
+  call jetpack#install()
   echomsg 'Updating plugins ...'
-  call pack#update()
+  call jetpack#update()
   echomsg 'Bundling plugins ...'
-  call pack#bundle()
+  call jetpack#bundle()
   echomsg 'Running the post-update hooks ...'
-  call pack#postupdate()
+  call jetpack#postupdate()
   echomsg 'Complete'
 endfunction
 
-function pack#add(plugin, ...)
+function jetpack#add(plugin, ...)
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let path = get(opts, 'dir', s:packdir .. '/src/' .. name)
@@ -310,20 +310,20 @@ function pack#add(plugin, ...)
   endif
 endfunction
 
-function pack#begin(...)
+function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=+ Pack call pack#add(<args>)
+  command! -nargs=+ Pack call jetpack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
 endfunction
 
-function pack#end()
+function jetpack#end()
   syntax enable
   filetype plugin indent on
   delcommand Pack
   silent! packadd! _
 endfunction
 
-command! PackSync call pack#sync()
+command! JetpackSync call jetpack#sync()

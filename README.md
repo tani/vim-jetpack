@@ -18,7 +18,7 @@ https://user-images.githubusercontent.com/5019902/154086628-d3926a43-fe8b-4f39-9
 - Fancy UI (User Interface)
     - You can see a progress of installation with a graphical interface
 - `pack/*/start`-free architecture.
-    - Installed plugins do not pollutes your vim until calling `pack#`-functions
+    - Installed plugins do not pollutes your vim until calling `jetpack#`-functions
 
 ## Benchmark
 
@@ -28,7 +28,7 @@ We measured a startup time 10 times for each plugin managers. The following char
 
 ![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
 
-|          |  dein | jetpack | minpac | packer |   paq |  plug |
+|          |  dein | jetpack     | minpac | packer |   paq |  plug |
 | :------: | ----: | ------: | -----: | -----: | ----: | ----: |
 | min      | 80.61 |   69.93 |  64.97 |  75.38 | 73.92 | 77.63 |
 | max      | 96.02 |   74.48 |  81.30 |  89.40 | 84.95 | 82.82 |
@@ -41,21 +41,21 @@ directory for more detail.
 
 ## Installation
 
-Download pack.vim and put it in the `autoload` directory.
+Download jetpack.vim and put it in the `autoload` directory.
 
 ### Vim
 
 ```
-curl -fLo ~/.vim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
+curl -fLo ~/.vim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
 ```
 
 ### Neovim
 
 ```
-curl -fLo ~/.config/nvim/autoload/pack.vim --create-dirs https://raw.githubusercontent.com/tani/jetpack/master/autoload/pack.vim
+curl -fLo ~/.config/nvim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
 ```
 
-If you want to install lua interface, instead of the above, you can install pack.vim together with pack.lua as follows.
+If you want to install lua interface, instead of the above, you can install jetpack.vim together with jetpack.lua as follows.
 
 ```
 git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/start/vim-jetpack
@@ -82,7 +82,7 @@ We welcome a pull request to add the `on` option for non-normal mode and the
 
 ## Configuration
 
-- `g:pack#optimization` -- The optimization level for the bundle algorithm.
+- `g:jetpack#optimization` -- The optimization level for the bundle algorithm.
 
   |  speed  |    0    |   1    |    2    |
   | :-----: | :-----: | :----: | :-----: |
@@ -96,18 +96,18 @@ We welcome a pull request to add the `on` option for non-normal mode and the
 
 ## Commands
 
-- `:PackSync` -- Synchronize configuration and state. It performs to install,
+- `:JetpackSync` -- Synchronize configuration and state. It performs to install,
   update, and bundle.
 
 ## Example Usage
 
 ### vim-plug style
 
-The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/pack/g` and
+The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/jetpack/g` and
 `:%s/Plug/Pack/g`.
 
 ```vim
-call pack#begin()
+call jetpack#begin()
 Pack 'junegunn/fzf.vim'
 Pack 'junegunn/fzf', { 'do': {-> fzf#install()} }
 Pack 'neoclide/coc.nvim', { 'branch': 'release' }
@@ -115,21 +115,21 @@ Pack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-loc
 Pack 'vlime/vlime', { 'rtp': 'vim' }
 Pack 'dracula/vim', { 'as': 'dracula' }
 Pack 'tpope/vim-fireplace', { 'for': 'clojure' }
-call pack#end()
+call jetpack#end()
 ```
 
 ### dein/ minpac style
 
 ```vim
-call pack#begin()
-call pack#add('junegunn/fzf.vim')
-call pack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
-call pack#add('neoclide/coc.nvim', { 'branch': 'release' })
-call pack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
-call pack#add('vlime/vlime', { 'rtp': 'vim' })
-call pack#add('dracula/vim', { 'as': 'dracula' })
-call pack#add('tpope/vim-fireplace', { 'for': 'clojure' })
-call pack#end()
+call jetpack#begin()
+call jetpack#add('junegunn/fzf.vim')
+call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
+call jetpack#add('dracula/vim', { 'as': 'dracula' })
+call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call jetpack#end()
 ```
 
 ### Lua extension
@@ -138,14 +138,14 @@ You additionally need to download the lua extension and put it in the `lua`
 directory as follows.
 
 ```
-curl -fLo ~/.config/nvim/lua/pack.lua --create-dirs \
-    https://raw.githubusercontent.com/tani/jetpack/master/pack.lua
+curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/jetpack.lua
 ```
 
 #### packer style
 
 ```lua
-require('pack').startup(function(use)
+require('jetpack').startup(function(use)
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', do = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
@@ -159,7 +159,7 @@ end)
 #### paq style
 
 ```lua
-require('pack').setup {
+require('jetpack').setup {
   'junegunn/fzf.vim',
   {'junegunn/fzf', do = 'call fzf#install()' },
   {'neoclide/coc.nvim', branch = 'release'},
