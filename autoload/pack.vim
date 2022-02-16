@@ -196,7 +196,7 @@ function pack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Checking %s ...', s:pkgs[i].name))
     if g:pack#optimization >= 1
-         \ && s:pkgs[i].packtype == 'start'
+         \ && !s:pkgs[i].opt
          \ && (g:pack#optimization || s:mergable(bundle, s:pkgs[i]))
       call add(bundle, s:pkgs[i])
     else
@@ -205,8 +205,7 @@ function pack#bundle()
     call s:setbufline(i+3, printf('Checked %s', s:pkgs[i].name))
   endfor
   call delete(s:packdir .. '/opt', 'rf')
-  call delete(s:packdir .. '/start', 'rf')
-  let destdir = s:packdir .. '/start/_'
+  let destdir = s:packdir .. '/opt/_'
   call s:deletebuf()
 
   call s:createbuf()
@@ -233,7 +232,7 @@ function pack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * (i+len(bundle)) / len(s:pkgs) * 100))
     call s:setbufline(i+len(bundle)+3, printf('Copying %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
-    let destdir = s:packdir .. '/' .. pkg.packtype .. '/' .. pkg.name
+    let destdir = s:packdir .. '/opt/' .. pkg.name
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
@@ -289,20 +288,20 @@ function pack#add(plugin, ...)
         \  'name': get(opts, 'as', name),
         \  'frozen': get(opts, 'frozen'),
         \  'path': get(opts, 'dir', path),
-        \  'packtype': get(opts, 'opt') ? 'opt' : 'start',
+        \  'opt': get(opts, 'opt')
         \ }
   let ft = get(opts, 'for', [])
   let ft = type(ft) == v:t_string ? split(ft, ',') : ft
   let ft = ft == [''] ? [] : ft
   for it in ft
-    let pkg.packtype = 'opt'
+    let pkg.opt = 1
     execute printf('autocmd FileType %s silent! packadd %s', it, name)
   endfor
   let cmd = get(opts, 'on', [])
   let cmd = type(cmd) == v:t_string ? split(cmd, ',') : cmd
   let cmd = cmd == [''] ? [] : cmd
   for it in cmd
-    let pkg.packtype = 'opt'
+    let pkg.opt = 1
     if it =~ '^<Plug>'
       execute printf("nnoremap %s :execute '".'packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
     elseif index(s:events, it) >= 0
@@ -312,6 +311,9 @@ function pack#add(plugin, ...)
     endif
   endfor
   call add(s:pkgs, pkg)
+  if !pkg.opt
+    silent! packadd pkg.name
+  endif
 endfunction
 
 function pack#begin(...)
@@ -325,6 +327,7 @@ endfunction
 
 function pack#end()
   delcommand Pack
+  silent! packadd _
 endfunction
 
 command! -nargs=* PackInstall call pack#install(<q-args>)
