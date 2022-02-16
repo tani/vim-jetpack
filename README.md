@@ -7,6 +7,18 @@ the built-in plugin manager only.
 
 https://user-images.githubusercontent.com/5019902/154086628-d3926a43-fe8b-4f39-9035-c2cf74f456c4.mp4
 
+## Features
+
+- Lightning-fast startup
+    - It optimizes the search algorithm for the runtimepath
+- Single file plugin
+    - You need to just put the single file to use this software
+- Multiple DSLs (Domain Specific Languages)
+    - You can use a favorite notations, which are similar to vim-plug, dein.vim, packer.nvim, and paq.nvim
+- Fancy UI (User Interface)
+    - You can see a progress of installation with a graphical interface
+- `pack/*/start`-free architecture.
+    - Installed plugins do not pollutes your vim until calling `pack#`-functions
 
 ## Benchmark
 
