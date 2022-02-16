@@ -9,6 +9,7 @@ let g:pack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
+let s:installed = []
 
 let s:pkgs = []
 let s:plugs = []
@@ -311,7 +312,7 @@ function pack#add(plugin, ...)
     endif
   endfor
   call add(s:pkgs, pkg)
-  if !pkg.opt
+  if !pkg.opt && index(s:installed, pkg.name) >= 0
     silent! packadd pkg.name
   endif
 endfunction
@@ -323,6 +324,7 @@ function pack#begin(...)
     execute 'set packpath^=' .. s:home
   endif
   command! -nargs=+ Pack call pack#add(<args>)
+  let s:installed = glob(s:home .. '/pack/jetpack/opt/*', '', 1)
 endfunction
 
 function pack#end()
