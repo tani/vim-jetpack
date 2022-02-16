@@ -313,7 +313,7 @@ endfunction
 function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=+ Pack call jetpack#add(<args>)
+  command! -nargs=+ Jetpack call jetpack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
@@ -322,7 +322,7 @@ endfunction
 function jetpack#end()
   syntax enable
   filetype plugin indent on
-  delcommand Pack
+  delcommand Jetpack
   silent! packadd! _
 endfunction
 

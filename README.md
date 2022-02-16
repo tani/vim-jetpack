@@ -104,17 +104,17 @@ We welcome a pull request to add the `on` option for non-normal mode and the
 ### vim-plug style
 
 The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/jetpack/g` and
-`:%s/Plug/Pack/g`.
+`:%s/Plug/Jetpack/g`.
 
 ```vim
 call jetpack#begin()
-Pack 'junegunn/fzf.vim'
-Pack 'junegunn/fzf', { 'do': {-> fzf#install()} }
-Pack 'neoclide/coc.nvim', { 'branch': 'release' }
-Pack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' }
-Pack 'vlime/vlime', { 'rtp': 'vim' }
-Pack 'dracula/vim', { 'as': 'dracula' }
-Pack 'tpope/vim-fireplace', { 'for': 'clojure' }
+Jetpack 'junegunn/fzf.vim'
+Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
+Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
+Jetpack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' }
+Jetpack 'vlime/vlime', { 'rtp': 'vim' }
+Jetpack 'dracula/vim', { 'as': 'dracula' }
+Jetpack 'tpope/vim-fireplace', { 'for': 'clojure' }
 call jetpack#end()
 ```
 
