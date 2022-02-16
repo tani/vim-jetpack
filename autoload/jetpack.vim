@@ -275,6 +275,7 @@ function jetpack#sync()
   call jetpack#postupdate()
   echomsg 'Complete'
 endfunction
+command! JetpackSync call jetpack#sync()
 
 function jetpack#add(plugin, ...)
   let opts = a:0 > 0 ? a:1 : {}
@@ -326,4 +327,18 @@ function jetpack#end()
   silent! packadd! _
 endfunction
 
-command! JetpackSync call jetpack#sync()
+function jetpack#tap(name)
+  "Return true if the plugin is loaded.
+  "TODO: lazy plugins.
+  if isdirectory(s:packdir .. '/src/' .. a:name)
+    for pkg in s:pkgs
+      if pkg.name == a:name
+        if !pkg.opt
+          return 1
+        endif
+        break
+      endif
+    endfor
+  endif
+  return 0
+endfunction
