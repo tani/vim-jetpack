@@ -10,7 +10,7 @@ let g:jetpack#njobs = 8
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
 
-let s:loaded = {}
+let g:pack#loaded = {}
 let s:pkgs = []
 let s:ignores = [
   \ "**/.*",
@@ -300,15 +300,16 @@ function jetpack#add(plugin, ...)
     if it =~ '^<Plug>'
       execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
     elseif index(s:events, it) >= 0
-      execute printf('autocmd %s silent! packadd %s', it, name)
+      execute printf('autocmd %s * silent! packadd %s', it, name)
     else
       execute printf('autocmd CmdUndefined %s silent! packadd %s', it, name)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePost **/pack/jetpack/opt/%s/**/* let <SID>loaded["%s"]=1)', name, name)
+    execute printf('autocmd SourcePost pack/jetpack/opt/%s/**/* let g:pack#loaded["%s"]=1)', name, name)
+  else
+    execute 'silent! packadd! ' .. name
   endif
-  execute 'silent! packadd! ' .. name
   call add(s:pkgs, pkg)
 endfunction
 
@@ -329,7 +330,7 @@ function jetpack#end()
 endfunction
 
 function jetpack#tap(name)
-  if get(s:loaded, name, 0)
+  if get(g:pack#loaded, name, 0)
     return 1
   endif
   if isdirectory(s:packdir .. '/src/' .. a:name)
