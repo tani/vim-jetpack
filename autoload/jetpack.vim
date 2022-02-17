@@ -9,6 +9,7 @@ let g:jetpack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
+let s:loaded = {}
 
 let s:pkgs = []
 let s:plugs = []
@@ -305,10 +306,12 @@ function jetpack#add(plugin, ...)
       execute printf('autocmd CmdUndefined %s silent! packadd %s', it, name)
     endif
   endfor
-  call add(s:pkgs, pkg)
-  if !pkg.opt && isdirectory(s:packdir .. '/opt/' .. name)
+  if pkg.opt
+    execute printf('autocmd SourcePost **/pack/jetpack/opt/%s/**/* let <SID>loaded["%s"]=1)', name, name)
+  elseif isdirectory(s:packdir .. '/opt/' .. name)
     execute 'silent! packadd! ' .. name
   endif
+  call add(s:pkgs, pkg)
 endfunction
 
 function jetpack#begin(...)
@@ -328,8 +331,6 @@ function jetpack#end()
 endfunction
 
 function jetpack#tap(name)
-  "Return true if the plugin is loaded.
-  "TODO: lazy plugins.
   if isdirectory(s:packdir .. '/src/' .. a:name)
     for pkg in s:pkgs
       if pkg.name == a:name
@@ -340,5 +341,5 @@ function jetpack#tap(name)
       endif
     endfor
   endif
-  return 0
+  return get(g:pack#loaded, name, 0)
 endfunction
