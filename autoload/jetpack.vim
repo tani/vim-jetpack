@@ -138,7 +138,7 @@ function jetpack#install(...)
       continue
     endif
     let cmd = ['git', 'clone', '--depth', '1']
-    if pkg.branch != 0
+    if type(pkg.branch) == v:t_string
       call extend(cmd, ['-b', pkg.branch])
     endif
     call extend(cmd, [pkg.url, pkg.path])
