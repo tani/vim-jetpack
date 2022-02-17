@@ -171,6 +171,17 @@ function jetpack#update(...)
   call s:deletebuf()
 endfunction
 
+function jetpack#clean()
+  for pkg in s:pkgs
+    if isdirectory(pkg.path)
+      let branch = system(printf("git -C '%s' rev-parse --abbrev-ref HEAD", pkg.path))
+      if type(pkg.branch) == v:t_string && pkg.branch != branch
+        call delete(pkg.path, 'rf')
+      endif
+    endif
+  endfor
+endfunction
+
 function jetpack#bundle()
   let bundle = []
   let unbundle = s:pkgs
@@ -248,6 +259,8 @@ function jetpack#postupdate()
 endfunction
 
 function jetpack#sync()
+  echomsg 'Cleaning up plugins ...'
+  call jetpack#clean()
   echomsg 'Installing plugins ...'
   call jetpack#install()
   echomsg 'Updating plugins ...'
