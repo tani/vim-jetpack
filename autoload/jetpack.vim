@@ -302,7 +302,7 @@ function jetpack#add(plugin, ...)
     elseif index(s:events, it) >= 0
       execute printf('autocmd %s * silent! packadd %s', it, name)
     else
-      execute printf('autocmd CmdUndefined %s silent! packadd %s', it, name)
+      execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
   endfor
   if pkg.opt
