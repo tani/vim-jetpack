@@ -6,7 +6,6 @@
 
 let g:jetpack#optimization = 1
 let g:jetpack#njobs = 8
-let g:jetpack#verbose = 0
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:optdir = s:home .. '/pack/jetpack/opt'
@@ -55,22 +54,11 @@ let s:events = [
   \ ]
 
 function s:files(path)
-  let files = []
-  for item in glob(a:path .. '/**/*', '', 1)
-    if !isdirectory(item)
-      call add(files, item)
-    endif
-  endfor
-  return files
+  return filter(glob(a:path .. '/**/*', '', 1), "!isdirectory(v:val)")
 endfunction
 
 function s:ignorable(filename)
-  for ignore in s:ignores
-    if a:filename =~ glob2regpat(ignore)
-      return 1
-    endif
-  endfor
-  return 0
+  return filter(copy(s:ignores), "a:filename =~ glob2regpat(v:val)") != []
 endfunction
 
 function s:progressbar(n)
@@ -85,7 +73,7 @@ function s:jobstatus(job)
 endfunction
 
 function s:jobcount(jobs)
-  return len(filter(copy(a:jobs), {_, v -> s:jobstatus(v) == 'run'}))
+  return len(filter(copy(a:jobs), "s:jobstatus(v:val) == 'run'"))
 endfunction
 
 function s:jobwait(jobs, njobs)
@@ -96,9 +84,6 @@ function s:jobwait(jobs, njobs)
 endfunction
 
 function s:jobstart(cmd, cb)
-  if g:jetpack#verbose
-    echomsg 'jobstart: ' .. string(a:cmd)
-  endif
   if has('nvim')
     return jobstart(a:cmd, { 'on_exit': a:cb })
   endif
@@ -109,21 +94,14 @@ function s:copy(from, to)
   if has('nvim')
     call v:lua.vim.loop.fs_link(a:from, a:to)
   else
-    let blob = readfile(a:from, 'b')
-    call writefile(blob, a:to, 'b')
+    call writefile(readfile(a:from, 'b'), a:to, 'b')
   endif
 endfunction
 
 function s:syntax()
   syntax clear
-  syntax keyword jetpackProgress Installing
-  syntax keyword jetpackProgress Updating
-  syntax keyword jetpackProgress Copying
-  syntax keyword jetpackProgress Merging
-  syntax keyword jetpackComplete Installed
-  syntax keyword jetpackComplete Updated
-  syntax keyword jetpackComplete Copied
-  syntax keyword jetpackComplete Merged
+  syntax match jetpackProgress /[A-Z][a-z]*ing/
+  syntax match jetpackComplete /[A-Z][a-z]*ed/
   syntax keyword jetpackSkipped Skipped
   highlight def link jetpackProgress DiffChange
   highlight def link jetpackComplete DiffAdd
@@ -195,15 +173,11 @@ endfunction
 
 function jetpack#bundle()
   let bundle = []
-  let unbundle = []
-  for i in range(len(s:pkgs))
-    let pkg = s:pkgs[i]
-    if g:jetpack#optimization >= 1 && !pkg.opt
-      call add(bundle, pkg)
-    else
-      call add(unbundle, pkg)
-    endif
-  endfor
+  let unbundle = s:pkgs
+  if g:jetpack#optimization >= 1
+    let bundle = filter(copy(s:pkgs), "!v:val['opt']")
+    let unbundle = filter(copy(s:pkgs), "v:val['opt']") 
+  endif
 
   call delete(s:optdir, 'rf')
   let destdir = s:optdir .. '/_'
@@ -215,18 +189,12 @@ function jetpack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Merging %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
-    let srcfiles = filter(s:files(srcdir), {_, f -> !s:ignorable(substitute(f, srcdir, '', ''))})
-    let destfiles = map(copy(srcfiles), {_, f -> substitute(f, srcdir, destdir, '')})
+    let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
+    let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
 
     if g:jetpack#optimization == 1
       let ignore = v:false
-      for destfile in destfiles
-        if filereadable(destfile)
-          let ignore = v:true
-          break
-        endif
-      endfor
-      if ignore
+      if filter(copy(destfiles), "filereadable(v:val)") != []
         call add(unbundle, pkg)
         continue
       endif
@@ -355,14 +323,7 @@ function jetpack#tap(name)
     return 1
   endif
   if isdirectory(s:srcdir .. '/' .. a:name)
-    for pkg in s:pkgs
-      if pkg.name == a:name
-        if !pkg.opt
-          return 1
-        endif
-        break
-      endif
-    endfor
+    return filter(copy(s:pkgs), "v:val['name'] == a:name && !v:val['opt']") != []
   endif
   return 0
 endfunction
