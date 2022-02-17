@@ -306,7 +306,6 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
-    let s:loaded[name] = 0
     execute printf('autocmd SourcePost **/pack/jetpack/opt/%s/**/* let <SID>loaded["%s"]=1)', name, name)
   endif
   execute 'silent! packadd! ' .. name
