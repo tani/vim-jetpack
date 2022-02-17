@@ -173,9 +173,9 @@ endfunction
 
 function jetpack#clean()
   for pkg in s:pkgs
-    if isdirectory(pkg.path)
+    if isdirectory(pkg.path) && type(pkg.branch) == v:t_string
       let branch = system(printf("git -C '%s' rev-parse --abbrev-ref HEAD", pkg.path))
-      if type(pkg.branch) == v:t_string && pkg.branch != branch
+      if pkg.branch != branch
         call delete(pkg.path, 'rf')
       endif
     endif
