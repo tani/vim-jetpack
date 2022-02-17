@@ -71,20 +71,6 @@ function s:ignorable(filename)
   return 0
 endfunction
 
-function s:mergable(pkgs, pkg)
-  let path = []
-  for p in a:pkgs
-    call add(path, p.path)
-  endfor
-  let path = join(path, ',')
-  for relpath in map(s:files(a:pkg.path), {_, v -> substitute(v , a:pkg.path, '', '')})
-    if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
-      return 0
-    endif
-  endfor
-  return 1
-endfunction
-
 function s:progressbar(n)
   return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
@@ -244,7 +230,7 @@ function jetpack#bundle()
       let srcfile = srcfiles[i]
       let destfile = destfiles[i]
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-      call writefile(readfile(srcfile, 'b'), destfile, 'b')
+      call s:copy(srcfile, destfile)
     endfor
     call s:setbufline(i+3, printf('Merged %s ...', pkg.name))
   endfor
