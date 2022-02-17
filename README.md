@@ -138,7 +138,7 @@ directory as follows.
 
 ```
 curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/jetpack.lua
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/lua/jetpack.lua
 ```
 
 #### packer style
