@@ -10,7 +10,7 @@ let g:jetpack#njobs = 8
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
 
-let g:pack#loaded = {}
+let s:loaded = {}
 let s:pkgs = []
 let s:ignores = [
   \ "**/.*",
@@ -325,7 +325,7 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePre %s/opt/%s/**/* let g:pack#loaded["%s"]=1', s:packdir, name, name)
+    execute printf('autocmd SourcePre %s/opt/%s/**/* let <SID>loaded["%s"]=1', s:packdir, name, name)
   else
     execute 'silent! packadd! ' .. name
   endif
@@ -349,7 +349,7 @@ function jetpack#end()
 endfunction
 
 function jetpack#tap(name)
-  if get(g:pack#loaded, a:name, 0)
+  if get(s:loaded, a:name, 0)
     return 1
   endif
   if isdirectory(s:packdir .. '/src/' .. a:name)
