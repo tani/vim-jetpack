@@ -110,6 +110,23 @@ function s:jobstart(cmd, cb)
   return job_start(a:cmd, { 'exit_cb': a:cb })
 endfunction
 
+function s:parseopt(str)
+  let plugin = ''
+  let idx = len(a:str)
+  for i in range(len(a:str))
+    if a:str[i] == ','
+      let idx = i 
+      break
+    endif
+  endfor
+  let args = []
+  call add(args, eval(a:str[0:idx-1]))
+  if idx != len(a:str)
+    call add(args, eval(a:str[idx+1:-1]))
+  endif
+  return args
+endfunction
+
 function s:syntax()
   syntax clear
   syntax keyword jetpackProgress Installing
@@ -229,7 +246,7 @@ function jetpack#bundle()
     call s:setbufline(i+3, printf('Copied %s ...', pkg.name))
   endfor
 
-  for i in unbundle
+  for i in range(len(unbundle))
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+len(bundle), len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * (i+len(bundle)) / len(s:pkgs) * 100))
@@ -314,7 +331,7 @@ endfunction
 function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=+ Jetpack call jetpack#add(<args>)
+  command! -nargs=1 Jetpack call function('jetpack#add', s:parseopt(<q-args>))()
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
