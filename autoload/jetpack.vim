@@ -331,7 +331,7 @@ function jetpack#end()
 endfunction
 
 function jetpack#tap(name)
-  if s:loaded[name]
+  if get(s:loaded, name, 0)
     return 1
   endif
   if isdirectory(s:packdir .. '/src/' .. a:name)
