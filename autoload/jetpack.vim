@@ -73,7 +73,7 @@ endfunction
 
 function s:mergable(pkgs, pkg)
   let path = []
-  for p in path
+  for p in a:pkgs
     call add(path, p.path)
   endfor
   let path = join(path, ',')
@@ -202,26 +202,19 @@ function jetpack#update(...)
 endfunction
 
 function jetpack#bundle()
-  call s:createbuf()
   let bundle = []
   let unbundle = []
   for i in range(len(s:pkgs))
     let pkg = s:pkgs[i]
-    call s:setbufline(1, printf('Check Plugins (%d / %d)', i, len(s:pkgs)))
-    call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
-    call s:setbufline(i+3, printf('Checking %s ...', pkg.name))
-    if g:jetpack#optimization >= 1
-         \ && !pkg.opt
-         \ && (g:jetpack#optimization == 2 || s:mergable(bundle, pkg))
+    if g:jetpack#optimization >= 1 && !pkg.opt
       call add(bundle, pkg)
     else
       call add(unbundle, pkg)
     endif
-    call s:setbufline(i+3, printf('Checked %s', pkg.name))
   endfor
+
   call delete(s:packdir .. '/opt', 'rf')
   let destdir = s:packdir .. '/opt/_'
-  call s:deletebuf()
 
   call s:createbuf()
   for i in range(len(bundle))
@@ -230,14 +223,30 @@ function jetpack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Coping %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
-    for srcfile in s:files(srcdir)
-      if !s:ignorable(substitute(srcfile, srcdir, '', ''))
-        let destfile = substitute(srcfile, srcdir, destdir, '') 
-        call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-        call s:copy(srcfile, destfile)
+    let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
+    let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
+
+    if g:jetpack#optimization == 1
+      let ignore = v:false
+      for destfile in destfiles
+        if filereadable(destfile)
+          let ignore = v:true
+          break
+        endif
+      endfor
+      if ignore
+        call add(unbundle, pkg)
+        continue
       endif
+    endif
+
+    for i in range(0, len(srcfiles) - 1)
+      let srcfile = srcfiles[i]
+      let destfile = destfiles[i]
+      call mkdir(fnamemodify(destfile, ':p:h'), 'p')
+      call writefile(readfile(srcfile, 'b'), destfile, 'b')
     endfor
-    call s:setbufline(i+3, printf('Copied %s ...', pkg.name))
+    call s:setbufline(i+3, printf('Merged %s ...', pkg.name))
   endfor
 
   for i in range(len(unbundle))
