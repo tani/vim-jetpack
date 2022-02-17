@@ -242,7 +242,7 @@ function jetpack#bundle()
       let blob = readfile(srcfile, 'b')
       call writefile(blob, destfile, 'b')
     endfor
-    call s:setbufline(i+len(bundle)+3, printf('Copyied %s ...', pkg.name))
+    call s:setbufline(i+len(bundle)+3, printf('Copied %s ...', pkg.name))
   endfor
   call s:deletebuf()
 endfunction
