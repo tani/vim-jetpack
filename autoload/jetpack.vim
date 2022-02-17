@@ -72,8 +72,12 @@ function s:ignorable(filename)
 endfunction
 
 function s:mergable(pkgs, pkg)
-  let path = join(mapnew(a:pkgs, {_, v -> v.path}), ',')
-  for replpath in map(s:files(a:pkg.path), {_, v -> substitute(v , a:pkg.path, '', '')})
+  let path = []
+  for p in path
+    call add(path, p.path)
+  endfor
+  let path = join(path, ',')
+  for relpath in map(s:files(a:pkg.path), {_, v -> substitute(v , a:pkg.path, '', '')})
     if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
       return 0
     endif
