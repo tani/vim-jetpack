@@ -200,7 +200,7 @@ function jetpack#bundle()
     call s:setbufline(i+3, printf('Checking %s ...', pkg.name))
     if g:jetpack#optimization >= 1
          \ && !pkg.opt
-         \ && (g:jetpack#optimization || s:mergable(bundle, pkg))
+         \ && (g:jetpack#optimization == 2 || s:mergable(bundle, pkg))
       call add(bundle, pkg)
     else
       call add(unbundle, pkg)
