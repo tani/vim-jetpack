@@ -1,0 +1,97 @@
+*jetpack.txt*   The lighting-fast plugin manager
+
+Version: 0.0.0
+Author: TANIGUCHI Masaya <taniguchi@masaya.info>
+License: MIT
+
+================================================================================
+Introduction ( *jetpack-introduction* )
+
+The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
+a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
+the built-in plugin manager only.
+
+- Lightning-fast startup
+    - It optimizes the search algorithm for the runtimepath
+- Single file plugin
+    - You need to just put the single file to use this software
+- Multiple DSLs (Domain Specific Languages)
+    - You can use a favorite notations, which are similar to vim-plug,
+      dein.vim, packer.nvim, and paq.nvim
+- Fancy UI (User Interface)
+    - You can see a progress of installation with a graphical interface
+- `pack/*/start`-free architecture.
+    - Installed plugins do not pollutes your vim until calling `jetpack#`-functions
+
+================================================================================
+Functions ( *jetpack-functions* )
+
+jetpack#add({repo} [, {options}])                                *jetpack#add()*
+    {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
+    {options} is a dictionary consits of the following.
+
+    | key    |        type        | description                               |
+    | :----: | :----------------: | :---------------------------------------- |
+    | branch |       sring        | Branch of the repository to use           |
+    | tag    |       sring        | Tag of the repository to use              |
+    | rtp    |       string       | Subdirectory that contains Vim plugin     |
+    | dir    |       string       | Custom directory for the plugin           |
+    | as     |       string       | Use different name for plugin             |
+    | do     |  string  or  func  | Post-updat hook                           |
+    | on     |  string  or  list  | Commands, <Plug> , and autocommand-events |
+    | for    |  string  or  list  | File types                                |
+    | opt    |      boolean       | packadd {name}                            |
+    | frozen |      boolean       | Do not update                                                 |
+
+jetpack#begin([{path}])                                        *jetpack#begin()*
+    The function setups jetpack plugins. All plugin declarations should be
+    placed after this function. You can give {path} if you want to use another
+    directory to manage plugins.
+
+jetpack#end()                                                    *jetpack#end()*
+    The function loads declared plugins. All plugin declarations should be
+    placed before this function.
+
+jetpack#sync()                                                  *jetpack#sync()*
+    The function performs to install, update, and bundle all plugins.
+    The function is evenrything all you need to know.
+    You must run this function after a change of your configuration.
+
+jetpack#tap({name})                                              *jetpack#tap()*
+    It returns |TRUE| if the package is available, otherwise it returns |FALSE|.
+
+Jetpack expoted some other functions but they are only for the developers.
+Unlisted functions might be changed without any announcements in the future.
+
+================================================================================
+Commands ( *jetpack-commands* )
+
+Jetpack {repo} [, {options}]                                        *JetpackAdd*
+    A command version of |jetpack#add()|.
+    It is useful for the vim-plug sytle declaration of plugins in vimrc.
+
+JetpackSync                                                        *JetpackSync*
+    A command version of |jetpack#sync()|.
+    The above command |Jetpack| is only available between |jetpack#begin()|
+    and |jetpack#end()|. Thus, you can use the shorthand `J` to call this
+    command.
+
+================================================================================
+Variables( *jetpack-variables* )
+
+jetpack#optimization                                      *jetpack#optimization*
+    The optimization level for the bundle algorithm.
+
+    |  speed  |    0    |   1    |    2    |
+    | :-----: | :-----: | :----: | :-----: |
+    | install | fastest |  slow  | faster  |
+    | startup |  slow   | faster | fastest |
+
+    - `0` Bundle nothing. This is the same as vim-plug and is the safest level.
+    - `1` Bundle if there are no conflicts. It tries to bundle plgins as
+      possible. This is default and is safer than `3`.
+    - `2` Bundle everything. This may be the same as dein.vim, and is the
+      fastest level. It overwrites some duplicated files.
+
+================================================================================
+vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
