@@ -9,10 +9,9 @@ let g:jetpack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:packdir = s:home .. '/pack/jetpack'
-let s:loaded = {}
 
+let s:loaded = {}
 let s:pkgs = []
-let s:plugs = []
 let s:ignores = [
   \ "**/.*",
   \ "**/.*/**/*",
