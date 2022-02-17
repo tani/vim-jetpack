@@ -13,21 +13,21 @@ let s:packdir = s:home .. '/pack/jetpack'
 let s:loaded = {}
 let s:pkgs = []
 let s:ignores = [
-  \ "**/.*",
-  \ "**/.*/**/*",
-  \ "**/t/**/*",
-  \ "**/test/**/*",
-  \ "**/VimFlavor*",
-  \ "**/Flavorfile*",
-  \ "**/README*",
-  \ "**/Rakefile*",
-  \ "**/Gemfile*",
-  \ "**/Makefile*",
-  \ "**/LICENSE*",
-  \ "**/LICENCE*",
-  \ "**/CONTRIBUTING*",
-  \ "**/CHANGELOG*",
-  \ "**/NEWS*",
+  \ '**/.*',
+  \ '**/.*/**/*',
+  \ '**/t/**/*',
+  \ '**/test/**/*',
+  \ '**/VimFlavor*',
+  \ '**/Flavorfile*',
+  \ '**/README*',
+  \ '**/Rakefile*',
+  \ '**/Gemfile*',
+  \ '**/Makefile*',
+  \ '**/LICENSE*',
+  \ '**/LICENCE*',
+  \ '**/CONTRIBUTING*',
+  \ '**/CHANGELOG*',
+  \ '**/NEWS*',
   \ ]
 
 let s:events = [
@@ -113,12 +113,12 @@ function s:syntax()
   syntax clear
   syntax keyword jetpackProgress Installing
   syntax keyword jetpackProgress Updating
-  syntax keyword jetpackProgress Checking
   syntax keyword jetpackProgress Copying
+  syntax keyword jetpackProgress Merging
   syntax keyword jetpackComplete Installed
   syntax keyword jetpackComplete Updated
-  syntax keyword jetpackComplete Checked
   syntax keyword jetpackComplete Copied
+  syntax keyword jetpackComplete Merged
   syntax keyword jetpackSkipped Skipped
   highlight def link jetpackProgress DiffChange
   highlight def link jetpackComplete DiffAdd
@@ -205,9 +205,9 @@ function jetpack#bundle()
   call s:createbuf()
   for i in range(len(bundle))
     let pkg = bundle[i]
-    call s:setbufline(1, printf('Copy Plugins (%d / %d)', i, len(s:pkgs)))
+    call s:setbufline(1, printf('Merging Plugins (%d / %d)', i, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
-    call s:setbufline(i+3, printf('Coping %s ...', pkg.name))
+    call s:setbufline(i+3, printf('Merging %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let srcfiles = filter(s:files(srcdir), {_, f -> !s:ignorable(substitute(f, srcdir, '', ''))})
     let destfiles = map(copy(srcfiles), {_, f -> substitute(f, srcdir, destdir, '')})
@@ -253,8 +253,15 @@ function jetpack#bundle()
 endfunction
 
 function jetpack#postupdate()
-  packloadall 
+  silent! packadd _
   for pkg in s:pkgs
+    let pwd = getcwd()
+    if isdirectory(s:packdir .. '/opt/' .. pkg.name)
+      execute 'cd ' ..  s:packdir  .. '/opt/' .. pkg.name
+    else
+      execute 'cd ' ..  s:packdir  .. '/opt/_'
+    endif
+    execute 'silent! packadd ' .. pkg.name
     if type(pkg.hook) == v:t_func
       call pkg.hook()
     endif
@@ -265,6 +272,7 @@ function jetpack#postupdate()
         call system(pkg.hook)
       endif
     endif
+    execute 'cd ' .. pwd
   endfor
   silent! helptags ALL
 endfunction
@@ -311,7 +319,7 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePre %s/opt/%s/**/* let <SID>loaded["%s"]=1', s:packdir, name, name)
+    execute printf('autocmd SourcePre %s/opt/%s/**/* let s:loaded["%s"]=1', s:packdir, name, name)
   else
     execute 'silent! packadd! ' .. name
   endif
@@ -324,6 +332,7 @@ function jetpack#begin(...)
   command! -nargs=+ Jetpack call jetpack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
+  let s:pkgs = []
   execute 'set packpath^=' .. s:home
 endfunction
 
