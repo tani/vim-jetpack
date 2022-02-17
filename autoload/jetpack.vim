@@ -255,9 +255,9 @@ function jetpack#postupdate()
     endif
     if type(pkg.hook) == v:t_string
       if pkg.hook =~ '^:'
-        call system(pkg.hook)
-      else
         execute pkg.hook
+      else
+        call system(pkg.hook)
       endif
     endif
   endfor
@@ -314,7 +314,7 @@ endfunction
 function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=1 Jetpack call jetpack#add(<args>)
+  command! -nargs=+ Jetpack call jetpack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
