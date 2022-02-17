@@ -8,7 +8,8 @@ let g:jetpack#optimization = 1
 let g:jetpack#njobs = 8
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
-let s:packdir = s:home .. '/pack/jetpack'
+let s:optdir = s:home .. '/pack/jetpack/opt'
+let s:srcdir = s:home .. '/pack/jetpack/src'
 
 let s:loaded = {}
 let s:pkgs = []
@@ -199,8 +200,8 @@ function jetpack#bundle()
     endif
   endfor
 
-  call delete(s:packdir .. '/opt', 'rf')
-  let destdir = s:packdir .. '/opt/_'
+  call delete(s:optdir, 'rf')
+  let destdir = s:optdir .. '/_'
 
   call s:createbuf()
   for i in range(len(bundle))
@@ -241,7 +242,7 @@ function jetpack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * (i+len(bundle)) / len(s:pkgs) * 100))
     call s:setbufline(i+len(bundle)+3, printf('Copying %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
-    let destdir = s:packdir .. '/opt/' .. pkg.name
+    let destdir = s:optdir .. '/' .. pkg.name
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
@@ -256,10 +257,10 @@ function jetpack#postupdate()
   silent! packadd _
   for pkg in s:pkgs
     let pwd = getcwd()
-    if isdirectory(s:packdir .. '/opt/' .. pkg.name)
-      execute 'cd ' ..  s:packdir  .. '/opt/' .. pkg.name
+    if isdirectory(s:optdir .. '/' .. pkg.name)
+      execute printf('cd %s/%s', s:optdir, pkg.name)
     else
-      execute 'cd ' ..  s:packdir  .. '/opt/_'
+      execute printf('cd %s/_', s:optdir)
     endif
     execute 'silent! packadd ' .. pkg.name
     if type(pkg.hook) == v:t_func
@@ -272,7 +273,7 @@ function jetpack#postupdate()
         call system(pkg.hook)
       endif
     endif
-    execute 'cd ' .. pwd
+    execute printf('cd %s', pwd)
   endfor
   silent! helptags ALL
 endfunction
@@ -293,7 +294,7 @@ command! JetpackSync call jetpack#sync()
 function jetpack#add(plugin, ...)
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
-  let path = get(opts, 'dir', s:packdir .. '/src/' .. name)
+  let path = get(opts, 'dir', s:srcdir .. '/' .. name)
   let pkg  = {
         \  'url': 'https://github.com/' .. a:plugin,
         \  'branch': get(opts, 'branch', get(opts, 'tag')),
@@ -319,7 +320,7 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePre %s/opt/%s/**/* let s:loaded["%s"]=1', s:packdir, name, name)
+    execute printf('autocmd SourcePre %s/%s/**/* let s:loaded["%s"]=1', s:optdir, name, name)
   else
     execute 'silent! packadd! ' .. name
   endif
@@ -331,7 +332,8 @@ function jetpack#begin(...)
   filetype off
   command! -nargs=+ Jetpack call jetpack#add(<args>)
   let s:home = a:0 != 0 ? a:1 : s:home
-  let s:packdir = s:home .. '/pack/jetpack'
+  let s:optdir = s:home .. '/pack/jetpack/opt'
+  let s:srcdir = s:home .. '/pack/jetpack/src'
   let s:pkgs = []
   execute 'set packpath^=' .. s:home
 endfunction
@@ -347,7 +349,7 @@ function jetpack#tap(name)
   if get(s:loaded, a:name, 0)
     return 1
   endif
-  if isdirectory(s:packdir .. '/src/' .. a:name)
+  if isdirectory(s:srcdir .. '/' .. a:name)
     for pkg in s:pkgs
       if pkg.name == a:name
         if !pkg.opt
