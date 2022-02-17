@@ -6,6 +6,7 @@
 
 let g:jetpack#optimization = 1
 let g:jetpack#njobs = 8
+let g:jetpack#verbose = 0
 
 let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:optdir = s:home .. '/pack/jetpack/opt'
@@ -95,6 +96,9 @@ function s:jobwait(jobs, njobs)
 endfunction
 
 function s:jobstart(cmd, cb)
+  if g:jetpack#verbose
+    echomsg 'jobstart: ' .. string(a:cmd)
+  endif
   if has('nvim')
     return jobstart(a:cmd, { 'on_exit': a:cb })
   endif
@@ -125,6 +129,7 @@ function s:syntax()
   highlight def link jetpackComplete DiffAdd
   highlight def link jetpackSkipped DiffDelete
 endfunction
+
 function s:setbufline(lnum, text, ...)
   call setbufline('JetpackStatus', a:lnum, a:text)
   redraw
@@ -155,7 +160,7 @@ function jetpack#install(...)
       continue
     endif
     let cmd = ['git', 'clone', '--depth', '1']
-    if pkg.branch
+    if pkg.branch != 0
       call extend(cmd, ['-b', pkg.branch])
     endif
     call extend(cmd, [pkg.url, pkg.path])
