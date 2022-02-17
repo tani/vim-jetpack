@@ -191,15 +191,11 @@ function jetpack#bundle()
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
     let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
-
-    if g:jetpack#optimization == 1
-      let ignore = v:false
-      if filter(copy(destfiles), "filereadable(v:val)") != []
-        call add(unbundle, pkg)
-        continue
-      endif
+    let dupfiles = filter(copy(destfiles), "filereadable(v:val)")
+    if g:jetpack#optimization == 1 && dupfiles != []
+      call add(unbundle, pkg)
+      continue
     endif
-
     for i in range(0, len(srcfiles) - 1)
       let srcfile = srcfiles[i]
       let destfile = destfiles[i]
@@ -294,7 +290,7 @@ function jetpack#add(plugin, ...)
   endfor
   if pkg.opt
     execute printf('autocmd SourcePre %s/%s/**/* let s:loaded["%s"]=1', s:optdir, name, name)
-  else
+  elseif isdirectory(s:optdir .. '/' .. name)
     execute 'silent! packadd! ' .. name
   endif
   call add(s:pkgs, pkg)
