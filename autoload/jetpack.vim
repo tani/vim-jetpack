@@ -314,7 +314,7 @@ endfunction
 function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=1 Jetpack call function('jetpack#add', eval('[' . <q-args> . ']'))()
+  command! -nargs=1 Jetpack call jetpack#add(<q-args>)
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
