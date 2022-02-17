@@ -306,6 +306,7 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
+    let s:loaded[name] = 0
     execute printf('autocmd SourcePost **/pack/jetpack/opt/%s/**/* let <SID>loaded["%s"]=1)', name, name)
   elseif isdirectory(s:packdir .. '/opt/' .. name)
     execute 'silent! packadd! ' .. name
@@ -330,6 +331,9 @@ function jetpack#end()
 endfunction
 
 function jetpack#tap(name)
+  if s:loaded[name]
+    return 1
+  endif
   if isdirectory(s:packdir .. '/src/' .. a:name)
     for pkg in s:pkgs
       if pkg.name == a:name
@@ -340,5 +344,5 @@ function jetpack#tap(name)
       endif
     endfor
   endif
-  return get(g:pack#loaded, name, 0)
+  return 0
 endfunction
