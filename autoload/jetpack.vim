@@ -110,23 +110,6 @@ function s:jobstart(cmd, cb)
   return job_start(a:cmd, { 'exit_cb': a:cb })
 endfunction
 
-function s:parseopt(str)
-  let plugin = ''
-  let idx = len(a:str)
-  for i in range(len(a:str))
-    if a:str[i] == ','
-      let idx = i 
-      break
-    endif
-  endfor
-  let args = []
-  call add(args, eval(a:str[0:idx-1]))
-  if idx != len(a:str)
-    call add(args, eval(a:str[idx+1:-1]))
-  endif
-  return args
-endfunction
-
 function s:syntax()
   syntax clear
   syntax keyword jetpackProgress Installing
@@ -331,7 +314,7 @@ endfunction
 function jetpack#begin(...)
   syntax off
   filetype off
-  command! -nargs=1 Jetpack call function('jetpack#add', s:parseopt(<q-args>))()
+  command! -nargs=1 Jetpack call function('jetpack#add', eval('[' . <q-args> . ']'))()
   let s:home = a:0 != 0 ? a:1 : s:home
   let s:packdir = s:home .. '/pack/jetpack'
   execute 'set packpath^=' .. s:home
