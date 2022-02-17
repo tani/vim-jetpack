@@ -71,20 +71,6 @@ function s:ignorable(filename)
   return 0
 endfunction
 
-function s:mergable(pkgs, pkg)
-  let path = []
-  for p in a:pkgs
-    call add(path, p.path)
-  endfor
-  let path = join(path, ',')
-  for relpath in map(s:files(a:pkg.path), {_, v -> substitute(v , a:pkg.path, '', '')})
-    if !s:ignorable(relpath) && globpath(path, '**/' .. relpath) != ''
-      return 0
-    endif
-  endfor
-  return 1
-endfunction
-
 function s:progressbar(n)
   return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
@@ -223,8 +209,8 @@ function jetpack#bundle()
     call s:setbufline(2, s:progressbar(1.0 * i / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Coping %s ...', pkg.name))
     let srcdir = pkg.path .. '/' .. pkg.subdir
-    let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
-    let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
+    let srcfiles = filter(s:files(srcdir), {_, f -> !s:ignorable(substitute(f, srcdir, '', ''))})
+    let destfiles = map(copy(srcfiles), {_, f -> substitute(f, srcdir, destdir, '')})
 
     if g:jetpack#optimization == 1
       let ignore = v:false
@@ -244,7 +230,7 @@ function jetpack#bundle()
       let srcfile = srcfiles[i]
       let destfile = destfiles[i]
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-      call writefile(readfile(srcfile, 'b'), destfile, 'b')
+      call s:copy(srcfile, destfile)
     endfor
     call s:setbufline(i+3, printf('Merged %s ...', pkg.name))
   endfor
