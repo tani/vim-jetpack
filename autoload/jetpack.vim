@@ -310,7 +310,7 @@ function jetpack#add(plugin, ...)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePre %s/opt/%s/**/*.vim let g:pack#loaded["%s"]=1', s:packdir, name, name)
+    execute printf('autocmd SourcePre %s/opt/%s/**/* let g:pack#loaded["%s"]=1', s:packdir, name, name)
   else
     execute 'silent! packadd! ' .. name
   endif
