@@ -114,6 +114,15 @@ function s:jobstart(cmd, cb)
   return job_start(a:cmd, { 'exit_cb': a:cb })
 endfunction
 
+function s:copy(from, to)
+  if has('nvim')
+    call v:lua.vim.loop.fs_link(a:from, a:to)
+  else
+    let blob = readfile(a:from, 'b')
+    call writefile(blob, a:to, 'b')
+  endif
+endfunction
+
 function s:syntax()
   syntax clear
   syntax keyword jetpackProgress Installing
@@ -129,7 +138,6 @@ function s:syntax()
   highlight def link jetpackComplete DiffAdd
   highlight def link jetpackSkipped DiffDelete
 endfunction
-
 function s:setbufline(lnum, text, ...)
   call setbufline('JetpackStatus', a:lnum, a:text)
   redraw
@@ -226,8 +234,7 @@ function jetpack#bundle()
       if !s:ignorable(substitute(srcfile, srcdir, '', ''))
         let destfile = substitute(srcfile, srcdir, destdir, '') 
         call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-        let blob = readfile(srcfile, 'b')
-        call writefile(blob, destfile, 'b')
+        call s:copy(srcfile, destfile)
       endif
     endfor
     call s:setbufline(i+3, printf('Copied %s ...', pkg.name))
@@ -243,8 +250,7 @@ function jetpack#bundle()
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
       call mkdir(fnamemodify(destfile, ':p:h'), 'p')
-      let blob = readfile(srcfile, 'b')
-      call writefile(blob, destfile, 'b')
+      call s:copy(srcfile, destfile)
     endfor
     call s:setbufline(i+len(bundle)+3, printf('Copied %s ...', pkg.name))
   endfor
