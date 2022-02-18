@@ -25,6 +25,8 @@ In the simple cases, vim-jetpack is the fastest plugin manager.
 
 We measured a startup time 10 times for each plugin managers. The following chart is the result.
 
+Although jetpack is inferior to minpac in terms of minimum value, it has the lowest median and mean value of any plugin manager. More notably, the variance of jetpack's records is very small. vim-plug's variance is small enough, but jetpack's variance is by far the smallest. jetpack has the smallest variance, mean, and median among the six plugin managers, indicating that it is stable and always runs fast. 
+
 ![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
 
 |          |  dein | jetpack | minpac | packer |   paq |  plug |
