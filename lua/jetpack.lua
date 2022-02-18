@@ -4,7 +4,7 @@ function startup(config)
     if (type(plugin) == 'string') then
       vim.fn['jetpack#add'](plugin)
     else
-      vim.fn['jetpack#add'](plugin[1], plugin)
+      vim.fn['jetpack#add'](plugin[1], { unpack(plugin, 1) })
     end
   end)
   vim.fn['pack#end']()
@@ -16,13 +16,13 @@ function setup(config)
     if (type(plugin) == 'string') then
       vim.fn['jetpack#add'](plugin)
     else
-      vim.fn['jetpack#add'](plugin[1], plugin)
+      vim.fn['jetpack#add'](plugin[1], { unpack(plugin, 1) })
     end
   end
   vim.fn['jetpack#end']()
 end
 
-return { 
+return {
   startup = startup,
   setup = setup
 }
