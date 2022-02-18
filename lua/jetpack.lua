@@ -4,7 +4,12 @@ function startup(config)
     if (type(plugin) == 'string') then
       vim.fn['jetpack#add'](plugin)
     else
-      vim.fn['jetpack#add'](plugin[1], { unpack(plugin, 1) })
+      local name = plugin[1]
+      -- we don't want the title to be included because
+      -- vimscript can't take lua table where you mix array-like and map-like
+      plugin[1] = nil
+      local opts = plugin
+      vim.fn['jetpack#add'](name, opts)
     end
   end)
   vim.fn['pack#end']()
@@ -16,7 +21,12 @@ function setup(config)
     if (type(plugin) == 'string') then
       vim.fn['jetpack#add'](plugin)
     else
-      vim.fn['jetpack#add'](plugin[1], { unpack(plugin, 1) })
+      local name = plugin[1]
+      -- we don't want the title to be included because
+      -- vimscript can't take lua table where you mix array-like and map-like
+      plugin[1] = nil
+      local opts = plugin
+      vim.fn['jetpack#add'](name, opts)
     end
   end
   vim.fn['jetpack#end']()
