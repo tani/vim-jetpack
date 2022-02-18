@@ -10,7 +10,7 @@ jobs:
         vi: [neovim, vim]
     steps:
       - uses: actions/checkout@v2
-      - name: Install ${{ matrix.vi }}
-        run: brew install ${{ matrix.vi }}
+      - name: Install coreutils and ${{ matrix.vi }}
+        run: brew install coreutils ${{ matrix.vi }}
       - name: Run test
         run: ./test/${{ matrix.vi }}.sh
