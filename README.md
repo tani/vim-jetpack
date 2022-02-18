@@ -202,9 +202,9 @@ vim-plug, i.e., this plugin provides less options than dein.
 #### Step 2: Add `tani/vim-jetpack` to your configuraiton file
 
 ```vim
-Jetpack 'tani/vim-jetpack', { opt: 1 }
+Jetpack 'tani/vim-jetpack', { 'opt': 1 }
 
-call jetpack#add('tani/vim-jetpack')
+call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
 ```
 or 
 
