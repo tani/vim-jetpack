@@ -1,4 +1,4 @@
-function startup(config)
+local function startup(config)
   vim.fn['jetpack#begin']()
   config(function (plugin)
     if (type(plugin) == 'string') then
@@ -15,7 +15,7 @@ function startup(config)
   vim.fn['pack#end']()
 end
 
-function setup(config)
+local function setup(config)
   vim.fn['jetpack#begin']()
   for _, plugin in pairs(config) do
     if (type(plugin) == 'string') then
