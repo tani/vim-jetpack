@@ -5,7 +5,7 @@ Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
 Jetpack 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Jetpack 'junegunn/fzf.vim', { 'opt': 1 }
 Jetpack 'yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc', 'for': ['lisp'] }
-Jetpack 'lotabout/skim', { 'dir': expand('<sfile>:p:h') . '/pack/skim', 'do': './install' }
+Jetpack 'lotabout/skim', { 'dir': expand('<sfile>:p:h'). '/pack/skim', 'do': './install' }
 Jetpack 'dracula/vim', { 'as': 'dracula' }
 Jetpack 'vlime/vlime', { 'rtp': 'vim' }
 call jetpack#end()

@@ -340,7 +340,7 @@ function! jetpack#add(plugin, ...) abort
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
   \  'hook': get(opts, 'do'),
   \  'subdir': get(opts, 'rtp', '.'),
-  \  'dir': get(opts, 'dir'),
+  \  'dir': has_key(opts, 'dir'),
   \  'name': name,
   \  'frozen': get(opts, 'frozen'),
   \  'path': path,
