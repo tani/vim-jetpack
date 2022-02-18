@@ -9,5 +9,5 @@ jobs:
       - name: vint
         uses: reviewdog/action-vint@v1
         with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review # Change reporter.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
