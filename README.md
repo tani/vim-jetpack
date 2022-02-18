@@ -27,7 +27,7 @@ We measured a startup time 10 times for each plugin managers. The following char
 
 ![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
 
-|          |  dein | jetpack     | minpac | packer |   paq |  plug |
+|          |  dein | jetpack | minpac | packer |   paq |  plug |
 | :------: | ----: | ------: | -----: | -----: | ----: | ----: |
 | min      | 80.61 |   69.93 |  64.97 |  75.38 | 73.92 | 77.63 |
 | max      | 96.02 |   74.48 |  81.30 |  89.40 | 84.95 | 82.82 |
@@ -64,17 +64,17 @@ git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site
 
 vim-jetpack is 90% compatible with vim-plug.
 
-|      name       |        type        | description                                                   |
-| :-------------: | :----------------: | :------------------------------------------------------------ |
-| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use                          |
-|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin                         |
-|      `dir`      |      `string`      | Custom directory for the plugin                               |
-|      `as`       |      `string`      | Use different name for plugin                                 |
-|      `do`       | `string` or `func` | Post-updat hook                                               |
-|      `on`       | `string` or `list` | On-demand loading: Commands, `<Plug>`, and autocommand-events |
-|      `for`      | `string` or `list` | On-demand loading: File types                                 |
-|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`                           |
-|    `frozen`     |     `boolean`      | Do not update                                                 |
+|      name       |        type        | description                           |
+| :-------------: | :----------------: | :------------------------------------ |
+| `branch`/ `tag` |      `sring`       | Branch/ tag of the repository to use  |
+|      `rtp`      |      `string`      | Subdirectory that contains Vim plugin |
+|      `dir`      |      `string`      | Custom directory for the plugin       |
+|      `as`       |      `string`      | Use different name for plugin         |
+|      `do`       | `string` or `func` | Post-updat hook                       |
+|      `on`       | `string` or `list` | On-demand loading: Commands, `<Plug>` |
+|      `for`      | `string` or `list` | On-demand loading: File types         |
+|      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
+|    `frozen`     |     `boolean`      | Do not update                         |
 
 We welcome a pull request to add the `on` option for non-normal mode and the
 `commit` option.
