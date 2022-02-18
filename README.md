@@ -183,6 +183,39 @@ No if you are vim-wizard. Dein provides many option to tune the startup. Thus,
 dein takes milli-seconds to do many things. Our plugin does as the same as
 vim-plug, i.e., this plugin provides less options than dein.
 
+### How to bootstrap Jetpack
+
+#### Step 1: Clone this repository and create a symbolic link
+
+- Vim
+    ```
+    git clone --depth 1 https://github.com/tani/vim-jetpack ~/.vim/pack/jetpack/src/vim-jetpack && ln -s ~/.vim/pack/jetpack/{src,start}/vim-jetpack
+    ```
+
+- Neovim
+   ```
+   git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/src/vim-jetpack && ln -s ~/.local/share/nvim/site/pack/jetpack/{src,start}/vim-jetpack
+   ```
+
+#### Step 2: Add `tani/vim-jetpack` to your configuraiton file
+
+```vim
+Jetpack 'tani/vim-jetpack', { opt: 1 }
+
+call jetpack#add('tani/vim-jetpack')
+```
+or 
+
+```lua
+require'jetpack'.startup(function ()
+  use { 'tani/vim-jetpack', opt = 1 }
+end)
+
+require'jetpack'.setup {
+  { 'tani/vim-jetpack', opt = 1 }
+}
+```
+
 ## Copyright and License
 
 Copyright (c) 2022 TANIGUCHI Masaya. All rights reserved.
