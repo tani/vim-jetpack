@@ -31,7 +31,6 @@ let s:ignores = [
   \ '**/NEWS*',
   \ ]
 
-
 function s:files(path)
   return filter(glob(a:path .. '/**/*', '', 1), "!isdirectory(v:val)")
 endfunction
@@ -93,14 +92,7 @@ function s:setbufline(lnum, text, ...)
 endfunction
 
 function s:createbuf()
-  silent vsplit +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
-  vertical resize 40
-  call s:syntax()
-  redraw
-endfunction
-
-function s:deletebuf()
-  execute 'bdelete ' .. bufnr('JetpackStatus')
+  vertical pedit +setlocal\ winwidth=40\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
   redraw
 endfunction
 
@@ -126,7 +118,6 @@ function jetpack#install(...)
     call s:jobwait(jobs, g:jetpack#njobs)
   endfor
   call s:jobwait(jobs, 0)
-  call s:deletebuf()
 endfunction
 
 function jetpack#update(...)
@@ -147,7 +138,6 @@ function jetpack#update(...)
     call s:jobwait(jobs, g:jetpack#njobs)
   endfor
   call s:jobwait(jobs, 0)
-  call s:deletebuf()
 endfunction
 
 function jetpack#clean()
@@ -183,6 +173,7 @@ function jetpack#bundle()
     let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
     let dupfiles = filter(copy(destfiles), "filereadable(v:val)")
     if g:jetpack#optimization == 1 && dupfiles != []
+      call filter(bundle, "v:val != pkg")
       call add(unbundle, pkg)
       continue
     endif
@@ -209,7 +200,6 @@ function jetpack#bundle()
     endfor
     call s:setbufline(i+len(bundle)+3, printf('Copied %s ...', pkg.name))
   endfor
-  call s:deletebuf()
 endfunction
 
 function jetpack#postupdate()
