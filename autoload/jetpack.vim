@@ -37,8 +37,8 @@ let s:progress_type = {
 \   'update': 'update',
 \ }
 
-function s:files(path)
-  return filter(glob(a:path .. '/**/*', '', 1), "!isdirectory(v:val)")
+function! s:files(path) abort
+  return filter(glob(a:path . '/**/*', '', 1), '!isdirectory(v:val)')
 endfunction
 
 function! s:ignorable(filename) abort
@@ -57,7 +57,7 @@ function! s:jobstatus(job) abort
 endfunction
 
 function! s:jobcount(jobs) abort
-  return len(filter(copy(a:jobs), "s:jobstatus(v:val) ==# 'run'"))
+  return len(filter(copy(a:jobs), 's:jobstatus(v:val) ==# "run"'))
 endfunction
 
 function! s:jobwait(jobs, njobs) abort
@@ -67,7 +67,7 @@ function! s:jobwait(jobs, njobs) abort
   endwhile
 endfunction
 
-function s:jobstart(cmd, cb)
+function! s:jobstart(cmd, cb) abort
   let buf = []
   if has('nvim')
     return jobstart(a:cmd, {
@@ -93,7 +93,7 @@ function s:jobstart(cmd, cb)
   \ })
 endfunction
 
-function s:copy(from, to)
+function! s:copy(from, to) abort
   call mkdir(fnamemodify(a:to, ':p:h'), 'p')
   if has('nvim')
     call v:lua.vim.loop.fs_symlink(a:from, a:to)
@@ -117,17 +117,16 @@ function! s:setbufline(lnum, text, ...) abort
   redraw
 endfunction
 
-function s:setupbuf()
+function! s:setupbuf() abort
   if bufexists('JetpackStatus')
-    execute 'bdelete! ' .. bufnr('JetpackStatus')
+    execute 'bdelete! ' . bufnr('JetpackStatus')
   endif
-  silent vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
-  vertical resize 40
+  silent vnew +setlocal\ winwidth=40 buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
   call s:syntax()
   redraw
 endfunction
 
-function jetpack#install(...)
+function! jetpack#install(...) abort
   call s:setupbuf()
   let jobs = []
   for i in range(len(s:pkgs))
@@ -160,7 +159,7 @@ function jetpack#install(...)
   call s:jobwait(jobs, 0)
 endfunction
 
-function jetpack#update(...)
+function! jetpack#update(...) abort
   call s:setupbuf()
   let jobs = []
   for i in range(len(s:pkgs))
@@ -191,7 +190,7 @@ endfunction
 function! jetpack#clean() abort
   for pkg in s:pkgs
     if isdirectory(pkg.path) && type(pkg.branch) == v:t_string
-      let branch = system(printf("git -C '%s' rev-parse --abbrev-ref HEAD", pkg.path))
+      let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path))
       if pkg.branch != branch
         call delete(pkg.path, 'rf')
       endif
@@ -199,14 +198,14 @@ function! jetpack#clean() abort
   endfor
 endfunction
 
-function jetpack#bundle()
+function! jetpack#bundle() abort
   call s:setupbuf()
 
   let bundle = []
   let unbundle = s:pkgs
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:pkgs), "!v:val['opt']")
-    let unbundle = filter(copy(s:pkgs), "v:val['opt']") 
+    let bundle = filter(copy(s:pkgs), '!v:val["opt"]')
+    let unbundle = filter(copy(s:pkgs), 'v:val["opt"]') 
   endif
 
   call delete(s:optdir, 'rf')
@@ -219,10 +218,10 @@ function jetpack#bundle()
     let pkg = bundle[i]
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:pkgs) * 100))
-    let srcdir = pkg.path .. '/' .. pkg.subdir
-    let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
-    let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
-    let dupfiles = filter(copy(destfiles), "has_key(merged_files, v:val)")
+    let srcdir = pkg.path . '/' . pkg.subdir
+    let srcfiles = filter(s:files(srcdir), '!s:ignorable(substitute(v:val, srcdir, "", ""))')
+    let destfiles = map(copy(srcfiles), 'substitute(v:val, srcdir, destdir, "")')
+    let dupfiles = filter(copy(destfiles), 'has_key(merged_files, v:val)')
     if g:jetpack#optimization == 1 && dupfiles != []
       call add(unbundle, pkg)
       continue
@@ -240,8 +239,8 @@ function jetpack#bundle()
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:pkgs) * 100))
-    let srcdir = pkg.path .. '/' .. pkg.subdir
-    let destdir = s:optdir .. '/' .. pkg.name
+    let srcdir = pkg.path . '/' . pkg.subdir
+    let destdir = s:optdir . '/' . pkg.name
     for srcfile in s:files(srcdir)
       let destfile = substitute(srcfile, srcdir, destdir, '')
       call s:copy(srcfile, substitute(srcfile, srcdir, destdir, ''))
@@ -250,7 +249,7 @@ function jetpack#bundle()
   endfor
 endfunction
 
-function s:display()
+function! s:display() abort
   call s:setupbuf()
 
   let msg = {}
@@ -334,7 +333,7 @@ function! jetpack#add(plugin, ...) abort
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let path = get(opts, 'dir', s:srcdir . '/' . name)
   let pkg  = {
-  \  'url': 'https://github.com/' .. a:plugin,
+  \  'url': 'https://github.com/' . a:plugin,
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
   \  'hook': get(opts, 'do'),
   \  'subdir': get(opts, 'rtp', '.'),
