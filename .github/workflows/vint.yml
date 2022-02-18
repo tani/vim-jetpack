@@ -5,20 +5,9 @@ jobs:
     name: runner / vint
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code.
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: vint
-        uses: ./
+        uses: reviewdog/action-vint@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: vint-check
-        uses: ./
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-check
-          level: warning
-      - name: vint-pr-review
-        uses: ./
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review # Change reporter.
