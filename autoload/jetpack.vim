@@ -173,7 +173,6 @@ function! jetpack#bundle() abort
     let destfiles = map(copy(srcfiles), 'substitute(v:val, srcdir, destdir, "")')
     let dupfiles = filter(copy(destfiles), 'filereadable(v:val)')
     if g:jetpack#optimization == 1 && dupfiles != []
-      call filter(bundle, 'v:val != pkg')
       call add(unbundle, pkg)
       continue
     endif
@@ -206,7 +205,9 @@ function! jetpack#postupdate() abort
   silent! packadd _
   for pkg in s:pkgs
     let pwd = getcwd()
-    if isdirectory(s:optdir . '/' . pkg.name)
+    if pkg.dir
+      execute printf('cd %s', pkg.path)
+    elseif isdirectory(s:optdir . '/' . pkg.name)
       execute printf('cd %s/%s', s:optdir, pkg.name)
     else
       execute printf('cd %s/_', s:optdir)
@@ -249,6 +250,7 @@ function! jetpack#add(plugin, ...) abort
   let pkg  = {
         \  'url': 'https://github.com/' . a:plugin,
         \  'branch': get(opts, 'branch', get(opts, 'tag')),
+        \  'dir': has_key(opts, 'dir'),
         \  'hook': get(opts, 'do'),
         \  'subdir': get(opts, 'rtp', '.'),
         \  'name': name,
