@@ -7,9 +7,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        vi: [neovim, vim]
     steps:
       - uses: actions/checkout@v2
-      - name: Install neovim
-        run: brew install neovim
+      - name: Install ${{ matrix.vi }}
+        run: brew install ${{ matrix.vi }}
       - name: Run test
-        run: ./test/test.sh
+        run: ./test/${{ matrix.vi }}.sh
