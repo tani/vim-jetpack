@@ -31,27 +31,6 @@ let s:ignores = [
   \ '**/NEWS*',
   \ ]
 
-let s:events = [
-  \ 'BufNewFile', 'BufReadPre', 'BufRead', 'BufReadPost', 'BufReadCmd',
-  \ 'FileReadPre', 'FileReadPost', 'FileReadCmd', 'FilterReadPre',
-  \ 'FilterReadPost', 'StdinReadPre', 'StdinReadPost', 'BufWrite',
-  \ 'BufWritePre', 'BufWritePost', 'BufWriteCmd', 'FileWritePre',
-  \ 'FileWritePost', 'FileWriteCmd', 'FileAppendPre', 'FileAppendPost',
-  \ 'FileAppendCmd', 'FilterWritePre', 'FilterWritePost', 'BufAdd', 'BufCreate',
-  \ 'BufDelete', 'BufWipeout', 'BufFilePre', 'BufFilePost', 'BufEnter',
-  \ 'BufLeave', 'BufWinEnter', 'BufWinLeave', 'BufUnload', 'BufHidden',
-  \ 'BufNew', 'SwapExists', 'FileType', 'Syntax', 'EncodingChanged',
-  \ 'TermChanged', 'VimEnter', 'GUIEnter', 'GUIFailed', 'TermResponse',
-  \ 'QuitPre', 'VimLeavePre', 'VimLeave', 'FileChangedShell',
-  \ 'FileChangedShellPost', 'FileChangedRO', 'ShellCmdPost', 'ShellFilterPost',
-  \ 'FuncUndefined', 'SpellFileMissing', 'SourcePre', 'SourceCmd', 'VimResized',
-  \ 'FocusGained', 'FocusLost', 'CursorHold', 'CursorHoldI', 'CursorMoved',
-  \ 'CursorMovedI', 'WinEnter', 'WinLeave', 'TabEnter', 'TabLeave',
-  \ 'CmdwinEnter', 'CmdwinLeave', 'InsertEnter', 'InsertChange', 'InsertLeave',
-  \ 'InsertCharPre', 'TextChanged', 'TextChangedI', 'ColorScheme',
-  \ 'RemoteReply', 'QuickFixCmdPre', 'QuickFixCmdPost', 'SessionLoadPost',
-  \ 'MenuPopup', 'CompleteDone', 'User'
-  \ ]
 
 function s:files(path)
   return filter(glob(a:path .. '/**/*', '', 1), "!isdirectory(v:val)")
@@ -285,7 +264,7 @@ function jetpack#add(plugin, ...)
         \  'name': name,
         \  'frozen': get(opts, 'frozen'),
         \  'path': path,
-        \  'opt': get(opts, 'opt')
+        \  'opt': get(opts, 'opt'),
         \ }
   for it in flatten([get(opts, 'for', [])])
     let pkg.opt = 1
@@ -295,8 +274,6 @@ function jetpack#add(plugin, ...)
     let pkg.opt = 1
     if it =~ '^<Plug>'
       execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
-    elseif index(s:events, it) >= 0
-      execute printf('autocmd %s * silent! packadd %s', it, name)
     else
       execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
