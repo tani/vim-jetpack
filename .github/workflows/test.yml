@@ -9,7 +9,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Install git and neovim
-        run: brew install git neovim
+      - name: Install neovim
+        run: brew install neovim
       - name: Run test
         run: ./test/test.sh
