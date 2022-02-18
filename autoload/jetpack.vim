@@ -68,17 +68,28 @@ function s:jobwait(jobs, njobs)
 endfunction
 
 function s:jobstart(cmd, cb)
+  let buf = []
   if has('nvim')
-    let buf = []
     return jobstart(a:cmd, {
     \   'on_stdout': { _, data -> extend(buf, data) },
     \   'on_stderr': { _, data -> extend(buf, data) },
     \   'on_exit': { -> a:cb(join(buf, "\n")) }
     \ })
   endif
-  " TODO: How to get the job output in vim? 
+  function! s:exit_cb(buf, cb, job, ...) abort
+    " See https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/autoload/vital/__vital__/System/Job/Vim.vim#L46
+    " See https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/LICENSE
+    let ch = job_getchannel(a:job)
+    while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
+    while ch_status(ch) ==# 'buffered' | endwhile
+    call a:cb(join(a:buf, "\n"))
+  endfunction
   return job_start(a:cmd, {
-  \   'exit_cb': { -> a:cb('') }
+  \   'out_mode': 'raw',
+  \   'out_cb': { _, data -> extend(buf, split(data, "\n")) },
+  \   'err_mode': 'raw',
+  \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
+  \   'exit_cb': function('s:exit_cb', [buf, a:cb])
   \ })
 endfunction
 
@@ -239,7 +250,7 @@ function jetpack#bundle()
   endfor
 endfunction
 
-function jetpack#diplay()
+function s:display()
   call s:setupbuf()
 
   let msg = {}
@@ -253,7 +264,15 @@ function jetpack#diplay()
     let line_count += 1
 
     let output = pkg.progress.output
-    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', 'g')
+    let output = substitute(output, '\r\n\|\r', '\n', 'g')
+
+    if pkg.progress.type ==# s:progress_type.update
+      let from_to = matchstr(output, 'Updating\s*\zs[^\n]\+')
+      if from_to !=# ''
+        call s:setbufline(line_count, printf('  Changes %s/compare/%s', pkg.url, from_to))
+        let line_count += 1
+      endif
+    endif
 
     for o in split(output, '\n')
       if o !=# ''
@@ -300,10 +319,8 @@ function jetpack#sync()
   call jetpack#update()
   echomsg 'Bundling plugins ...'
   call jetpack#bundle()
-  if has('nvim')
-    echomsg 'Display results ...'
-    call jetpack#diplay()
-  endif
+  echomsg 'Display results ...'
+  call s:display()
   echomsg 'Running the post-update hooks ...'
   call jetpack#postupdate()
   echomsg 'Complete'
