@@ -118,10 +118,9 @@ function! s:setbufline(lnum, text, ...) abort
 endfunction
 
 function! s:setupbuf() abort
-  if bufexists('JetpackStatus')
-    execute 'bdelete! ' . bufnr('JetpackStatus')
-  endif
-  silent vnew +setlocal\ winwidth=40 buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
+  silent! execute 'bdelete! ' . bufnr('JetpackStatus')
+  silent vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
+  vertical resize 40
   call s:syntax()
   redraw
 endfunction
