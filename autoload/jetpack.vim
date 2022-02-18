@@ -92,7 +92,7 @@ endfunction
 
 function s:copy(from, to)
   if has('nvim')
-    call v:lua.vim.loop.fs_link(a:from, a:to)
+    call v:lua.vim.loop.fs_symlink(a:from, a:to)
   else
     call writefile(readfile(a:from, 'b'), a:to, 'b')
   endif
