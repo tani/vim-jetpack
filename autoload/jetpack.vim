@@ -211,7 +211,7 @@ function jetpack#bundle()
     let srcdir = pkg.path .. '/' .. pkg.subdir
     let srcfiles = filter(s:files(srcdir), "!s:ignorable(substitute(v:val, srcdir, '', ''))")
     let destfiles = map(copy(srcfiles), "substitute(v:val, srcdir, destdir, '')")
-    let dupfiles = filter(copy(destfiles), "filereadable(v:val)")
+    let dupfiles = filter(copy(destfiles), "has_key(merged_files, v:val)")
     if g:jetpack#optimization == 1 && dupfiles != []
       call add(unbundle, pkg)
       continue
