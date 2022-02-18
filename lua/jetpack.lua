@@ -22,4 +22,7 @@ function setup(config)
   vim.fn['jetpack#end']()
 end
 
-return { startup = startup }
+return { 
+  startup = startup,
+  setup = setup
+}
