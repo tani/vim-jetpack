@@ -1,0 +1,15 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    name: runner / test
+    runs-on: ${{ matrix.os  }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install git and neovim
+        run: brew install git neovim
+      - name: Run test
+        run: ./test/test.sh
