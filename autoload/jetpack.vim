@@ -11,7 +11,6 @@ let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
 let s:optdir = s:home . '/pack/jetpack/opt'
 let s:srcdir = s:home . '/pack/jetpack/src'
 
-let s:loaded = {}
 let s:pkgs = []
 let s:ignores = [
 \   '**/.*',
@@ -123,8 +122,7 @@ endfunction
 
 function! s:setupbuf() abort
   silent! execute 'bdelete! ' . bufnr('JetpackStatus')
-  silent vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
-  vertical resize 40
+  silent 40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
   call s:syntax()
   redraw
 endfunction
@@ -362,9 +360,7 @@ function! jetpack#add(plugin, ...) abort
       execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
   endfor
-  if pkg.opt
-    execute printf('autocmd SourcePre %s/%s/**/* let s:loaded["%s"]=1', s:optdir, name, name)
-  elseif isdirectory(s:optdir . '/' . name)
+  if isdirectory(s:optdir . '/' . name)
     execute 'silent! packadd! ' . name
   endif
   call add(s:pkgs, pkg)
@@ -389,11 +385,5 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  if get(s:loaded, a:name, 0)
-    return 1
-  endif
-  if isdirectory(s:srcdir . '/' . a:name)
-    return filter(copy(s:pkgs), 'v:val["name"] == a:name && !v:val["opt"]') != []
-  endif
-  return 0
+  return isdirectory(s:srcdir . '/'. a:name)
 endfunction
