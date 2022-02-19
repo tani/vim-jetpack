@@ -78,8 +78,7 @@ vim-jetpack is 90% compatible with vim-plug.
 |      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
 |    `frozen`     |     `boolean`      | Do not update                         |
 
-We welcome a pull request to add the `on` option for non-normal mode and the
-`commit` option.
+Note that `on` option is only for the normal mode and visual mode.
 
 ## Configuration
 
