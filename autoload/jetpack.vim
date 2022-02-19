@@ -378,5 +378,5 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  return isdirectory(s:srcdir . '/'. a:name)
+  return filter(copy(s:pkgs), "v:val['name'] == a:name") != [] && isdirectory(s:srcdir . '/'. a:name)
 endfunction
