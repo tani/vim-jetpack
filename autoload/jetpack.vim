@@ -313,19 +313,12 @@ function! jetpack#postupdate() abort
 endfunction
 
 function! jetpack#sync() abort
-  echomsg 'Cleaning up plugins ...'
   call jetpack#clean()
-  echomsg 'Installing plugins ...'
   call jetpack#install()
-  echomsg 'Updating plugins ...'
   call jetpack#update()
-  echomsg 'Bundling plugins ...'
   call jetpack#bundle()
-  echomsg 'Display results ...'
   call s:display()
-  echomsg 'Running the post-update hooks ...'
   call jetpack#postupdate()
-  echomsg 'Complete'
 endfunction
 command! JetpackSync call jetpack#sync()
 
@@ -334,7 +327,7 @@ function! jetpack#add(plugin, ...) abort
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let path = get(opts, 'dir', s:srcdir . '/' . name)
   let pkg  = {
-  \  'url': a:plugin =~ ':' ? a:plugin : 'https://github.com/' . a:plugin,
+  \  'url': a:plugin =~# ':' ? a:plugin : 'https://github.com/' . a:plugin,
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
   \  'hook': get(opts, 'do'),
   \  'subdir': get(opts, 'rtp', '.'),
@@ -343,10 +336,10 @@ function! jetpack#add(plugin, ...) abort
   \  'frozen': get(opts, 'frozen'),
   \  'path': path,
   \  'opt': get(opts, 'opt'),
-  \   'progress': {
-  \     'type': s:progress_type.skip,
-  \     'output': 'Skipped',
-  \   },
+  \  'progress': {
+  \    'type': s:progress_type.skip,
+  \    'output': 'Skipped',
+  \  },
   \ }
   for it in flatten([get(opts, 'for', [])])
     let pkg.opt = 1
@@ -385,5 +378,5 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  return isdirectory(s:srcdir . '/'. a:name)
+  return filter(s:pkgs, "v:val['name']==a:name") != [] && isdirectory(s:srcdir . '/'. a:name)
 endfunction
