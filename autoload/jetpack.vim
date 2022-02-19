@@ -360,7 +360,7 @@ function! jetpack#add(plugin, ...) abort
       execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
   endfor
-  if isdirectory(s:optdir . '/' . name)
+  if !pkg.opt && isdirectory(s:optdir . '/' . name)
     execute 'silent! packadd! ' . name
   endif
   call add(s:pkgs, pkg)
