@@ -53,6 +53,12 @@ let tests = [
   \   'expected': 'filereadable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/addon-info.json")',
   \   'epilogue': ''
   \ },
+  \ {
+  \   'title': 'Issue 15 vim-test',
+  \   'prologue': '',
+  \   'expected': 'isdirectory(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/autoload/test")',
+  \   'epilogue': ''
+  \ },
   \ ]
 let s:failed = 0
 

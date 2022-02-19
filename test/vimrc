@@ -1,13 +1,14 @@
 set nocompatible
-execute 'set rtp+=' . expand('<sfile>:p:h:h')
+execute 'set rtp^=' . expand('<sfile>:p:h:h')
 call jetpack#begin(expand('<sfile>:p:h'))
-Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
-Jetpack 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Jetpack 'junegunn/fzf.vim', { 'opt': 1 }
-Jetpack 'yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc', 'for': ['lisp'] }
-Jetpack 'lotabout/skim', { 'dir': expand('<sfile>:p:h'). '/pack/skim', 'do': './install' }
-Jetpack 'dracula/vim', { 'as': 'dracula' }
-Jetpack 'vlime/vlime', { 'rtp': 'vim' }
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
+call jetpack#add('junegunn/fzf', { 'do': { -> fzf#install() } })
+call jetpack#add('junegunn/fzf.vim', { 'opt': 1 })
+call jetpack#add('yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc', 'for': ['lisp'] })
+call jetpack#add('lotabout/skim', { 'dir': expand('<sfile>:p:h'). '/pack/skim', 'do': './install' })
+call jetpack#add('dracula/vim', { 'as': 'dracula' })
+call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
+call jetpack#add('vim-test/vim-test') "Issue 15
 call jetpack#end()
 let g:jetpck#headless = 1
 

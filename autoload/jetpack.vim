@@ -201,7 +201,6 @@ endfunction
 
 function! jetpack#bundle() abort
   call s:setupbuf()
-
   let bundle = []
   let unbundle = s:pkgs
   if g:jetpack#optimization >= 1
@@ -220,9 +219,9 @@ function! jetpack#bundle() abort
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:pkgs) * 100))
     let srcdir = pkg.path . '/' . pkg.subdir
-    let srcfiles = filter(s:files(srcdir), '!s:ignorable(substitute(v:val, srcdir, "", ""))')
+    let srcfiles = s:files(srcdir)
     let destfiles = map(copy(srcfiles), 'substitute(v:val, srcdir, destdir, "")')
-    let dupfiles = filter(copy(destfiles), 'has_key(merged_files, v:val)')
+    let dupfiles = filter(copy(destfiles), '!s:ignorable(substitute(v:val, destdir, "", "")) && has_key(merged_files, v:val)')
     if g:jetpack#optimization == 1 && dupfiles != []
       call add(unbundle, pkg)
       continue
