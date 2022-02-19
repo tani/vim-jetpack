@@ -90,7 +90,7 @@ Note that `on` option is only for the normal mode and visual mode.
   | startup |  slow   | faster | fastest |
   - `0` -- Bundle nothing. This is the same as vim-plug and is the safest level.
   - `1` -- Bundle if there are no conflicts. It tries to bundle plgins as
-    possible. This is default and is safer than `3`.
+    possible. This is default and is safer than `2`.
   - `2` -- Bundle everything. This may be the same as dein.vim, and is the
     fastest level. It overwrites some duplicated files.
 
@@ -108,6 +108,7 @@ The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/jetpack/g` an
 
 ```vim
 call jetpack#begin()
+Jetpack 'https://github.com/dense-analysis/ale'
 Jetpack 'junegunn/fzf.vim'
 Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
 Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
@@ -122,6 +123,7 @@ call jetpack#end()
 
 ```vim
 call jetpack#begin()
+call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
 call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
 call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
@@ -146,6 +148,7 @@ curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
 
 ```lua
 require('jetpack').startup(function(use)
+  use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', do = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
@@ -160,6 +163,7 @@ end)
 
 ```lua
 require('jetpack').setup {
+  'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
   {'junegunn/fzf', do = 'call fzf#install()' },
   {'neoclide/coc.nvim', branch = 'release'},
