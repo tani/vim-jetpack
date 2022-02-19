@@ -16,7 +16,6 @@ let s:ignores = [
 \   '**/.*',
 \   '**/.*/**/*',
 \   '**/t/**/*',
-\   '**/test/**/*',
 \   '**/VimFlavor*',
 \   '**/Flavorfile*',
 \   '**/README*',
