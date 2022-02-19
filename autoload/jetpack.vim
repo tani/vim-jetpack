@@ -189,12 +189,22 @@ function! jetpack#update(...) abort
 endfunction
 
 function! jetpack#clean() abort
-  for pkg in s:pkgs
-    if isdirectory(pkg.path) && type(pkg.branch) == v:t_string
-      let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path))
-      if pkg.branch != branch
-        call delete(pkg.path, 'rf')
+  for srcdir in glob(s:srcdir . '/*', '', 1)
+    let found = 0
+    for pkg in s:pkgs
+      if isdirectory(pkg.path)
+        let found = 1
+        if  type(pkg.branch) == v:t_string
+          let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path))
+          if pkg.branch != branch
+            call delete(pkg.path, 'rf')
+            break
+          endif
+        endif
       endif
+    endfor
+    if !found
+      call delete(srcdir, 'rf')
     endif
   endfor
 endfunction
