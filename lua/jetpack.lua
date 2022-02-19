@@ -1,3 +1,10 @@
+-- =============== JETPACK.vim =================
+--       The lightnig-fast plugin manager
+--      Copyrigh (c) 2022 TANGUCHI Masaya.
+--           All Rights Reserved.
+--  MIT License.
+-- =============================================
+
 local function startup(config)
   vim.fn['jetpack#begin']()
   config(function (plugin)
@@ -34,5 +41,6 @@ end
 
 return {
   startup = startup,
-  setup = setup
+  setup = setup,
+  tap = vim.fn["jetpack#tap"],
 }
