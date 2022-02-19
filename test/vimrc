@@ -9,6 +9,7 @@ call jetpack#add('lotabout/skim', { 'dir': expand('<sfile>:p:h'). '/pack/skim', 
 call jetpack#add('dracula/vim', { 'as': 'dracula' })
 call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
 call jetpack#add('vim-test/vim-test') "Issue 15
+call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#end()
 let g:jetpck#headless = 1
 

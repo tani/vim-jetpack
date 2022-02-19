@@ -59,6 +59,12 @@ let tests = [
   \   'expected': 'isdirectory(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/autoload/test")',
   \   'epilogue': ''
   \ },
+  \ {
+  \   'title': 'Allow git url',
+  \   'prologue': '',
+  \   'expected': 'jetpack#tap("ale")',
+  \   'epilogue': ''
+  \ },
   \ ]
 let s:failed = 0
 
