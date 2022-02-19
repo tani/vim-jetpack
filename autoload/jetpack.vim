@@ -336,7 +336,7 @@ function! jetpack#add(plugin, ...) abort
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let path = get(opts, 'dir', s:srcdir . '/' . name)
   let pkg  = {
-  \  'url': 'https://github.com/' . a:plugin,
+  \  'url': a:plugin =~ ':' ? a:plugin : 'https://github.com/' . a:plugin,
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
   \  'hook': get(opts, 'do'),
   \  'subdir': get(opts, 'rtp', '.'),
