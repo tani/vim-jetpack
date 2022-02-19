@@ -12,7 +12,7 @@ local function startup(config)
       vim.fn['jetpack#add'](name, opts)
     end
   end)
-  vim.fn['pack#end']()
+  vim.fn['jetpack#end']()
 end
 
 local function setup(config)
