@@ -8,7 +8,13 @@ let tests = [
   \ {
   \   'title': '(do option) Available an executable of fzf',
   \   'prologue': '',
-  \   'expected': 'executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/bin/fzf")',
+  \   'expected': 'executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/fzf/bin/fzf")',
+  \   'epilogue': ''
+  \ },
+  \ {
+  \   'title': '(do option) fzf should not be merged',
+  \   'prologue': '',
+  \   'expected': '!executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/bin/fzf")',
   \   'epilogue': ''
   \ },
   \ {
@@ -39,6 +45,12 @@ let tests = [
   \   'title': '(dir option and do option) skim should be instaled in /pack/skim',
   \   'prologue': '',
   \   'expected': 'executable(expand("<sfile>:p:h") . "/pack/skim/bin/sk")',
+  \   'epilogue': ''
+  \ },
+  \ {
+  \   'title': '(dir option and do option) skim should be merged',
+  \   'prologue': '',
+  \   'expected': '!executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/bin/sk")',
   \   'epilogue': ''
   \ },
   \ {
