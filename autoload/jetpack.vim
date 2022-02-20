@@ -365,7 +365,7 @@ function! jetpack#add(plugin, ...) abort
   \ }
   for it in flatten([get(opts, 'for', [])])
     let pkg.opt = 1
-    execute printf('autocmd FileType %s silent! packadd %s', it, name)
+    execute printf('autocmd FileType %s ++nested silent! packadd %s', it, name)
   endfor
   for it in flatten([get(opts, 'on', [])])
     let pkg.opt = 1
@@ -373,11 +373,11 @@ function! jetpack#add(plugin, ...) abort
       execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
       execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, name, it)
     else
-      execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
+      execute printf('autocmd CmdUndefined %s ++nested silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePost **/%s/**/* ++nested do User %s', name, name)
+    execute printf('autocmd SourcePost %s/%s/* do User %s', resolve(s:optdir()), name, name)
   elseif isdirectory(s:path(s:optdir(), name))
     execute 'silent! packadd! ' . name
   endif
