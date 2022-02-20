@@ -3,7 +3,7 @@ name: test
 on: [push, pull_request]
 jobs:
   test:
-    name: test / ${{ matrix.os }} / ${{ matrix.vi }}
+    name: ${{ matrix.os }} / ${{ matrix.vi }}
     runs-on: ${{ matrix.os  }}
     strategy:
       matrix:
@@ -15,7 +15,7 @@ jobs:
         id: vim
         with:
           neovim: ${{ matrix.vi == 'neovim' }}
-      - name: Run unit tests with themis.vim
-        run: |
-         ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/null.vim" -c 'JetpackSync' -c 'quitall'
-         ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/test.vim" -c 'quitall'
+      - name: Install plugins
+        run: ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/null.vim" -c 'JetpackSync' -c 'quitall'
+      - name: Run tests
+        run: ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/test.vim" -c 'quitall'
