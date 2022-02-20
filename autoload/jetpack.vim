@@ -100,6 +100,9 @@ function! s:copy(from, to) abort
   call mkdir(fnamemodify(a:to, ':p:h'), 'p')
   if has('nvim')
     call v:lua.vim.loop.fs_symlink(a:from, a:to)
+  elseif !has("win32")
+    " hardlink because symlink will cause problem with nodejs packages
+    call system('ln ' . a:from . ' ' . a:to)
   else
     call writefile(readfile(a:from, 'b'), a:to, 'b')
   endif
