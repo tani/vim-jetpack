@@ -1,5 +1,5 @@
 -- =============== JETPACK.vim =================
---       The lightnig-fast plugin manager
+--       The lightning-fast plugin manager
 --      Copyrigh (c) 2022 TANGUCHI Masaya.
 --           All Rights Reserved.
 --  MIT License.
