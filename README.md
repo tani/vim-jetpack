@@ -44,22 +44,32 @@ directory for more detail.
 
 Download jetpack.vim and put it in the `autoload` directory.
 
-### Vim
+### Linux / macOS
+
+#### Vim
 
 ```
 curl -fLo ~/.vim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
 ```
 
-### Neovim
+#### Neovim
 
 ```
 curl -fLo ~/.config/nvim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
 ```
 
-If you want to install lua interface, instead of the above, you can install jetpack.vim together with jetpack.lua as follows.
+### Windows
+
+#### Vim
 
 ```
-git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/start/vim-jetpack
+curl -fLo ~\vimfiles\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+```
+
+#### Neovim
+
+```
+curl -fLo ~\AppData\Local\nvim\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
 ```
 
 ## Supported options
@@ -173,6 +183,11 @@ require('jetpack').setup {
   {'tpope/vim-fireplace', for = 'clojure' },
 }
 ```
+
+## Supported Platforms
+
+We continuously test this software on the nightly version of Vim/ Neovim for Ubuntu, macOS, Windows.
+The current status is [![test](https://github.com/tani/vim-jetpack/actions/workflows/test.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/test.yml).
 
 ## Q & A
 
