@@ -44,13 +44,13 @@ let tests = [
   \ {
   \   'title': '(dir option and do option) skim should be instaled in /pack/skim',
   \   'prologue': '',
-  \   'expected': 'executable(expand("<sfile>:p:h") . "/pack/skim/bin/sk")',
+  \   'expected': 'has("win64") || has("win32") || executable(expand("<sfile>:p:h") . "/pack/skim/bin/sk")',
   \   'epilogue': ''
   \ },
   \ {
-  \   'title': '(dir option and do option) skim should be merged',
+  \   'title': '(dir option and do option) skim should not be merged',
   \   'prologue': '',
-  \   'expected': '!executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/bin/sk")',
+  \   'expected': 'has("win64") || has("win32") || !executable(expand("<sfile>:p:h") . "/pack/jetpack/opt/_/bin/sk")',
   \   'epilogue': ''
   \ },
   \ {
