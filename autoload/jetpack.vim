@@ -216,8 +216,8 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:pkgs
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && !v:val["opt"] && empty(v:val["hook"])')
-    let unbundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && (v:val["opt"] || !empty(v:val["hook"]))') 
+    let bundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && !v:val["opt"] && empty(v:val["do"])')
+    let unbundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && (v:val["opt"] || !empty(v:val["do"]))') 
   endif
 
   call delete(s:optdir(), 'rf')
@@ -230,7 +230,7 @@ function! jetpack#bundle() abort
     let pkg = bundle[i]
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:pkgs) * 100))
-    let srcdir = s:path(pkg.pathname, pkg.subdir)
+    let srcdir = s:path(pkg.pathname, pkg.rtp)
     let srcfiles = s:files(srcdir)
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
     let dupfiles = filter(copy(destfiles), '!s:ignorable(s:substitute(v:val, destdir, "")) && has_key(merged_files, v:val)')
@@ -251,7 +251,7 @@ function! jetpack#bundle() abort
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:pkgs) * 100))
-    let srcdir = s:path(pkg.pathname, pkg.subdir)
+    let srcdir = s:path(pkg.pathname, pkg.rtp)
     let destdir = s:path(s:optdir(), pkg.name)
     for srcfile in s:files(srcdir)
       let destfile = s:substitute(srcfile, srcdir, destdir)
@@ -299,7 +299,7 @@ endfunction
 function! jetpack#postupdate() abort
   silent! packadd _
   for pkg in s:pkgs
-    if empty(pkg.hook)
+    if empty(pkg.do)
       continue
     endif
     let pwd = getcwd()
@@ -309,16 +309,16 @@ function! jetpack#postupdate() abort
       call chdir(s:path(s:optdir(), pkg.name))
       execute 'silent! packadd ' . pkg.name
     endif
-    if type(pkg.hook) == v:t_func
-      call pkg.hook()
+    if type(pkg.do) == v:t_func
+      call pkg.do()
     endif
-    if type(pkg.hook) != v:t_string
+    if type(pkg.do) != v:t_string
       continue
     endif
-    if pkg.hook =~# '^:'
-      execute pkg.hook
+    if pkg.do =~# '^:'
+      execute pkg.do
     else
-      call system(pkg.hook)
+      call system(pkg.do)
     endif
     call chdir(pwd)
   endfor
@@ -342,8 +342,8 @@ function! jetpack#add(plugin, ...) abort
   let pkg  = {
   \  'url': (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin,
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
-  \  'hook': get(opts, 'do'),
-  \  'subdir': get(opts, 'rtp', '.'),
+  \  'do': get(opts, 'do'),
+  \  'rtp': get(opts, 'rtp', '.'),
   \  'name': name,
   \  'frozen': get(opts, 'frozen'),
   \  'pathname': pathname,
