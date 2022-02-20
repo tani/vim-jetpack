@@ -236,7 +236,7 @@ require'jetpack'.setup {
 }
 ```
 
-### Is it possible to isntall plugins if they are is not installed
+### Is it possible to isntall plugins if they are not installed?
 
 If we expose the variable `g:plugs` like vim-plug, it will be difficult to change
 the internal data structure of the plugin in the future,
