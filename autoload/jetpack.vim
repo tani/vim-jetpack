@@ -51,7 +51,7 @@ function s:match(a, b)
 endfunction
 
 function s:substitute(a, b, c)
-  return substitute(a:a, '\V' . escape(a:b, '\'), a:c, '')
+  return substitute(a:a, '\V' . escape(a:b, '\'), escape(a:c, '\'), '')
 endfunction
 
 function! s:files(path) abort
@@ -225,7 +225,7 @@ function! jetpack#bundle() abort
 
   call delete(s:optdir(), 'rf')
   let destdir = s:path(s:optdir(), '_')
-
+  echomsg destdir
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
