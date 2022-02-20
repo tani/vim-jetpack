@@ -1,16 +1,21 @@
+
 name: test
 on: [push, pull_request]
 jobs:
   test:
-    name: runner / test
+    name: test / ${{ matrix.os }} / ${{ matrix.vi }}
     runs-on: ${{ matrix.os  }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         vi: [neovim, vim]
     steps:
       - uses: actions/checkout@v2
-      - name: Install coreutils and ${{ matrix.vi }}
-        run: brew install coreutils ${{ matrix.vi }}
-      - name: Run test
-        run: ./test/${{ matrix.vi }}.sh
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          neovim: ${{ matrix.vi == 'neovim' }}
+      - name: Run unit tests with themis.vim
+        run: |
+         ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/null.vim" -c 'JetpackSync' -c 'quitall'
+         ${{ steps.vim.outputs.executable }} -u "test/vimrc" -s "test/test.vim" -c 'quitall'
