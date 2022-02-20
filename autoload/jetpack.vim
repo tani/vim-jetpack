@@ -7,7 +7,13 @@
 let g:jetpack#optimization = 1
 let g:jetpack#njobs = 8
 
-let s:home = expand(has('nvim') ? '~/.local/share/nvim/site' : '~/.vim')
+if has('nvim')
+  let s:home = expand(stdpath('data') . '/site')
+elseif has('win32') || has('win64')
+  let s:home = expand('~/vimfiles')
+else
+  let s:home = expand('~/.vim')
+endif
 let s:optdir = { ->  s:path(s:home, '/pack/jetpack/opt') }
 let s:srcdir = { ->  s:path(s:home, '/pack/jetpack/src') }
 
