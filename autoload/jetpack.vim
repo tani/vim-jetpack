@@ -204,8 +204,8 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:pkgs
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:pkgs), '!v:val["opt"]')
-    let unbundle = filter(copy(s:pkgs), 'v:val["opt"]') 
+    let bundle = filter(copy(s:pkgs), '!v:val["dir"] && !v:val["opt"] && empty(v:val["hook"])')
+    let unbundle = filter(copy(s:pkgs), '!v:val["dir"] && (v:val["opt"] || !empty(v:val["hook"]))') 
   endif
 
   call delete(s:optdir, 'rf')
@@ -287,13 +287,14 @@ endfunction
 function! jetpack#postupdate() abort
   silent! packadd _
   for pkg in s:pkgs
+    if empty(pkg.hook)
+      continue
+    endif
     let pwd = getcwd()
     if pkg.dir
-      execute printf('cd %s', pkg.path)
-    elseif isdirectory(s:optdir . '/' . pkg.name)
-      execute printf('cd %s/%s', s:optdir, pkg.name)
+      call chdir(pkg.path)
     else
-      execute printf('cd %s/_', s:optdir)
+      call chdir(s:optdir . '/' . pkg.name)
     endif
     execute 'silent! packadd ' . pkg.name
     if type(pkg.hook) == v:t_func
@@ -306,7 +307,7 @@ function! jetpack#postupdate() abort
         call system(pkg.hook)
       endif
     endif
-    execute printf('cd %s', pwd)
+    call chdir(pwd)
   endfor
   silent! helptags ALL
 endfunction
