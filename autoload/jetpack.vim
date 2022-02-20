@@ -232,7 +232,6 @@ function! jetpack#bundle() abort
 
   call delete(s:optdir(), 'rf')
   let destdir = s:path(s:optdir(), '_')
-  echomsg destdir
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
@@ -378,7 +377,7 @@ function! jetpack#add(plugin, ...) abort
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePost %s/%s/**/* do User %s', s:optdir(), name, name)
+    execute printf('autocmd SourcePost **/%s/**/* ++nested do User %s', name, name)
   elseif isdirectory(s:path(s:optdir(), name))
     execute 'silent! packadd! ' . name
   endif
