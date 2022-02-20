@@ -14,26 +14,26 @@ elseif has('win32') || has('win64')
 else
   let s:home = expand('~/.vim')
 endif
+
 let s:optdir = { ->  s:path(s:home, '/pack/jetpack/opt') }
 let s:srcdir = { ->  s:path(s:home, '/pack/jetpack/src') }
 
 let s:pkgs = []
 let s:ignores = [
-\   '**/.*',
-\   '**/.*/**/*',
-\   '**/t/**/*',
-\   '**/test/**/*',
-\   '**/VimFlavor*',
-\   '**/Flavorfile*',
-\   '**/README*',
-\   '**/Rakefile*',
-\   '**/Gemfile*',
-\   '**/Makefile*',
-\   '**/LICENSE*',
-\   '**/LICENCE*',
-\   '**/CONTRIBUTING*',
-\   '**/CHANGELOG*',
-\   '**/NEWS*',
+\   '/.*/**/*',
+\   '/t/**/*',
+\   '/test/**/*',
+\   '/VimFlavor*',
+\   '/Flavorfile*',
+\   '/README*',
+\   '/Rakefile*',
+\   '/Gemfile*',
+\   '/Makefile*',
+\   '/LICENSE*',
+\   '/LICENCE*',
+\   '/CONTRIBUTING*',
+\   '/CHANGELOG*',
+\   '/NEWS*',
 \ ]
 
 let s:progress_type = {
@@ -59,7 +59,7 @@ function! s:files(path) abort
 endfunction
 
 function! s:ignorable(filename) abort
-  return filter(copy(s:ignores), 'a:filename =~ glob2regpat(v:val)') != []
+  return filter(copy(s:ignores), 'a:filename =~? glob2regpat(v:val)') != []
 endfunction
 
 function! s:progressbar(n) abort
@@ -116,11 +116,7 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(fnamemodify(a:to, ':p:h'), 'p')
-  if has('nvim')
-    call v:lua.vim.loop.fs_symlink(a:from, a:to)
-  else
-    call writefile(readfile(a:from, 'b'), a:to, 'b')
-  endif
+  call writefile(readfile(a:from, 'b'), a:to, 'b')
 endfunction
 
 function! s:syntax() abort
@@ -237,7 +233,7 @@ function! jetpack#bundle() abort
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:pkgs) * 100))
     let srcdir = s:path(pkg.pathname, pkg.rtp)
-    let srcfiles = s:files(srcdir)
+    let srcfiles = filter(s:files(srcdir), '!s:ignorable(s:substitute(v:val, srcdir, ""))')
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
     let dupfiles = filter(copy(destfiles), '!s:ignorable(s:substitute(v:val, destdir, "")) && has_key(merged_files, v:val)')
     if g:jetpack#optimization == 1 && dupfiles != []
