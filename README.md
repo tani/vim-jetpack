@@ -209,24 +209,29 @@ vim-plug, i.e., this plugin provides less options than dein.
 
 - Vim
     ```
-    git clone --depth 1 https://github.com/tani/vim-jetpack ~/.vim/pack/jetpack/src/vim-jetpack && ln -s ~/.vim/pack/jetpack/{src,start}/vim-jetpack
+    git clone --depth 1 https://github.com/tani/vim-jetpack ~/.vim/pack/jetpack/src/vim-jetpack && ln -s ~/.vim/pack/jetpack/{src,opt}/vim-jetpack
     ```
 
 - Neovim
    ```
-   git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/src/vim-jetpack && ln -s ~/.local/share/nvim/site/pack/jetpack/{src,start}/vim-jetpack
+   git clone --depth 1 https://github.com/tani/vim-jetpack ~/.local/share/nvim/site/pack/jetpack/src/vim-jetpack && ln -s ~/.local/share/nvim/site/pack/jetpack/{src,opt}/vim-jetpack
    ```
 
 #### Step 2: Add `tani/vim-jetpack` to your configuraiton file
 
 ```vim
+packadd vim-jetpack
+call jetpack#begin()
 Jetpack 'tani/vim-jetpack', { 'opt': 1 }
-
 call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
+call jetpack#end()
 ```
+
 or 
 
 ```lua
+vim.cmd('packadd vim-jetpack')
+
 require'jetpack'.startup(function ()
   use { 'tani/vim-jetpack', opt = 1 }
 end)
