@@ -14,8 +14,9 @@ jobs:
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
+          version: 'nightly'
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Install plugins
-        run: ${{ steps.vim.outputs.executable }} ${{ (matrix.vi == 'neovim' && '--headless') || ''}} -u 'test/vimrc' -s 'test/null.vim' -c 'JetpackSync' -c 'quitall'
+        run: ${{ steps.vim.outputs.executable }} -u 'test/vimrc' -s 'test/null.vim' -c 'JetpackSync' -c 'quitall'
       - name: Run tests
-        run: ${{ steps.vim.outputs.executable }} ${{ (matrix.vi == 'neovim' && '--headless') || ''}} -u 'test/vimrc' -s 'test/test.vim' -c 'quitall'
+        run: ${{ steps.vim.outputs.executable }} -u 'test/vimrc' -s 'test/test.vim' -c 'quitall'
