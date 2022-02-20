@@ -382,9 +382,11 @@ function! jetpack#begin(...) abort
   syntax off
   filetype off
   command! -nargs=+ Jetpack call jetpack#add(<args>)
-  let s:home = a:0 != 0 ? a:1 : s:home
   let s:pkgs = []
-  execute 'set packpath^=' . s:home
+  if a:0 != 0
+    let s:home = a:1
+    execute 'set packpath^=' . s:home
+  endif
 endfunction
 
 function! jetpack#end() abort
