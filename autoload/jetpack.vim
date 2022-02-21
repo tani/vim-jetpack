@@ -398,7 +398,7 @@ function! jetpack#begin(...) abort
   filetype off
   let s:pkgs = []
   augroup Jetpack
-    au!
+    autocmd!
   augroup END
   if a:0 != 0
     let s:home = a:1
