@@ -10,6 +10,8 @@ call jetpack#add('dracula/vim', { 'as': 'dracula' })
 call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
 call jetpack#add('vim-test/vim-test') "Issue 15
 call jetpack#add('https://github.com/dense-analysis/ale')
+call jetpack#add('junegunn/goyo.vim', { 'for': 'markdown' })
 call jetpack#end()
 let g:jetpck#headless = 1
 
+autocmd! User goyo.vim let g:is_loaded_goyo_user = 1

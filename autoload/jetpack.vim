@@ -154,8 +154,10 @@ function! jetpack#install(...) abort
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
-
-    let cmd = ['git', 'clone', '--depth', '1']
+    let cmd = ['git', 'clone']
+    if !pkg.commit
+      call extend(cmd, ['--depth', '1'])
+    endif
     if type(pkg.branch) == v:t_string
       call extend(cmd, ['-b', pkg.branch])
     endif
@@ -205,6 +207,11 @@ endfunction
 
 function! jetpack#clean() abort
   for pkg in s:pkgs
+    if isdirectory(pkg.pathname) && type(pkg.commit) == v:t_string
+      if system(printf('git -c "%s" cat-file -t %s', pkg.pathname, pkg.commit)) !~# 'commit'
+        call delete(pkg.pathname)
+      endif
+    endif
     if isdirectory(pkg.pathname) && type(pkg.branch) == v:t_string
       let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.pathname))
       if pkg.branch != branch
@@ -225,7 +232,6 @@ function! jetpack#bundle() abort
 
   call delete(s:optdir(), 'rf')
   let destdir = s:path(s:optdir(), '_')
-  echomsg destdir
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
@@ -345,6 +351,7 @@ function! jetpack#add(plugin, ...) abort
   let pkg  = {
   \  'url': (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin,
   \  'branch': get(opts, 'branch', get(opts, 'tag')),
+  \  'commit': get(opts, 'commit'),
   \  'do': get(opts, 'do'),
   \  'rtp': get(opts, 'rtp', '.'),
   \  'name': name,
@@ -358,7 +365,7 @@ function! jetpack#add(plugin, ...) abort
   \ }
   for it in flatten([get(opts, 'for', [])])
     let pkg.opt = 1
-    execute printf('autocmd FileType %s silent! packadd %s', it, name)
+    execute printf('autocmd FileType %s ++nested silent! packadd %s', it, name)
   endfor
   for it in flatten([get(opts, 'on', [])])
     let pkg.opt = 1
@@ -366,10 +373,12 @@ function! jetpack#add(plugin, ...) abort
       execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
       execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, name, it)
     else
-      execute printf('autocmd CmdUndefined %s silent! packadd %s', substitute(it, '^:', '', ''), name)
+      execute printf('autocmd CmdUndefined %s ++nested silent! packadd %s', substitute(it, '^:', '', ''), name)
     endif
   endfor
-  if !pkg.opt && isdirectory(s:path(s:optdir(), name))
+  if pkg.opt
+    execute printf('autocmd SourcePost %s/%s/* do User %s', resolve(s:optdir()), name, name)
+  elseif isdirectory(s:path(s:optdir(), name))
     execute 'silent! packadd! ' . name
   endif
   call add(s:pkgs, pkg)

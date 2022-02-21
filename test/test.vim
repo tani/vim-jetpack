@@ -77,6 +77,12 @@ let tests = [
   \   'expected': 'jetpack#tap("ale")',
   \   'epilogue': ''
   \ },
+  \ {
+  \   'title': '(autocmd) do autocmd User after loading',
+  \   'prologue': 'setf markdown',
+  \   'expected': 'g:is_loaded_goyo_user == 1',
+  \   'epilogue': ''
+  \ },
   \ ]
 let s:failed = 0
 
