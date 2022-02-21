@@ -14,4 +14,4 @@ call jetpack#add('junegunn/goyo.vim', { 'for': 'markdown' })
 call jetpack#end()
 let g:jetpck#headless = 1
 
-autocmd! User goyo.vim let g:is_loaded_goyo_user = 1
+autocmd! User JetpackGoyoVim let g:is_loaded_goyo_user = 1

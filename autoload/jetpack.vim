@@ -377,7 +377,8 @@ function! jetpack#add(plugin, ...) abort
     endif
   endfor
   if pkg.opt
-    execute printf('autocmd SourcePost %s/%s/* do User %s', resolve(s:optdir()), name, name)
+    let event = substitute(substitute(name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
+    execute printf('autocmd SourcePost %s/%s/* doautocmd User Jetpack%s', escape(resolve(s:optdir()), '\'), name, event)
   elseif isdirectory(s:path(s:optdir(), name))
     execute 'silent! packadd! ' . name
   endif

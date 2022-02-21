@@ -76,7 +76,7 @@ JetpackSync                                                        *JetpackSync*
     command.
 
 ================================================================================
-Variables( *jetpack-variables* )
+Variables ( *jetpack-variables* )
 
 jetpack#optimization                                      *jetpack#optimization*
     The optimization level for the bundle algorithm.
@@ -91,6 +91,17 @@ jetpack#optimization                                      *jetpack#optimization*
       possible. This is default and is safer than `3`.
     - `2` Bundle everything. This may be the same as dein.vim, and is the
       fastest level. It overwrites some duplicated files.
+
+================================================================================
+Events ( *jetpack-events* )
+
+User Jetpack{PluginName}                                           *User-Jetpack*
+    Let {PluginName} be a CamelCase of plugin name.
+        vim-jetpack --> VimJetpack
+        goyo.vim --> GoyoVim
+        vim_foo -> VimFoo
+    Code to execute when the plugin is lazily loaded on demand with
+    `User Jetpack{PluginName}` .
 
 ================================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
