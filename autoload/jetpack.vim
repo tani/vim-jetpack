@@ -21,6 +21,7 @@ let s:srcdir = { ->  s:path(s:home, '/pack/jetpack/src') }
 let s:pkgs = []
 let s:ignores = [
 \   '/doc/tags*',
+\   '/.*',
 \   '/.*/**/*',
 \   '/t/**/*',
 \   '/test/**/*',
