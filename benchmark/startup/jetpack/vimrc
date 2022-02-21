@@ -210,8 +210,8 @@ if (Colorscheme == 'gruvbox_material')
   colorscheme gruvbox-material
 endif
 
-let g#autobackup_backup_dir = expand('~/.cache/backup')
-let g#autobackup_backup_limit = 1000
+let g:autobackup_backup_dir = expand('~/.cache/backup')
+let g:autobackup_backup_limit = 1000
 
 autocmd FileType clojure,scheme,lisp let b:lexima_disabled = 1
 function LeximaSetup()

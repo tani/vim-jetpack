@@ -65,7 +65,7 @@ Unlisted functions might be changed without any announcements in the future.
 ================================================================================
 Commands ( *jetpack-commands* )
 
-Jetpack {repo} [, {options}]                                        *JetpackAdd*
+Jetpack {repo} [, {options}]                                           *Jetpack*
     A command version of |jetpack#add()|.
     It is useful for the vim-plug sytle declaration of plugins in vimrc.
 
@@ -78,7 +78,7 @@ JetpackSync                                                        *JetpackSync*
 ================================================================================
 Variables ( *jetpack-variables* )
 
-jetpack#optimization                                      *jetpack#optimization*
+g:jetpack#optimization                                  *g:jetpack#optimization*
     The optimization level for the bundle algorithm.
 
     |  speed  |    0    |   1    |    2    |
@@ -95,13 +95,20 @@ jetpack#optimization                                      *jetpack#optimization*
 ================================================================================
 Events ( *jetpack-events* )
 
-User Jetpack{PluginName}                                           *User-Jetpack*
+User Jetpack{PluginName}                                    *User-Jetpack-event*
     Let {PluginName} be a CamelCase of plugin name.
         vim-jetpack --> VimJetpack
         goyo.vim --> GoyoVim
         vim_foo -> VimFoo
     Code to execute when the plugin is lazily loaded on demand with
     `User Jetpack{PluginName}` .
+
+================================================================================
+Groups ( *jetpack-groups* )
+
+Jetpack                                                         *Jetpack-group*
+    Jetpack's on-demand loading uses autocommands defined under the `Jetpack`
+    |autocmd-groups| .
 
 ================================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
