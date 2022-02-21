@@ -20,6 +20,7 @@ let s:srcdir = { ->  s:path(s:home, '/pack/jetpack/src') }
 
 let s:pkgs = []
 let s:ignores = [
+\   '/doc/tags',
 \   '/.*/**/*',
 \   '/t/**/*',
 \   '/test/**/*',
@@ -116,8 +117,14 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(fnamemodify(a:to, ':p:h'), 'p')
-  call writefile(readfile(a:from, 'b'), a:to, 'b')
-  call setfperm(a:to, getfperm(a:from))
+  if has('nvim')
+    call v:lua.vim.loop.fs_link(a:from, a:to)
+  elseif has('unix')
+    call system(printf('ln -f "%s" "%s"', a:from, a:to))
+  else
+    call writefile(readfile(a:from, 'b'), a:to, 'b')
+    call setfperm(a:to, getfperm(a:from))
+  endif
 endfunction
 
 function! s:syntax() abort
