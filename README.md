@@ -160,12 +160,12 @@ curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
 require('jetpack').startup(function(use)
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
-  use {'junegunn/fzf', do = 'call fzf#install()' }
+  use {'junegunn/fzf', ['do'] = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
-  use {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'}
+  use {'neoclide/coc.nvim', branch = 'master', ['do'] = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
-  use {'tpope/vim-fireplace', for = 'clojure' }
+  use {'tpope/vim-fireplace', ['for'] = 'clojure' }
 end)
 ```
 
@@ -177,10 +177,10 @@ require('jetpack').setup {
   'junegunn/fzf.vim',
   {'junegunn/fzf', do = 'call fzf#install()' },
   {'neoclide/coc.nvim', branch = 'release'},
-  {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'},
+  {'neoclide/coc.nvim', branch = 'master', ['do'] = 'yarn install --frozen-lockfile'},
   {'vlime/vlime', rtp = 'vim' },
   {'dracula/vim', as = 'dracula' },
-  {'tpope/vim-fireplace', for = 'clojure' },
+  {'tpope/vim-fireplace', ['for'] = 'clojure' },
 }
 ```
 
