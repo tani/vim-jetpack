@@ -395,19 +395,19 @@ endfunction
 function! jetpack#begin(...) abort
   syntax off
   filetype off
-  command! -nargs=+ Jetpack call jetpack#add(<args>)
   let s:pkgs = []
   if a:0 != 0
     let s:home = a:1
     execute 'set packpath^=' . s:home
   endif
+  command! -nargs=+ Jetpack call jetpack#add(<args>)
 endfunction
 
 function! jetpack#end() abort
-  syntax enable
-  filetype plugin indent on
   delcommand Jetpack
   silent! packadd! _
+  syntax enable
+  filetype plugin indent on
 endfunction
 
 function! jetpack#tap(name) abort
