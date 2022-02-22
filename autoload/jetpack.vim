@@ -186,10 +186,11 @@ function! jetpack#checkout(...) abort
     let pkg = s:pkgs[i]
     call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:pkgs)))
     call s:setbufline(2, s:progressbar((0.0 + i) / len(s:pkgs) * 100))
-    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.pathname) || empty(pkg.commit)
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || !isdirectory(pkg.pathname) || !has_key(pkg, 'commit')
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
+    call system(printf('git -C "%s" switch "-"', pkg.pathname))
     call system(printf('git -C "%s" checkout "%s"', pkg.pathname, pkg.commit))
     call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg.name))
   endfor

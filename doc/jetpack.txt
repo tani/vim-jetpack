@@ -30,17 +30,19 @@ jetpack#add({repo} [, {options}])                                *jetpack#add()*
     {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
     {options} is a dictionary consits of the following.
 
-|      name       |        type        | description                           |
-| :-------------: | :----------------: | :------------------------------------ |
-|  branch /  tag  |       sring        | Branch/ tag of the repository to use  |
-|       rtp       |       string       | Subdirectory that contains Vim plugin |
-|       dir       |       string       | Custom directory for the plugin       |
-|       as        |       string       | Use different name for plugin         |
-|       do        |  string  or  func  | Post-updat hook                       |
-|       on        |  string  or  list  | On-demand loading: Commands,  <Plug>  |
-|       for       |  string  or  list  | On-demand loading: File types         |
-|       opt       |      boolean       | On-demand loading:  packadd {name}    |
-|     frozen      |      boolean       | Do not update                         |
+|   name   |        type        | description                           |
+| :------: | :----------------: | :------------------------------------ |
+|  branch  |       string       | Branch of the repository to use       |
+|   tag    |       string       | Tag of the repository to use          |
+|  commit  |       string       | Commit of the repository to use       |
+|    rtp   |       string       | Subdirectory that contains Vim plugin |
+|    dir   |       string       | Custom directory for the plugin       |
+|    as    |       string       | Use different name for plugin         |
+|    do    |  string  or  func  | Post-updat hook                       |
+|    on    |  string  or  list  | On-demand loading: Commands,  <Plug>  |
+|    for   |  string  or  list  | On-demand loading: File types         |
+|    opt   |      boolean       | On-demand loading:  packadd {name}    |
+|  frozen  |      boolean       | Do not update                         |
 
 jetpack#begin([{path}])                                        *jetpack#begin()*
     The function setups jetpack plugins. All plugin declarations should be
