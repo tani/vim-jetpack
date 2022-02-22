@@ -7,7 +7,6 @@ the built-in plugin manager only.
 ![jetpack](https://user-images.githubusercontent.com/5019902/154419764-d246c45c-8940-4e60-9658-9ed3424cbeaa.gif)
 
 ## Features
-
 - Lightning-fast startup
     - It optimizes the search algorithm for the runtimepath
 - Single file plugin
@@ -148,18 +147,21 @@ curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
     https://raw.githubusercontent.com/tani/vim-jetpack/master/lua/jetpack.lua
 ```
 
+You can use aliases `run` and `ft` insetead of `do` and `for` because of the reserved keywords in lua.
+
+
 #### packer style
 
 ```lua
 require('jetpack').startup(function(use)
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
-  use {'junegunn/fzf', do = 'call fzf#install()' }
+  use {'junegunn/fzf', run = 'call fzf#install()' }
   use {'neoclide/coc.nvim', branch = 'release'}
-  use {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'}
+  use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
-  use {'tpope/vim-fireplace', for = 'clojure' }
+  use {'tpope/vim-fireplace', filetype = 'clojure' }
 end)
 ```
 
@@ -169,12 +171,12 @@ end)
 require('jetpack').setup {
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
-  {'junegunn/fzf', do = 'call fzf#install()' },
+  {'junegunn/fzf', run = 'call fzf#install()' },
   {'neoclide/coc.nvim', branch = 'release'},
-  {'neoclide/coc.nvim', branch = 'master', do = 'yarn install --frozen-lockfile'},
+  {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
   {'vlime/vlime', rtp = 'vim' },
   {'dracula/vim', as = 'dracula' },
-  {'tpope/vim-fireplace', for = 'clojure' },
+  {'tpope/vim-fireplace', filetype = 'clojure' },
 }
 ```
 

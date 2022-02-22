@@ -5,6 +5,11 @@
 --  MIT License.
 -- =============================================
 
+local alias = {
+  run = 'do',
+  ft = 'for'
+}
+
 local function startup(config)
   vim.fn['jetpack#begin']()
   config(function (plugin)
@@ -15,6 +20,9 @@ local function startup(config)
       -- we don't want the title to be included because
       -- vimscript can't take lua table where you mix array-like and map-like
       plugin[1] = nil
+      for key, value in pairs(alias) do
+        plugin[value] = plugin[key]
+      end
       local opts = plugin
       vim.fn['jetpack#add'](name, opts)
     end
@@ -32,6 +40,9 @@ local function setup(config)
       -- we don't want the title to be included because
       -- vimscript can't take lua table where you mix array-like and map-like
       plugin[1] = nil
+      for key, value in pairs(alias) do
+        plugin[value] = plugin[key]
+      end
       local opts = plugin
       vim.fn['jetpack#add'](name, opts)
     end
