@@ -357,8 +357,10 @@ function! jetpack#add(plugin, ...) abort
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let pathname = get(opts, 'dir', s:path(s:srcdir(),  name))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
+  let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \  'url': url,
+  \  'opt': opt,
   \  'name': name,
   \  'pathname': pathname,
   \  'progress': {
@@ -366,35 +368,11 @@ function! jetpack#add(plugin, ...) abort
   \    'output': 'Skipped',
   \  },
   \ })
-  for it in flatten([get(pkg, 'for', [])])
-    let pkg.opt = 1
-    execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, name)
-  endfor
-  for it in flatten([get(pkg, 'on', [])])
-    let pkg.opt = 1
-    if it =~? '^<Plug>'
-      execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
-      execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, name, it)
-    else
-      execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', substitute(it, '^:', '', ''), name)
-    endif
-  endfor
-  if get(pkg, 'opt')
-    let event = substitute(substitute(name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-    execute printf('autocmd Jetpack SourcePost %s/%s/* doautocmd User Jetpack%s', escape(resolve(s:optdir()), '\'), name, event)
-  elseif isdirectory(s:path(s:optdir(), name))
-    execute 'silent! packadd! ' . name
-  endif
   call add(s:pkgs, pkg)
 endfunction
 
 function! jetpack#begin(...) abort
-  syntax off
-  filetype off
   let s:pkgs = []
-  augroup Jetpack
-    autocmd!
-  augroup END
   if a:0 != 0
     let s:home = a:1
     execute 'set packpath^=' . s:home
@@ -404,6 +382,32 @@ endfunction
 
 function! jetpack#end() abort
   delcommand Jetpack
+  syntax off
+  filetype off
+  augroup Jetpack
+    autocmd!
+  augroup END
+  for pkg in s:pkgs
+    if pkg.opt
+      for it in flatten([get(pkg, 'for', [])])
+        execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, pkg.name)
+      endfor
+      for it in flatten([get(pkg, 'on', [])])
+        if it =~? '^<Plug>'
+          execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
+          execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, pkg.name, it)
+        else
+          let cmd = substitute(it, '^:', '', '')
+          execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
+        endif
+      endfor
+      let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
+      let dir = escape(resolve(s:optdir()), '\')
+      execute printf('autocmd Jetpack SourcePost %s/%s/* doautocmd User Jetpack%s', dir, pkg.name, event)
+    elseif isdirectory(s:path(s:optdir(), pkg.name))
+      execute 'silent! packadd! ' . pkg.name
+    endif
+  endfor
   silent! packadd! _
   syntax enable
   filetype plugin indent on
