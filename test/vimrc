@@ -13,6 +13,5 @@ call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/goyo.vim', { 'for': 'markdown' })
 call jetpack#add('tani/ddc-fuzzy', { 'commit': 'e84eadc7ea1b4d7854840291e5709329432fd159' })
 call jetpack#end()
-let g:jetpck#headless = 1
 
 autocmd! User JetpackGoyoVim let g:is_loaded_goyo_user = 1
