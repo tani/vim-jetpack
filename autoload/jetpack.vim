@@ -128,16 +128,6 @@ function! s:copy(from, to) abort
   endif
 endfunction
 
-function! s:syntax() abort
-  syntax clear
-  syntax match jetpackProgress /[A-Z][a-z]*ing/
-  syntax match jetpackComplete /[A-Z][a-z]*ed/
-  syntax keyword jetpackSkipped Skipped
-  highlight def link jetpackProgress DiffChange
-  highlight def link jetpackComplete DiffAdd
-  highlight def link jetpackSkipped DiffDelete
-endfunction
-
 function! s:setbufline(lnum, text, ...) abort
   call setbufline('JetpackStatus', a:lnum, a:text)
   redraw
@@ -146,7 +136,13 @@ endfunction
 function! s:setupbuf() abort
   silent! execute 'bdelete! ' . bufnr('JetpackStatus')
   silent 40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
-  call s:syntax()
+  syntax clear
+  syntax match jetpackProgress /^[A-Z][a-z]*ing/
+  syntax match jetpackComplete /^[A-Z][a-z]*ed/
+  syntax keyword jetpackSkipped ^Skipped
+  highlight def link jetpackProgress DiffChange
+  highlight def link jetpackComplete DiffAdd
+  highlight def link jetpackSkipped DiffDelete
   redraw
 endfunction
 
@@ -250,10 +246,11 @@ function! jetpack#bundle() abort
     let srcdir = s:path(pkg.pathname, get(pkg, 'rtp', ''))
     let srcfiles = filter(s:files(srcdir), '!s:ignorable(s:substitute(v:val, srcdir, ""))')
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
-    let dupfiles = filter(copy(destfiles), '!s:ignorable(s:substitute(v:val, destdir, "")) && has_key(merged_files, v:val)')
-    if g:jetpack#optimization == 1 && dupfiles != []
-      call add(unbundle, pkg)
-      continue
+    if g:jetpack#optimization == 1
+      if filter(copy(destfiles), 'has_key(merged_files, v:val)') != []
+        call add(unbundle, pkg)
+        continue
+      endif
     endif
     for i in range(0, len(srcfiles) - 1)
       call s:copy(srcfiles[i], destfiles[i])
@@ -288,20 +285,12 @@ function! s:display() abort
 
   let line_count = 1
   for pkg in s:pkgs
-    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg.name))
-    let line_count += 1
-
     let output = pkg.progress.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
 
-    if pkg.progress.type ==# s:progress_type.update
-      let from_to = matchstr(output, 'Updating\s*\zs[^\n]\+')
-      if from_to !=# ''
-        call s:setbufline(line_count, printf('  Changes %s/compare/%s', pkg.url, from_to))
-        let line_count += 1
-      endif
-    endif
-
+    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg.name))
+    let line_count += 1
     for o in split(output, '\n')
       if o !=# ''
         call s:setbufline(line_count, printf('  %s', o))
@@ -359,14 +348,14 @@ function! jetpack#add(plugin, ...) abort
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
-  \  'url': url,
-  \  'opt': opt,
-  \  'name': name,
-  \  'pathname': pathname,
-  \  'progress': {
-  \    'type': s:progress_type.skip,
-  \    'output': 'Skipped',
-  \  },
+  \   'url': url,
+  \   'opt': opt,
+  \   'name': name,
+  \   'pathname': pathname,
+  \   'progress': {
+  \     'type': s:progress_type.skip,
+  \     'output': 'Skipped',
+  \   },
   \ })
   call add(s:pkgs, pkg)
 endfunction
