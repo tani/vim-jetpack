@@ -128,16 +128,6 @@ function! s:copy(from, to) abort
   endif
 endfunction
 
-function! s:syntax() abort
-  syntax clear
-  syntax match jetpackProgress /[A-Z][a-z]*ing/
-  syntax match jetpackComplete /[A-Z][a-z]*ed/
-  syntax keyword jetpackSkipped Skipped
-  highlight def link jetpackProgress DiffChange
-  highlight def link jetpackComplete DiffAdd
-  highlight def link jetpackSkipped DiffDelete
-endfunction
-
 function! s:setbufline(lnum, text, ...) abort
   call setbufline('JetpackStatus', a:lnum, a:text)
   redraw
@@ -146,7 +136,13 @@ endfunction
 function! s:setupbuf() abort
   silent! execute 'bdelete! ' . bufnr('JetpackStatus')
   silent 40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
-  call s:syntax()
+  syntax clear
+  syntax match jetpackProgress /^[A-Z][a-z]*ing/
+  syntax match jetpackComplete /^[A-Z][a-z]*ed/
+  syntax keyword jetpackSkipped ^Skipped
+  highlight def link jetpackProgress DiffChange
+  highlight def link jetpackComplete DiffAdd
+  highlight def link jetpackSkipped DiffDelete
   redraw
 endfunction
 
@@ -163,11 +159,11 @@ function! jetpack#install(...) abort
       continue
     endif
     let cmd = ['git', 'clone']
-    if !pkg.commit
+    if !has_key(pkg, 'commit')
       call extend(cmd, ['--depth', '1'])
     endif
-    if type(pkg.branch) == v:t_string
-      call extend(cmd, ['-b', pkg.branch])
+    if has_key(pkg, 'branch') || has_key(pkg, 'tag')
+      call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
     endif
     call extend(cmd, [pkg.url, pkg.pathname])
     let job = s:jobstart(cmd, function({ i, pkg, output -> [
@@ -206,7 +202,7 @@ function! jetpack#update(...) abort
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:pkgs)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:pkgs) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
-    if pkg.progress.type ==# s:progress_type.install || (a:0 > 0 && index(a:000, pkg.name) < 0) || (pkg.frozen || !isdirectory(pkg.pathname))
+    if pkg.progress.type ==# s:progress_type.install || (a:0 > 0 && index(a:000, pkg.name) < 0) || (get(pkg, 'frozen') || !isdirectory(pkg.pathname))
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
@@ -228,16 +224,22 @@ endfunction
 
 function! jetpack#clean() abort
   for pkg in s:pkgs
-    if isdirectory(pkg.pathname) && type(pkg.commit) == v:t_string
+    if isdirectory(pkg.pathname) && has_key(pkg, 'commit')
       if system(printf('git -c "%s" cat-file -t %s', pkg.pathname, pkg.commit)) !~# 'commit'
         call delete(pkg.pathname)
       endif
     endif
-    if isdirectory(pkg.pathname) && type(pkg.branch) == v:t_string
+    if isdirectory(pkg.pathname) && (has_key(pkg, 'branch') || has_key(pkg, 'tag'))
       let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.pathname))
-      if pkg.branch != branch
+      if get(pkg, 'branch', get(pkg, 'tag')) != branch
         call delete(pkg.pathname, 'rf')
       endif
+    endif
+  endfor
+  for dir in glob(s:srcdir() . '/*', '', 1)
+    let name = s:substitute(dir, s:srcdir(), '')
+    if empty(filter(s:pkgs, "v:val['name'] ==# name"))
+      call delete(dir, 'rf')
     endif
   endfor
 endfunction
@@ -247,8 +249,8 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:pkgs
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && !v:val["opt"] && empty(v:val["do"])')
-    let unbundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && (v:val["opt"] || !empty(v:val["do"]))') 
+    let bundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && !get(v:val, "opt") && !has_key(v:val, "do")')
+    let unbundle = filter(copy(s:pkgs), 's:match(v:val["pathname"], s:srcdir()) && (get(v:val, "opt") || has_key(v:val, "do"))') 
   endif
 
   call delete(s:optdir(), 'rf')
@@ -260,13 +262,14 @@ function! jetpack#bundle() abort
     let pkg = bundle[i]
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:pkgs) * 100))
-    let srcdir = s:path(pkg.pathname, pkg.rtp)
+    let srcdir = s:path(pkg.pathname, get(pkg, 'rtp', ''))
     let srcfiles = filter(s:files(srcdir), '!s:ignorable(s:substitute(v:val, srcdir, ""))')
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
-    let dupfiles = filter(copy(destfiles), '!s:ignorable(s:substitute(v:val, destdir, "")) && has_key(merged_files, v:val)')
-    if g:jetpack#optimization == 1 && dupfiles != []
-      call add(unbundle, pkg)
-      continue
+    if g:jetpack#optimization == 1
+      if filter(copy(destfiles), 'has_key(merged_files, v:val)') != []
+        call add(unbundle, pkg)
+        continue
+      endif
     endif
     for i in range(0, len(srcfiles) - 1)
       call s:copy(srcfiles[i], destfiles[i])
@@ -281,7 +284,7 @@ function! jetpack#bundle() abort
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+merged_count, len(s:pkgs)))
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:pkgs) * 100))
-    let srcdir = s:path(pkg.pathname, pkg.rtp)
+    let srcdir = s:path(pkg.pathname, get(pkg, 'rtp', ''))
     let destdir = s:path(s:optdir(), pkg.name)
     for srcfile in s:files(srcdir)
       let destfile = s:substitute(srcfile, srcdir, destdir)
@@ -301,20 +304,12 @@ function! s:display() abort
 
   let line_count = 1
   for pkg in s:pkgs
-    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg.name))
-    let line_count += 1
-
     let output = pkg.progress.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
 
-    if pkg.progress.type ==# s:progress_type.update
-      let from_to = matchstr(output, 'Updating\s*\zs[^\n]\+')
-      if from_to !=# ''
-        call s:setbufline(line_count, printf('  Changes %s/compare/%s', pkg.url, from_to))
-        let line_count += 1
-      endif
-    endif
-
+    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg.name))
+    let line_count += 1
     for o in split(output, '\n')
       if o !=# ''
         call s:setbufline(line_count, printf('  %s', o))
@@ -329,7 +324,7 @@ endfunction
 function! jetpack#postupdate() abort
   silent! packadd _
   for pkg in s:pkgs
-    if empty(pkg.do)
+    if !has_key(pkg, 'do')
       continue
     endif
     let pwd = getcwd()
@@ -370,50 +365,23 @@ function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let pathname = get(opts, 'dir', s:path(s:srcdir(),  name))
-  let pkg  = {
-  \  'url': (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin,
-  \  'branch': get(opts, 'branch', get(opts, 'tag')),
-  \  'commit': get(opts, 'commit'),
-  \  'do': get(opts, 'do'),
-  \  'rtp': get(opts, 'rtp', '.'),
-  \  'name': name,
-  \  'frozen': get(opts, 'frozen'),
-  \  'pathname': pathname,
-  \  'opt': get(opts, 'opt'),
-  \  'progress': {
-  \    'type': s:progress_type.skip,
-  \    'output': 'Skipped',
-  \  },
-  \ }
-  for it in flatten([get(opts, 'for', [])])
-    let pkg.opt = 1
-    execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, name)
-  endfor
-  for it in flatten([get(opts, 'on', [])])
-    let pkg.opt = 1
-    if it =~? '^<Plug>'
-      execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, name, it)
-      execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, name, it)
-    else
-      execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', substitute(it, '^:', '', ''), name)
-    endif
-  endfor
-  if pkg.opt
-    let event = substitute(substitute(name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-    execute printf('autocmd Jetpack SourcePost %s/%s/* doautocmd User Jetpack%s', escape(resolve(s:optdir()), '\'), name, event)
-  elseif isdirectory(s:path(s:optdir(), name))
-    execute 'silent! packadd! ' . name
-  endif
+  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
+  let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
+  let pkg  = extend(opts, {
+  \   'url': url,
+  \   'opt': opt,
+  \   'name': name,
+  \   'pathname': pathname,
+  \   'progress': {
+  \     'type': s:progress_type.skip,
+  \     'output': 'Skipped',
+  \   },
+  \ })
   call add(s:pkgs, pkg)
 endfunction
 
 function! jetpack#begin(...) abort
-  syntax off
-  filetype off
   let s:pkgs = []
-  augroup Jetpack
-    autocmd!
-  augroup END
   if a:0 != 0
     let s:home = a:1
     execute 'set packpath^=' . s:home
@@ -423,6 +391,32 @@ endfunction
 
 function! jetpack#end() abort
   delcommand Jetpack
+  syntax off
+  filetype off
+  augroup Jetpack
+    autocmd!
+  augroup END
+  for pkg in s:pkgs
+    if pkg.opt
+      for it in flatten([get(pkg, 'for', [])])
+        execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, pkg.name)
+      endfor
+      for it in flatten([get(pkg, 'on', [])])
+        if it =~? '^<Plug>'
+          execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
+          execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, pkg.name, it)
+        else
+          let cmd = substitute(it, '^:', '', '')
+          execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
+        endif
+      endfor
+      let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
+      let dir = escape(resolve(s:optdir()), '\')
+      execute printf('autocmd Jetpack SourcePost %s/%s/* doautocmd User Jetpack%s', dir, pkg.name, event)
+    elseif isdirectory(s:path(s:optdir(), pkg.name))
+      execute 'silent! packadd! ' . pkg.name
+    endif
+  endfor
   silent! packadd! _
   syntax enable
   filetype plugin indent on
