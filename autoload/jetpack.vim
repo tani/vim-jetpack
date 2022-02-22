@@ -293,15 +293,7 @@ function! s:display() abort
 
     let output = pkg.progress.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
-
-    if pkg.progress.type ==# s:progress_type.update
-      let from_to = matchstr(output, 'Updating\s*\zs[^\n]\+')
-      if from_to !=# ''
-        call s:setbufline(line_count, printf('  Changes %s/compare/%s', pkg.url, from_to))
-        let line_count += 1
-      endif
-    endif
-
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
     for o in split(output, '\n')
       if o !=# ''
         call s:setbufline(line_count, printf('  %s', o))
