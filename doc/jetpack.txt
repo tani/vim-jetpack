@@ -92,6 +92,8 @@ g:jetpack#optimization                                  *g:jetpack#optimization*
     - `2` Bundle everything. This may be the same as dein.vim, and is the
       fastest level. It overwrites some duplicated files.
 
+g:jetpack#ignore_pattens                             *g:jetpack#ignore_patterns*
+
 ================================================================================
 Events ( *jetpack-events* )
 

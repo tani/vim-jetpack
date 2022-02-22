@@ -75,7 +75,7 @@ vim-jetpack is 90% compatible with vim-plug.
 |      `rtp`      |      `string`      | Subdirectory that contains Vim plugin |
 |      `dir`      |      `string`      | Custom directory for the plugin       |
 |      `as`       |      `string`      | Use different name for plugin         |
-|      `do`       | `string` or `func` | Post-updat hook                       |
+|      `do`       | `string` or `func` | Post-update hook                      |
 |      `on`       | `string` or `list` | On-demand loading: Commands, `<Plug>` |
 |      `for`      | `string` or `list` | On-demand loading: File types         |
 |      `opt`      |     `boolean`      | On-demand loading: `packadd {name}`   |
