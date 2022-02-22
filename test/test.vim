@@ -83,6 +83,12 @@ let tests = [
   \   'expected': 'g:is_loaded_goyo_user == 1',
   \   'epilogue': ''
   \ },
+  \ {
+  \   'title': '(commit) checkout a specific commit',
+  \   'prologue': '',
+  \   'expected': printf('system("git -C %s rev-parse HEAD") =~# "e84eadc7ea1b4d7854840291e5709329432fd159"', expand('<sfile>:p:h') . '/pack/jetpack/src/ddc-fuzzy'),
+  \   'epilogue': ''
+  \ },
   \ ]
 let s:failed = 0
 

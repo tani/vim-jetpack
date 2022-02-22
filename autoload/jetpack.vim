@@ -185,6 +185,19 @@ function! jetpack#install(...) abort
   call s:jobwait(jobs, 0)
 endfunction
 
+function! jetpack#checkout(...) abort
+  for i in range(len(s:pkgs))
+    let pkg = s:pkgs[i]
+    call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:pkgs)))
+    call s:setbufline(2, s:progressbar((0.0 + i) / len(s:pkgs) * 100))
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.pathname) || empty(pkg.commit)
+      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
+      continue
+    endif
+    call system(printf('git -C "%s" checkout "%s"', pkg.pathname, pkg.commit))
+    call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg.name))
+  endfor
+endfunction
 function! jetpack#update(...) abort
   call s:setupbuf()
   let jobs = []
@@ -346,6 +359,7 @@ function! jetpack#sync() abort
   call jetpack#clean()
   call jetpack#install()
   call jetpack#update()
+  call jetpack#checkout()
   call jetpack#bundle()
   call s:display()
   call jetpack#postupdate()
