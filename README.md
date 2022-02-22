@@ -161,7 +161,7 @@ require('jetpack').startup(function(use)
   use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
-  use {'tpope/vim-fireplace', filetype = 'clojure' }
+  use {'tpope/vim-fireplace', ft = 'clojure' }
 end)
 ```
 
@@ -176,7 +176,7 @@ require('jetpack').setup {
   {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
   {'vlime/vlime', rtp = 'vim' },
   {'dracula/vim', as = 'dracula' },
-  {'tpope/vim-fireplace', filetype = 'clojure' },
+  {'tpope/vim-fireplace', ft = 'clojure' },
 }
 ```
 
