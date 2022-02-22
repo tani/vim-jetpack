@@ -130,9 +130,9 @@ endfunction
 
 function! s:syntax() abort
   syntax clear
-  syntax match jetpackProgress /[A-Z][a-z]*ing/
-  syntax match jetpackComplete /[A-Z][a-z]*ed/
-  syntax keyword jetpackSkipped Skipped
+  syntax match jetpackProgress /^[A-Z][a-z]*ing/
+  syntax match jetpackComplete /^[A-Z][a-z]*ed/
+  syntax keyword jetpackSkipped ^Skipped
   highlight def link jetpackProgress DiffChange
   highlight def link jetpackComplete DiffAdd
   highlight def link jetpackSkipped DiffDelete
