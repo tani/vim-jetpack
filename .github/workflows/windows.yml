@@ -2,7 +2,7 @@ name: windows
 on: [push, pull_request]
 jobs:
   test:
-    name: windows / ${{ matrix.vi }}
+    name: ${{ matrix.vi }}
     runs-on: windows-latest
     strategy:
       matrix:

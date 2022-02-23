@@ -2,7 +2,7 @@ name: linux
 on: [push, pull_request]
 jobs:
   test:
-    name: linux / ${{ matrix.vi }}
+    name: ${{ matrix.vi }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

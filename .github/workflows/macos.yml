@@ -2,7 +2,7 @@ name: macos
 on: [push, pull_request]
 jobs:
   test:
-    name: macos / ${{ matrix.vi }}
+    name: ${{ matrix.vi }}
     runs-on: macos-latest
     strategy:
       matrix:
