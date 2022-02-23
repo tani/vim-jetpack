@@ -14,7 +14,7 @@ local function use(plugin)
   if (type(plugin) == 'string') then
     vim.fn['jetpack#add'](plugin)
   else
-    if len(plugin) == 1 then
+    if vim.fn.type(plugin) == vim.v.t_list then
       vim.fn['jetpack#add'](plugin[1])
     else 
       local name = plugin[1]
