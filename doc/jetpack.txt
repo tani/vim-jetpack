@@ -30,19 +30,26 @@ jetpack#add({repo} [, {options}])                                *jetpack#add()*
     {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
     {options} is a dictionary consits of the following.
 
-|   name   |        type        | description                           |
-| :------: | :----------------: | :------------------------------------ |
-|  branch  |       string       | Branch of the repository to use       |
-|   tag    |       string       | Tag of the repository to use          |
-|  commit  |       string       | Commit of the repository to use       |
-|    rtp   |       string       | Subdirectory that contains Vim plugin |
-|    dir   |       string       | Custom directory for the plugin       |
-|    as    |       string       | Use different name for plugin         |
-|    do    |  string  or  func  | Post-updat hook                       |
-|    on    |  string  or  list  | On-demand loading: Commands,  <Plug>  |
-|    for   |  string  or  list  | On-demand loading: File types         |
-|    opt   |      boolean       | On-demand loading:  packadd {name}    |
-|  frozen  |      boolean       | Do not update                         |
+    vim-plug interface
+    |   name   |        type        | description                           |
+    | -------- | ------------------ | ------------------------------------- |
+    |  branch  |       string       | Branch of the repository to use       |
+    |   tag    |       string       | Tag of the repository to use          |
+    |  commit  |       string       | Commit of the repository to use       |
+    |    rtp   |       string       | Subdirectory that contains Vim plugin |
+    |    dir   |       string       | Custom directory for the plugin       |
+    |    as    |       string       | Use different name for plugin         |
+    |    do    |  string  or  func  | Post-updat hook                       |
+    |  frozen  |      boolean       | Do not update                         |
+    |    on    |  string  or  list  | On-demand loading: Commands,  <Plug>  |
+    |    for   |  string  or  list  | On-demand loading: File types         |
+
+    Note that the `on` option is only for normal/ visual/ insert mode.
+
+    Vim 8/ Neovim |packages| interface
+    |   name   |        type        | description                           |
+    | -------- | ------------------ | ------------------------------------- |
+    |    opt   |      boolean       | On-demand loading: packadd {name}     |
 
 jetpack#begin([{path}])                                        *jetpack#begin()*
     The function setups jetpack plugins. All plugin declarations should be
