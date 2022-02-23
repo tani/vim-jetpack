@@ -134,6 +134,11 @@ function s:suite.rtp_option()
   call s:assert.true(filereadable(s:optdir . '/_/syntax/vlime_repl.vim'))
 endfunction
 
+function s:suite.issue15()
+  call s:setup(['vim-test/vim-test'])
+  call s:assert.true(isdirectory(s:optdir . '/_/autoload/test'))
+endfunction
+
 function s:suite.dir_option()
   if has('win32') || has('win64')
     call s:assert.skip('Skim is not for Windows')
@@ -174,11 +179,6 @@ function s:suite.optimization_2()
   call s:assert.false(isdirectory(s:optdir . '/fzf'))
   call s:assert.false(isdirectory(s:optdir . '/fzf.vim'))
   let g:jetpack#optimization = 1
-endfunction
-
-function s:suite.issue15()
-  call s:setup(['vim-test/vim-test'])
-  call s:assert.true(isdirectory(s:optdir . '/_/autoload/test'))
 endfunction
 
 function s:suite.frozen_option()
