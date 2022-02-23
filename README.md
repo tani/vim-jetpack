@@ -89,8 +89,7 @@ vim-jetpack is almost compatible with vim-plug.
 |           `for`           | `string` or `list` | On-demand loading: File types                |
 |         `frozen`          |     `boolean`      | Do not update                                |
 
-Note that `on` option is only for the normal/ visual/ insert mode.
-Additionally, Jetpack provides Vim 8/ Neovim style on-demand loading interface.
+Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 
 |           name            |        type        | description                                  |
 | :-----------------------: | :----------------: | :------------------------------------------- |

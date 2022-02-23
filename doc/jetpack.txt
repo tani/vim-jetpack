@@ -44,8 +44,6 @@ jetpack#add({repo} [, {options}])                                *jetpack#add()*
     |    on    |  string  or  list  | On-demand loading: Commands,  <Plug>  |
     |    for   |  string  or  list  | On-demand loading: File types         |
 
-    Note that the `on` option is only for normal/ visual/ insert mode.
-
     Vim 8/ Neovim |packages| interface
     |   name   |        type        | description                           |
     | -------- | ------------------ | ------------------------------------- |

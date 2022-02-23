@@ -403,9 +403,10 @@ function! jetpack#end() abort
       endfor
       for it in flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
-          execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
-          execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, pkg.name, it)
-          execute printf("inoremap %s <C-O>:execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
+          execute printf("nnoremap %s :<C-U>execute 'silent! packadd %s \\| call feedkeys(\"\\%s\")'<CR>", it, pkg.name, it)
+          execute printf("onoremap %s :<C-U>execute 'silent! packadd %s \\| call feedkeys(\"\\%s\")'<CR>", it, pkg.name, it)
+          execute printf("vnoremap %s :<C-U>execute 'silent! packadd %s \\| call feedkeys(\"gv\\%s\")'<CR>", it, pkg.name, it)
+          execute printf("inoremap %s <C-\\><C-O>:<C-U>execute 'silent! packadd %s \\| call feedkeys(\"\\%s\")'<CR>", it, pkg.name, it)
         else
           let cmd = substitute(it, '^:', '', '')
           execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
