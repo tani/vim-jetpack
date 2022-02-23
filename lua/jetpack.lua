@@ -10,15 +10,14 @@ local alias = {
   ft = 'for'
 }
 
-local function startup(config)
-  vim.fn['jetpack#begin']()
-  config(function (plugin)
-    if (type(plugin) == 'string') then
-      vim.fn['jetpack#add'](plugin)
-    else
+local function use(plugin)
+  if (type(plugin) == 'string') then
+    vim.fn['jetpack#add'](plugin)
+  else
+    if vim.fn.type(plugin) == vim.v.t_list then
+      vim.fn['jetpack#add'](plugin[1])
+    else 
       local name = plugin[1]
-      -- we don't want the title to be included because
-      -- vimscript can't take lua table where you mix array-like and map-like
       plugin[1] = nil
       for key, value in pairs(alias) do
         plugin[value] = plugin[key]
@@ -26,26 +25,19 @@ local function startup(config)
       local opts = plugin
       vim.fn['jetpack#add'](name, opts)
     end
-  end)
+  end
+end
+
+local function startup(config)
+  vim.fn['jetpack#begin']()
+  config(use)
   vim.fn['jetpack#end']()
 end
 
 local function setup(config)
   vim.fn['jetpack#begin']()
   for _, plugin in pairs(config) do
-    if (type(plugin) == 'string') then
-      vim.fn['jetpack#add'](plugin)
-    else
-      local name = plugin[1]
-      -- we don't want the title to be included because
-      -- vimscript can't take lua table where you mix array-like and map-like
-      plugin[1] = nil
-      for key, value in pairs(alias) do
-        plugin[value] = plugin[key]
-      end
-      local opts = plugin
-      vim.fn['jetpack#add'](name, opts)
-    end
+    use(plugin)
   end
   vim.fn['jetpack#end']()
 end
