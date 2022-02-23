@@ -118,13 +118,13 @@ function! s:copy(from, to) abort
 endfunction
 
 function! s:setbufline(lnum, text, ...) abort
-  call setbufline('JetpackStatus', a:lnum, a:text)
+  call setbufline(bufnr('JetpackStatus'), a:lnum, a:text)
   redraw
 endfunction
 
 function! s:setupbuf() abort
-  silent! execute 'bdelete! ' . bufnr('JetpackStatus')
-  silent 40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
+  execute 'silent! bdelete! ' . bufnr('JetpackStatus')
+  40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[A-Z][a-z]*ing/
   syntax match jetpackComplete /^[A-Z][a-z]*ed/
@@ -171,6 +171,7 @@ function! jetpack#install(...) abort
 endfunction
 
 function! jetpack#checkout(...) abort
+  call s:setupbuf()
   for i in range(len(s:pkgs))
     let pkg = s:pkgs[i]
     call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:pkgs)))
@@ -184,6 +185,7 @@ function! jetpack#checkout(...) abort
     call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg.name))
   endfor
 endfunction
+
 function! jetpack#update(...) abort
   call s:setupbuf()
   let jobs = []
@@ -280,7 +282,6 @@ endfunction
 
 function! s:display() abort
   call s:setupbuf()
-
   let msg = {}
   let msg[s:progress_type.skip] = 'Skipped'
   let msg[s:progress_type.install] = 'Installed'
