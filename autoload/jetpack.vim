@@ -113,9 +113,10 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(fnamemodify(a:to, ':p:h'), 'p')
-  if has('nvim')
+  let doc = a:from =~# '**/doc/tags*'
+  if has('nvim') && !doc
     call v:lua.vim.loop.fs_link(a:from, a:to)
-  elseif has('unix')
+  elseif has('unix') && !doc
     call system(printf('ln -f "%s" "%s"', a:from, a:to))
   else
     call writefile(readfile(a:from, 'b'), a:to, 'b')
