@@ -1,0 +1,25 @@
+
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    name: macos / ${{ matrix.vi }}
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        vi: [neovim, vim]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: 'nightly'
+          neovim: ${{ matrix.vi == 'neovim' }}
+      - name: Run tests
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+        run: ./vim-themis/bin/themis ./test/test.vim

@@ -3,11 +3,10 @@ name: test
 on: [push, pull_request]
 jobs:
   test:
-    name: ${{ matrix.os }} / ${{ matrix.vi }}
-    runs-on: ${{ matrix.os  }}
+    name: linux / ${{ matrix.vi }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         vi: [neovim, vim]
     steps:
       - uses: actions/checkout@v2
@@ -21,12 +20,6 @@ jobs:
           version: 'nightly'
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests
-        if: matrix.os == 'windows-latest'
-        env:
-          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
-        run: ./vim-themis/bin/themis.bat ./test/test.vim
-      - name: Run tests
-        if: matrix.os != 'windows-latest'
         env:
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
