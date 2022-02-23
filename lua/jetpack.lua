@@ -54,4 +54,5 @@ return {
   startup = startup,
   setup = setup,
   tap = vim.fn["jetpack#tap"],
+  sync = vim.fn["jetpack#sync"]
 }

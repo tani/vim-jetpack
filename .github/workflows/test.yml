@@ -11,12 +11,16 @@ jobs:
         vi: [neovim, vim]
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
           version: 'nightly'
           neovim: ${{ matrix.vi == 'neovim' }}
-      - name: Install plugins
-        run: ${{ steps.vim.outputs.executable }} -u 'test/vimrc' -c 'JetpackSync' -c 'quitall'
       - name: Run tests
-        run: ${{ steps.vim.outputs.executable }} -u 'test/vimrc' -c 'source test/test.vim' -c 'quitall'
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+        run: ./vim-themis/bin/themis ./test/test.vim
