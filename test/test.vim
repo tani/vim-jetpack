@@ -44,6 +44,29 @@ function s:assert.isnotdirectory(dir)
   endif
 endfunction
 
+function s:suite.optimization_2()
+  let g:jetpack#optimization = 2
+  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
+  call s:assert.isnotdirectory(s:optdir . '/fzf')
+  call s:assert.isnotdirectory(s:optdir . '/fzf.vim')
+  let g:jetpack#optimization = 1
+endfunction
+
+function s:suite.optimization_1()
+  let g:jetpack#optimization = 1
+  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
+  call s:assert.isdirectory(s:optdir . '/fzf.vim')
+  call s:assert.isnotdirectory(s:optdir . '/fzf')
+  let g:jetpack#optimization = 1
+endfunction
+
+function s:suite.optimization_0()
+  let g:jetpack#optimization = 0
+  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.isdirectory(s:optdir . '/fzf.vim')
+  let g:jetpack#optimization = 1
+endfunction
 function s:suite.no_option_github()
   call s:setup(['mbbill/undotree'])
   call s:assert.isnotdirectory(s:optdir . '/undotree')
@@ -163,7 +186,7 @@ function s:suite.issue15()
   call s:assert.isdirectory(s:optdir . '/_/autoload/test')
 endfunction
 
-function s:suite.dir_option()
+function s:suite.dir_do_option()
   if has('win32') || has('win64')
     call s:assert.skip('Skim is not for Windows')
   endif
@@ -174,37 +197,8 @@ function s:suite.dir_option()
   call s:assert.filereadable(s:vimhome . '/pack/skim/bin/sk')
 endfunction
 
-function s:suite.do_option()
-  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() }}])
-  call s:assert.notfilereadable(s:optdir . '/_/plugin/fzf.vim')
-  call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf' . (has('win32') || has('win64') ? '.exe' : ''))
-endfunction
-
-function s:suite.optimization_0()
-  let g:jetpack#optimization = 0
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.isdirectory(s:optdir . '/fzf.vim')
-  let g:jetpack#optimization = 1
-endfunction
-
-function s:suite.optimization_1()
-  let g:jetpack#optimization = 1
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isnotdirectory(s:optdir . '/fzf')
-  call s:assert.isdirectory(s:optdir . '/fzf.vim')
-  let g:jetpack#optimization = 1
-endfunction
-
-function s:suite.optimization_2()
-  let g:jetpack#optimization = 2
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isnotdirectory(s:optdir . '/fzf')
-  call s:assert.isnotdirectory(s:optdir . '/fzf.vim')
-  let g:jetpack#optimization = 1
-endfunction
-
 function s:suite.frozen_option()
   call s:assert.skip('')
 endfunction
+
+

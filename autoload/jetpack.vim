@@ -4,8 +4,13 @@
 "          All Rights Reserved.
 "=============================================
 
-let g:jetpack#optimization = 1
-let g:jetpack#njobs = 8
+if !exists('g:jetpack#optimization')
+  let g:jetpack#optimization = 1
+endif
+
+if !exists('g:jetpack#njobs')
+  let g:jetpack#njobs = 8
+endif
 
 let s:pkgs = []
 let s:ignores = [
