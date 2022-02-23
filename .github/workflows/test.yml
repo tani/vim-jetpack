@@ -21,6 +21,12 @@ jobs:
           version: 'nightly'
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests
+        if: matrix.os == 'windows-latest'
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+        run: ./vim-themis/bin/themis.bat ./test/test.vim
+      - name: Run tests
+        if: matrix.os != 'windows-latest'
         env:
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
