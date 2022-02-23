@@ -38,7 +38,7 @@ function s:path(...)
 endfunction
 
 function s:match(a, b)
-  return a:a =~# '\V'.escape(a:b, '\')
+  return a:a =~# ('\V'.escape(a:b, '\'))
 endfunction
 
 function s:substitute(a, b, c)
@@ -368,18 +368,18 @@ endfunction
 function! jetpack#begin(...) abort
   let s:pkgs = []
   if has('nvim')
-    let s:home = expand(stdpath('data') . '/site')
+    let s:home = s:path(stdpath('data'), 'site')
   elseif has('win32') || has('win64')
     let s:home = expand('~/vimfiles')
   else
     let s:home = expand('~/.vim')
   endif
   if a:0 != 0
-    let s:home = a:1
+    let s:home = expand(a:1)
     execute 'set packpath^=' . s:home
   endif
-  let s:optdir = s:path(s:home, '/pack/jetpack/opt')
-  let s:srcdir = s:path(s:home, '/pack/jetpack/src')
+  let s:optdir = s:path(s:home, 'pack', 'jetpack', 'opt')
+  let s:srcdir = s:path(s:home, 'pack', 'jetpack', 'src')
   command! -nargs=+ Jetpack call jetpack#add(<args>)
 endfunction
 
@@ -405,8 +405,7 @@ function! jetpack#end() abort
         endif
       endfor
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-      let dir = escape(resolve(s:optdir), '\')
-      execute printf('autocmd Jetpack SourcePost %s/%s/* doautocmd User Jetpack%s', dir, pkg.name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%s', pkg.name, event)
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
     endif
