@@ -404,7 +404,7 @@ function! jetpack#end() abort
         if it =~? '^<Plug>'
           execute printf("nnoremap %s :execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
           execute printf("vnoremap %s :<C-U>execute '".'silent! packadd %s \| call feedkeys("gv\%s")'."'<CR>", it, pkg.name, it)
-          execute printf('inoremap %s <C-O>:execute '."'".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
+          execute printf("inoremap %s <C-O>:execute '".'silent! packadd %s \| call feedkeys("\%s")'."'<CR>", it, pkg.name, it)
         else
           let cmd = substitute(it, '^:', '', '')
           execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
