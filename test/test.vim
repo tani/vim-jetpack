@@ -192,19 +192,19 @@ endfunction
 function s:suite.optimization_1()
   let g:jetpack#optimization = 1
   call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.isnotdirectory(s:optdir . '/fzf')
   call s:assert.isdirectory(s:optdir . '/fzf.vim')
   let g:jetpack#optimization = 1
 endfunction
 
-"function s:suite.optimization_2()
-"  let g:jetpack#optimization = 2
-"  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-"  call s:assert.isdirectory(s:optdir . '/fzf')
-"  call s:assert.isnotdirectory(s:optdir . '/fzf.vim')
-"  let g:jetpack#optimization = 1
-"endfunction
-"
+function s:suite.optimization_2()
+  let g:jetpack#optimization = 2
+  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
+  call s:assert.isnotdirectory(s:optdir . '/fzf')
+  call s:assert.isnotdirectory(s:optdir . '/fzf.vim')
+  let g:jetpack#optimization = 1
+endfunction
+
 function s:suite.frozen_option()
   call s:assert.skip('')
 endfunction
