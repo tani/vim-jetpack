@@ -94,7 +94,12 @@ g:jetpack#optimization                                  *g:jetpack#optimization*
     - `2` Bundle everything. This may be the same as dein.vim, and is the
       fastest level. It overwrites some duplicated files.
 
-g:jetpack#ignore_pattens                             *g:jetpack#ignore_patterns*
+g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
+    The list of glob-patterns is used to skip duplicated files.
+    Jetpack aggressively bundles plugins if you extend this list.
+    The following example skip bunding any JSON files.
+    >
+    > call add(g:jetpack#ignore_patterns, '/*.json')
 
 ================================================================================
 Events ( *jetpack-events* )

@@ -12,25 +12,26 @@ if !exists('g:jetpack#njobs')
   let g:jetpack#njobs = 8
 endif
 
+if !exists('g:jetpack#ignores_patterns')
+  let g:jetpack#ignore_patterns = [
+  \   '/.*',
+  \   '/.*/**/*',
+  \   '/t/**/*',
+  \   '/test/**/*',
+  \   '/Makefile*',
+  \   '/Gemfile*',
+  \   '/Rakefile*',
+  \   '/VimFlavor*',
+  \   '/README*',
+  \   '/LICENSE*',
+  \   '/LICENCE*',
+  \   '/CONTRIBUTING*',
+  \   '/CHANGELOG*',
+  \   '/NEWS*',
+  \ ]
+endif
+
 let s:pkgs = []
-let s:ignores = [
-\   '/doc/tags*',
-\   '/.*',
-\   '/.*/**/*',
-\   '/t/**/*',
-\   '/test/**/*',
-\   '/VimFlavor*',
-\   '/Flavorfile*',
-\   '/README*',
-\   '/Rakefile*',
-\   '/Gemfile*',
-\   '/Makefile*',
-\   '/LICENSE*',
-\   '/LICENCE*',
-\   '/CONTRIBUTING*',
-\   '/CHANGELOG*',
-\   '/NEWS*',
-\ ]
 
 let s:progress_type = {
 \   'skip': 'skip',
@@ -55,7 +56,7 @@ function! s:files(path) abort
 endfunction
 
 function! s:ignorable(filename) abort
-  return filter(copy(s:ignores), 'a:filename =~? glob2regpat(v:val)') != []
+  return filter(copy(g:jetpack#ignore_patterns), 'a:filename =~? glob2regpat(v:val)') != []
 endfunction
 
 function! s:progressbar(n) abort
