@@ -1,5 +1,4 @@
-
-name: test
+name: linux
 on: [push, pull_request]
 jobs:
   test:

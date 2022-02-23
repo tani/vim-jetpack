@@ -1,5 +1,4 @@
-
-name: test
+name: windows
 on: [push, pull_request]
 jobs:
   test:
