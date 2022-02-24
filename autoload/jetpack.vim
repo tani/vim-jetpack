@@ -4,6 +4,31 @@
 "          All Rights Reserved.
 "=============================================
 
+" Original: https://github.com/vim-jp/vital.vim/blob/1168f6fcbf2074651b62d4ba70b9689c43db8c7d/autoload/vital/__vital__/Data/List.vim#L102-L117
+"  License: http://www.kmonos.net/nysl/index.en.html
+function! s:flatten(list, ...) abort
+  let limit = a:0 > 0 ? a:1 : -1
+  let memo = []
+  if limit == 0
+    return a:list
+  endif
+  let limit -= 1
+  for Value in a:list
+    let memo +=
+          \ type(Value) == type([]) ?
+          \   s:flatten(Value, limit) :
+          \   [Value]
+    unlet! Value
+  endfor
+  return memo
+endfunction
+
+if exists('*flatten')
+  function! s:flatten(x)
+    return flatten(a:x)
+  endfunction
+endif
+
 if !exists('g:jetpack#optimization')
   let g:jetpack#optimization = 1
 endif
@@ -91,8 +116,8 @@ if has('nvim')
     \ })
   endfunction
 else
-  " See https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/autoload/vital/__vital__/System/Job/Vim.vim#L46
-  " See https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/LICENSE
+  " Original: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/autoload/vital/__vital__/System/Job/Vim.vim#L46
+  "  License: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/LICENSE
   function! s:exit_cb(buf, cb, job, ...) abort
     let ch = job_getchannel(a:job)
     while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
@@ -399,10 +424,10 @@ function! jetpack#end() abort
   augroup END
   for pkg in s:packages
     if pkg.opt
-      for it in flatten([get(pkg, 'for', [])])
+      for it in s:flatten([get(pkg, 'for', [])])
         execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, pkg.name)
       endfor
-      for it in flatten([get(pkg, 'on', [])])
+      for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
           execute printf('imap %s <Cmd>silent! packadd %s<CR><C-\><C-O>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
           execute printf('vmap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("gv%s")<CR>', it, pkg.name, it)
