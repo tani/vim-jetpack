@@ -168,10 +168,10 @@ function s:suite.on_option_plug()
   augroup END
   call s:assert.cmd_not_exists('EskkMap')
   call s:assert.false(s:loaded_eskk_vim)
-  packadd eskk.vim
-  call feedkeys("i\<Plug>(eskk:toggle)\<Esc>\<Esc>")
-  call s:assert.true(s:loaded_eskk_vim)
+  call feedkeys("i\<Plug>(eskk:toggle)\<Esc>")
+  call feedkeys('', 'x')
   call s:assert.cmd_exists('EskkMap')
+  call s:assert.true(s:loaded_eskk_vim)
 endfunction
 
 function s:suite.rtp_option()
