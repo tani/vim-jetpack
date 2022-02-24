@@ -13,12 +13,9 @@ jobs:
         with:
           repository: thinca/vim-themis
           path: vim-themis
-      - uses: rhysd/action-setup-vim@v1
-        id: vim
-        with:
-          version: nightly
-          neovim: ${{ matrix.vi == 'neovim' }}
+      - name: Install ${{ matrix.vi }}
+        run: brew install ${{ matrix.vi }}
       - name: Run tests
         env:
-          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+          THEMIS_VIM: ${{ (matrix.vi == 'neovim' && 'nvim') || 'vim' }}
         run: ./vim-themis/bin/themis ./test/test.vim
