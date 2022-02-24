@@ -16,6 +16,7 @@ jobs:
       - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
+          version: nightly
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests
         env:
