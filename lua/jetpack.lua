@@ -14,11 +14,11 @@ local function use(plugin)
   if (type(plugin) == 'string') then
     vim.fn['jetpack#add'](plugin)
   else
+    local name = plugin[1]
+    plugin[1] = nil
     if vim.fn.type(plugin) == vim.v.t_list then
-      vim.fn['jetpack#add'](plugin[1])
+      vim.fn['jetpack#add'](name)
     else 
-      local name = plugin[1]
-      plugin[1] = nil
       for key, value in pairs(alias) do
         plugin[value] = plugin[key]
       end
