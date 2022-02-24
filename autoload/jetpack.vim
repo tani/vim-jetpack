@@ -424,5 +424,10 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  return filter(copy(s:pkgs), "v:val['name'] == a:name") != [] && isdirectory(s:path(s:srcdir, a:name))
+  for pkg in s:pkgs
+    if pkg.name ==# a:name
+      return isdirectory(pkg.pathname)
+    endif
+  endfor
+  return 0
 endfunction
