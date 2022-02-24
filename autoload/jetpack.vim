@@ -404,9 +404,10 @@ function! jetpack#end() abort
       endfor
       for it in flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
-          for m in ['n', 'o', 'v', 'i']
-            execute printf('%smap %s <Cmd>silent! packadd %s<CR>%s', m, it, pkg.name, it)
-          endfor
+          execute printf('imap %s <Cmd>silent! packadd %s<CR><C-\><C-O>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
+          execute printf('vmap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("gv%s")<CR>', it, pkg.name, it)
+          execute printf('nmap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
+          execute printf('omap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
         else
           let cmd = substitute(it, '^:', '', '')
           execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
