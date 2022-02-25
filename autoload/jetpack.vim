@@ -37,7 +37,7 @@ if !exists('g:jetpack#njobs')
   let g:jetpack#njobs = 8
 endif
 
-if !exists('g:jetpack#ignores_patterns')
+if !exists('g:jetpack#ignore_patterns')
   let g:jetpack#ignore_patterns = [
   \   '/.*',
   \   '/.*/**/*',
