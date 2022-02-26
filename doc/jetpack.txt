@@ -116,6 +116,17 @@ User Jetpack{PluginName}                                    *User-Jetpack-event*
         vim_foo -> VimFoo
     Code to execute when the plugin is lazily loaded on demand with
     `User Jetpack{PluginName}` .
+    It is impossible to hook `packadd` for a lua plugin in Neovim,
+    because Neovim does not load any files until the module is required.
+    Instead, consider |User-Jetpack-event-lua|.
+
+User Jetpack{ModuleName}                                *User-Jetpack-event-lua*
+    Let {ModuleName} be a CamelCase of module name.
+        vim-jetpack --> VimJetpack
+        goyo.vim --> GoyoVim
+        vim_foo -> VimFoo
+    Code to execute when the plugin is required as a lua module with
+    `User Jetpack{ModuleName}` .
 
 ================================================================================
 Groups ( *jetpack-groups* )

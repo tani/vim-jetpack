@@ -425,7 +425,7 @@ function! jetpack#end() abort
   for pkg in s:packages
     if pkg.opt
       for it in s:flatten([get(pkg, 'for', [])])
-        execute printf('autocmd Jetpack FileType %s ++nested silent! packadd %s', it, pkg.name)
+        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg.name)
       endfor
       for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
@@ -435,11 +435,11 @@ function! jetpack#end() abort
           execute printf('omap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
         else
           let cmd = substitute(it, '^:', '', '')
-          execute printf('autocmd Jetpack CmdUndefined %s ++nested silent! packadd %s', cmd, pkg.name)
+          execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg.name)
         endif
       endfor
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* silent! doautocmd User Jetpack%s', pkg.name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once doautocmd User Jetpack%s', pkg.name, event)
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
     endif
@@ -457,3 +457,20 @@ function! jetpack#tap(name) abort
   endfor
   return 0
 endfunction
+
+if has('nvim')
+lua<<EOF
+  local loaded = {}
+  local _require = require
+  function require(name)
+    local module = _require(name)
+    if not loaded[name] then
+      loaded[name] = true
+      local event = vim.fn.substitute(name, [[\W\+]], [[_]], 'g')
+      event = vim.fn.substitute(event, [[\(^\|_\)\(.\)]], [[\u\2]], 'g')
+      vim.cmd(string.format('doautocmd User Jetpack%s', event))
+    end
+    return module
+  end
+EOF
+endif
