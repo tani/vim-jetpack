@@ -70,7 +70,7 @@ jetpack#get({name})                                              *jetpack#get()*
     It returns metadata of the plugin if possible, otherwise it returns `{}` .
     This is the same as `dein#get` of `dein.vim`.
 
-jetpack#names()                                                 *jetpack#list()*
+jetpack#names()                                                *jetpack#names()*
     It returns the list of plugin names registered including unavailable
     plugins. Please use it with |jetpack#tap()|.
 
