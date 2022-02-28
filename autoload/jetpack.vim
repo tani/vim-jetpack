@@ -419,14 +419,6 @@ endfunction
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
 function! s:lod_map(map, name, with_prefix, prefix)
   execute 'packadd ' . a:name
-  let extra = ''
-  "while 1
-  "  let c = getchar(0)
-  "  if c == 0
-  "    break
-  "  endif
-  "  let extra .= nr2char(c)
-  "endwhile
   if a:with_prefix
     let prefix = v:count ? v:count : ''
     let prefix .= '"'.v:register.a:prefix
@@ -438,7 +430,7 @@ function! s:lod_map(map, name, with_prefix, prefix)
     endif
     call feedkeys(prefix, 'n')
   endif
-  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i'))
 endfunction
 
 function! jetpack#end() abort
