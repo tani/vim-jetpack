@@ -253,25 +253,12 @@ vim-plug, i.e., this plugin provides less options than dein.
 
 ### Is it possible to isntall plugins if they are not installed?
 
-If we expose the variable `g:plugs` like vim-plug, it will be difficult to
-change the internal data structure of the plugin in the future, which may affect
-the performance improvement in the future. Therefore, jetpack does not expose
-such variables, but exposes the function `jetpack#tap()` instead. This function
-checks whether a given plugin is installed or not.
+Yes, you can. We have `jetpack#names()` and `jetpack#tap()`
+to retrieve a list of plugin names and check the availability.
 
 ```vim
-let plugs = [
-\   'some/plugins'
-\ ]
-jetpack#begin()
-for plug in plugs
-  call jetpack#add(plug)
-endfor
-jetpack#end()
-
-"Run jetpack#sync if some plugins is not installed
-for plug in plugs
-  if jetpack#tap(fnamemodify(plug, ':t'))
+for name in jetpack#names()
+  if jetpack#tap(name)
     call jetpack#sync()
     break
   endif
