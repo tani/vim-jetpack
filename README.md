@@ -91,9 +91,9 @@ vim-jetpack is almost compatible with vim-plug.
 
 Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 
-|           name            |        type        | description                                  |
-| :-----------------------: | :----------------: | :------------------------------------------- |
-|           `opt`           |     `boolean`      | On-demand loading: `packadd {name}`          |
+| name  |   type    | description                         |
+| :---: | :-------: | :---------------------------------- |
+| `opt` | `boolean` | On-demand loading: `packadd {name}` |
 
 ## Configuration
 
@@ -200,6 +200,7 @@ Ubuntu, macOS, Windows. The current status is
 [![macos](https://github.com/tani/vim-jetpack/actions/workflows/macos.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/macos.yml)
 [![windows](https://github.com/tani/vim-jetpack/actions/workflows/windows.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/windows.yml)
 .
+
 ## Q & A
 
 ### Why is this plugin so fast?
