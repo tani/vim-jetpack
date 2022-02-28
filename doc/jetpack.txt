@@ -64,7 +64,15 @@ jetpack#sync()                                                  *jetpack#sync()*
     You must run this function after a change of your configuration.
 
 jetpack#tap({name})                                              *jetpack#tap()*
-    It returns |TRUE| if the package is available, otherwise it returns |FALSE|.
+    It returns |TRUE| if the plugin is available, otherwise it returns |FALSE|.
+
+jetpack#get({name})                                              *jetpack#get()*
+    It returns metadata of the plugin if possible, otherwise it returns `{}` .
+    This is the same as `dein#get` of `dein.vim`.
+
+jetpack#names()                                                 *jetpack#list()*
+    It returns the list of plugin names registered including unavailable
+    plugins. Please use it with |jetpack#tap()|.
 
 Jetpack expoted some other functions but they are only for the developers.
 Unlisted functions might be changed without any announcements in the future.

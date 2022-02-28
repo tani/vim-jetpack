@@ -487,6 +487,19 @@ function! jetpack#tap(name) abort
   return 0
 endfunction
 
+function! jetpack#names() abort
+  return map(copy(s:packages), 'v:val["name"]')
+endfunction
+
+function! jetpack#get(name) abort
+  for pkg in s:packages
+    if pkg.name ==# a:name
+      return pkg
+    endif
+  endfor
+  return {}
+endfunction
+
 if has('nvim')
 lua<<EOF
   local loaded = {}

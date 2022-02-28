@@ -180,11 +180,6 @@ function s:suite.rtp_option()
   call s:assert.filereadable(s:optdir . '/_/syntax/vlime_repl.vim')
 endfunction
 
-function s:suite.issue15()
-  call s:setup(['vim-test/vim-test'])
-  call s:assert.isdirectory(s:optdir . '/_/autoload/test')
-endfunction
-
 function s:suite.dir_do_option()
   if has('win32') || has('win64')
     call s:assert.skip('Skim is not for Windows')
@@ -196,8 +191,34 @@ function s:suite.dir_do_option()
   call s:assert.filereadable(s:vimhome . '/pack/skim/bin/sk')
 endfunction
 
+function s:suite.issue15()
+  call s:setup(['vim-test/vim-test'])
+  call s:assert.isdirectory(s:optdir . '/_/autoload/test')
+endfunction
+
+function s:suite.names()
+  call s:setup(['vim-test/vim-test'])
+  call s:assert.equals(jetpack#names(), ['vim-test'])
+  call s:assert.isdirectory(s:optdir . '/_/autoload/test')
+endfunction
+
+function s:suite.tap()
+  call s:setup(['vim-test/vim-test'])
+  call s:assert.true(jetpack#tap('vim-test'))
+  call s:assert.false(jetpack#tap('_____'))
+endfunction
+
+function s:suite.get()
+  call s:setup(['vim-test/vim-test'])
+  call s:assert.equals(jetpack#get('vim-test'), {
+        \ 'url': 'https://github.com/vim-test/vim-test',
+        \ 'opt': 0,
+        \ 'name': 'vim-test',
+        \ 'pathname': s:srcdir . '/vim-test',
+        \ 'progress': { 'output': 'Already up to date.', 'type': 'update' }
+        \ })
+endfunction
+
 function s:suite.frozen_option()
   call s:assert.skip('')
 endfunction
-
-
