@@ -210,13 +210,11 @@ endfunction
 
 function s:suite.get()
   call s:setup(['vim-test/vim-test'])
-  call s:assert.equals(jetpack#get('vim-test'), {
-        \ 'url': 'https://github.com/vim-test/vim-test',
-        \ 'opt': 0,
-        \ 'name': 'vim-test',
-        \ 'pathname': s:srcdir . '/vim-test',
-        \ 'progress': { 'output': 'Already up to date.', 'type': 'update' }
-        \ })
+  let data = jetpack#get('vim-test')
+  call s:assert.equals(data.url, 'https://github.com/vim-test/vim-test')
+  call s:assert.equals(data.opt, 0)
+  call s:assert.equals(data.name, 'vim-test')
+  call s:assert.equals(data.pathname, s:srcdir . '/vim-test')
 endfunction
 
 function s:suite.frozen_option()
