@@ -444,7 +444,7 @@ endfunction
 function! jetpack#end() abort
   delcommand Jetpack
   syntax off
-  filetype off
+  filetype plugin indent off
   augroup Jetpack
     autocmd!
   augroup END
