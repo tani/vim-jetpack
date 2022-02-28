@@ -5,7 +5,7 @@
 "=============================================
 
 " Original: https://github.com/vim-jp/vital.vim/blob/1168f6fcbf2074651b62d4ba70b9689c43db8c7d/autoload/vital/__vital__/Data/List.vim#L102-L117
-"  License: http://www.kmonos.net/nysl/index.en.html
+"  License: NYSL, http://www.kmonos.net/nysl/index.en.html
 function! s:flatten(list, ...) abort
   let limit = a:0 > 0 ? a:1 : -1
   let memo = []
@@ -415,6 +415,32 @@ function! jetpack#begin(...) abort
   command! -nargs=+ Jetpack call jetpack#add(<args>)
 endfunction
 
+" Original: https://github.com/junegunn/vim-plug/blob/e300178a0e2fb04b56de8957281837f13ecf0b27/plug.vim#L683-L693
+"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
+function! s:lod_map(map, name, with_prefix, prefix)
+  execute 'packadd ' . a:name
+  let extra = ''
+  "while 1
+  "  let c = getchar(0)
+  "  if c == 0
+  "    break
+  "  endif
+  "  let extra .= nr2char(c)
+  "endwhile
+  if a:with_prefix
+    let prefix = v:count ? v:count : ''
+    let prefix .= '"'.v:register.a:prefix
+    if mode(1) ==# 'no'
+      if v:operator ==# 'c'
+        let prefix = "\<Esc>" . prefix
+      endif
+      let prefix .= v:operator
+    endif
+    call feedkeys(prefix, 'n')
+  endif
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
+endfunction
+
 function! jetpack#end() abort
   delcommand Jetpack
   syntax off
@@ -429,10 +455,13 @@ function! jetpack#end() abort
       endfor
       for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
-          execute printf('imap %s <Cmd>silent! packadd %s<CR><C-\><C-O>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
-          execute printf('vmap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("gv%s")<CR>', it, pkg.name, it)
-          execute printf('nmap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
-          execute printf('omap %s <Cmd>silent! packadd %s<CR>:<C-U>call feedkeys("%s")<CR>', it, pkg.name, it)
+          " Original: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/plug.vim#L262-L269
+          "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
+          for [mode, map_prefix, key_prefix] in [['i', '<C-\><C-O>', ''], ['n', '', ''], ['v', '', 'gv'], ['o', '', '']]
+            execute printf(
+            \ '%smap <silent> %s %s:<C-U>call <SID>lod_map(%s, %s, %s, "%s")<CR>',
+            \ mode, it, map_prefix, string(it), string(pkg.name), mode !=# 'i', key_prefix)
+          endfor
         else
           let cmd = substitute(it, '^:', '', '')
           execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg.name)
