@@ -214,7 +214,7 @@ function s:suite.get()
   call s:assert.equals(data.url, 'https://github.com/vim-test/vim-test')
   call s:assert.equals(data.opt, 0)
   call s:assert.equals(data.name, 'vim-test')
-  call s:assert.equals(substitute(data.pathname, '\', '/', 'g'), s:srcdir . '/vim-test')
+  call s:assert.equals(substitute(data.path, '\', '/', 'g'), s:srcdir . '/vim-test')
 endfunction
 
 function s:suite.frozen_option()

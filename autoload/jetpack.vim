@@ -175,7 +175,7 @@ function! jetpack#install(...) abort
     call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Installing %s ...', pkg.name))
-    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.pathname)
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.path)
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
@@ -186,7 +186,7 @@ function! jetpack#install(...) abort
     if has_key(pkg, 'branch') || has_key(pkg, 'tag')
       call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
     endif
-    call extend(cmd, [pkg.url, pkg.pathname])
+    call extend(cmd, [pkg.url, pkg.path])
     let job = s:jobstart(cmd, function({ i, pkg, output -> [
     \   extend(pkg, {
     \     'progress': {
@@ -208,12 +208,12 @@ function! jetpack#checkout(...) abort
     let pkg = s:packages[i]
     call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + i) / len(s:packages) * 100))
-    if (a:0 > 0 && index(a:000, pkg.name) < 0) || !isdirectory(pkg.pathname) || !has_key(pkg, 'commit')
+    if (a:0 > 0 && index(a:000, pkg.name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
-    call system(printf('git -C "%s" switch "-"', pkg.pathname))
-    call system(printf('git -C "%s" checkout "%s"', pkg.pathname, pkg.commit))
+    call system(printf('git -C "%s" switch "-"', pkg.path))
+    call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
     call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg.name))
   endfor
 endfunction
@@ -226,11 +226,11 @@ function! jetpack#update(...) abort
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
-    if pkg.progress.type ==# s:progress_type.install || (a:0 > 0 && index(a:000, pkg.name) < 0) || (get(pkg, 'frozen') || !isdirectory(pkg.pathname))
+    if pkg.progress.type ==# s:progress_type.install || (a:0 > 0 && index(a:000, pkg.name) < 0) || (get(pkg, 'frozen') || !isdirectory(pkg.path))
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
-    let cmd = ['git', '-C', pkg.pathname, 'pull', '--rebase']
+    let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
     let job = s:jobstart(cmd, function({ i, pkg, output -> [
     \   extend(pkg, {
     \     'progress': {
@@ -248,15 +248,15 @@ endfunction
 
 function! jetpack#clean() abort
   for pkg in s:packages
-    if isdirectory(pkg.pathname) && has_key(pkg, 'commit')
-      if system(printf('git -c "%s" cat-file -t %s', pkg.pathname, pkg.commit)) !~# 'commit'
-        call delete(pkg.pathname)
+    if isdirectory(pkg.path) && has_key(pkg, 'commit')
+      if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
+        call delete(pkg.path)
       endif
     endif
-    if isdirectory(pkg.pathname) && (has_key(pkg, 'branch') || has_key(pkg, 'tag'))
-      let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.pathname))
+    if isdirectory(pkg.path) && (has_key(pkg, 'branch') || has_key(pkg, 'tag'))
+      let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path))
       if get(pkg, 'branch', get(pkg, 'tag')) != branch
-        call delete(pkg.pathname, 'rf')
+        call delete(pkg.path, 'rf')
       endif
     endif
   endfor
@@ -267,8 +267,8 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:packages
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:packages), 's:match(v:val["pathname"], s:srcdir) && !get(v:val, "opt") && !has_key(v:val, "do")')
-    let unbundle = filter(copy(s:packages), 's:match(v:val["pathname"], s:srcdir) && (get(v:val, "opt") || has_key(v:val, "do"))') 
+    let bundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && !get(v:val, "opt") && !has_key(v:val, "do")')
+    let unbundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && (get(v:val, "opt") || has_key(v:val, "do"))') 
   endif
 
   call delete(s:optdir, 'rf')
@@ -280,7 +280,7 @@ function! jetpack#bundle() abort
     let pkg = bundle[i]
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:packages) * 100))
-    let srcdir = s:path(pkg.pathname, get(pkg, 'rtp', ''))
+    let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
     let srcfiles = filter(s:files(srcdir), '!s:ignorable(s:substitute(v:val, srcdir, ""))')
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
     if g:jetpack#optimization == 1
@@ -302,7 +302,7 @@ function! jetpack#bundle() abort
     let pkg = unbundle[i]
     call s:setbufline(1, printf('Copy Plugins (%d / %d)', i+merged_count, len(s:packages)))
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:packages) * 100))
-    let srcdir = s:path(pkg.pathname, get(pkg, 'rtp', ''))
+    let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
     let destdir = s:path(s:optdir, pkg.name)
     for srcfile in s:files(srcdir)
       let destfile = s:substitute(srcfile, srcdir, destdir)
@@ -345,8 +345,8 @@ function! jetpack#postupdate() abort
       continue
     endif
     let pwd = getcwd()
-    if !s:match(pkg.pathname, s:srcdir)
-      call chdir(pkg.pathname)
+    if !s:match(pkg.path, s:srcdir)
+      call chdir(pkg.path)
     else
       call chdir(s:path(s:optdir, pkg.name))
       execute 'silent! packadd ' . pkg.name
@@ -381,14 +381,14 @@ command! JetpackSync call jetpack#sync()
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
-  let pathname = get(opts, 'dir', s:path(s:srcdir,  name))
+  let path = get(opts, 'dir', s:path(s:srcdir,  name))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \   'url': url,
   \   'opt': opt,
   \   'name': name,
-  \   'pathname': pathname,
+  \   'path': path,
   \   'progress': {
   \     'type': s:progress_type.skip,
   \     'output': 'Skipped',
@@ -473,7 +473,7 @@ endfunction
 function! jetpack#tap(name) abort
   for pkg in s:packages
     if pkg.name ==# a:name
-      return isdirectory(pkg.pathname)
+      return isdirectory(pkg.path)
     endif
   endfor
   return 0
