@@ -254,7 +254,7 @@ function! jetpack#clean() abort
       endif
     endif
     if isdirectory(pkg.path) && (has_key(pkg, 'branch') || has_key(pkg, 'tag'))
-      let branch = system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path))
+      let branch = trim(system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path)))
       if get(pkg, 'branch', get(pkg, 'tag')) != branch
         call delete(pkg.path, 'rf')
       endif
