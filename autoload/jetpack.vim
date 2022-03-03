@@ -461,6 +461,8 @@ function! jetpack#end() abort
       endfor
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
       execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once doautocmd User Jetpack%s', pkg.name, event)
+      " Define a dummy autocmd to suppress "No matching autocommands" message
+      execute printf('autocmd Jetpack User Jetpack%s :', event)
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
     endif
