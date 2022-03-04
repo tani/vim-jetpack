@@ -419,6 +419,14 @@ endfunction
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
 function! s:lod_map(map, name, with_prefix, prefix)
   execute 'packadd ' . a:name
+  let extra = ''
+  while getchar(1)
+    let c = getchar(0)
+    if (c == 0 || c == 27)
+      break
+    endif
+    let extra .= nr2char(c)
+  endwhile
   if a:with_prefix
     let prefix = v:count ? v:count : ''
     let prefix .= '"'.v:register.a:prefix
@@ -430,7 +438,7 @@ function! s:lod_map(map, name, with_prefix, prefix)
     endif
     call feedkeys(prefix, 'n')
   endif
-  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i'))
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
 function! jetpack#end() abort
@@ -451,7 +459,7 @@ function! jetpack#end() abort
           "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
           for [mode, map_prefix, key_prefix] in [['i', '<C-\><C-O>', ''], ['n', '', ''], ['v', '', 'gv'], ['o', '', '']]
             execute printf(
-            \ '%smap <silent> %s %s:<C-U>call <SID>lod_map(%s, %s, %s, "%s")<CR>',
+            \ '%snoremap <silent> %s %s:<C-U>call <SID>lod_map(%s, %s, %s, "%s")<CR>',
             \ mode, it, map_prefix, string(it), string(pkg.name), mode !=# 'i', key_prefix)
           endfor
         else
