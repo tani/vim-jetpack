@@ -181,7 +181,7 @@ function! jetpack#install(...) abort
     endif
     let cmd = ['git', 'clone']
     if !has_key(pkg, 'commit')
-      call extend(cmd, ['--depth', '1'])
+      call extend(cmd, ['--depth', '1', '--recursive'])
     endif
     if has_key(pkg, 'branch') || has_key(pkg, 'tag')
       call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
