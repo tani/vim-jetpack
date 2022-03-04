@@ -157,7 +157,7 @@ function s:suite.on_option_cmd()
 endfunction
 
 function s:suite.on_option_plug()
-  call s:setup(['vim-skk/eskk.vim', { 'on': '<Plug>(eskk:toggle)' }])
+  call s:setup(['vim-skk/eskk.vim', { 'on': '<Plug>(eskk' }])
   call s:assert.notfilereadable(s:optdir . '/_/plugin/eskk.vim')
   call s:assert.isdirectory(s:optdir . '/eskk.vim')
   call s:assert.filereadable(s:optdir . '/eskk.vim/plugin/eskk.vim')
@@ -168,7 +168,8 @@ function s:suite.on_option_plug()
   augroup END
   call s:assert.cmd_not_exists('EskkMap')
   call s:assert.false(s:loaded_eskk_vim)
-  execute "normal i\<Plug>(eskk:toggle)\<Esc>"
+  call feedkeys("i\<Plug>(eskk:toggle)\<Esc>", 'x')
+  call feedkeys('', 'x')
   call s:assert.cmd_exists('EskkMap')
   call s:assert.true(s:loaded_eskk_vim)
 endfunction
