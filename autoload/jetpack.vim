@@ -376,7 +376,6 @@ function! jetpack#sync() abort
   call s:display()
   call jetpack#postupdate()
 endfunction
-command! JetpackSync call jetpack#sync()
 
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
@@ -412,7 +411,7 @@ function! jetpack#begin(...) abort
   endif
   let s:optdir = s:path(s:home, 'pack', 'jetpack', 'opt')
   let s:srcdir = s:path(s:home, 'pack', 'jetpack', 'src')
-  command! -nargs=+ Jetpack call jetpack#add(<args>)
+  command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e300178a0e2fb04b56de8957281837f13ecf0b27/plug.vim#L683-L693
@@ -441,6 +440,7 @@ endfunction
 
 function! jetpack#end() abort
   delcommand Jetpack
+  command! -bar JetpackSync call jetpack#sync()
   syntax off
   filetype plugin indent off
   augroup Jetpack
