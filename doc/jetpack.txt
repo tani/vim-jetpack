@@ -128,6 +128,11 @@ User Jetpack{PluginName}                                    *User-Jetpack-event*
     because Neovim does not load any files until the module is required.
     Instead, consider |User-Jetpack-event-lua|.
 
+User JetpackPre{PluginName}
+    Same as |User-Jetpack-event|.
+    Code to execute before the plugin is lazily loaded on demand with
+    `User JetpackPre{PluginName}` .
+
 User Jetpack{ModuleName}                                *User-Jetpack-event-lua*
     Let {ModuleName} be a CamelCase of module name.
         vim-jetpack --> VimJetpack
