@@ -420,12 +420,10 @@ endfunction
 function! s:lod_map(map, name, with_prefix, prefix)
   execute 'packadd ' . a:name
   let extra = ''
-  while getchar(1)
-    let c = getchar(0)
-    if (c == 0 || c == 27)
-      break
-    endif
-    let extra .= nr2char(c)
+  let code = getchar(0)
+  while (code != 0 && code != 27)
+    let extra .= nr2char(code)
+    let code = getchar(0)
   endwhile
   if a:with_prefix
     let prefix = v:count ? v:count : ''
