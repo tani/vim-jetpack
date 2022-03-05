@@ -108,7 +108,7 @@ function s:suite.opt_option()
   let s:loaded_goyo_vim = 0
   augroup JetpackTest
     au!
-    autocmd User JetpackGoyoVim let s:loaded_goyo_vim = 1
+    autocmd User JetpackGoyoVimPost let s:loaded_goyo_vim = 1
   augroup END
   call s:assert.isdirectory(s:optdir . '/goyo.vim')
   call s:assert.filereadable(s:optdir . '/goyo.vim/plugin/goyo.vim')
@@ -125,7 +125,7 @@ function s:suite.for_option()
   let s:loaded_vader_vim = 0
   augroup JetpackTest
     au!
-    autocmd User JetpackVaderVim let s:loaded_vader_vim = 1
+    autocmd User JetpackVaderVimPost let s:loaded_vader_vim = 1
   augroup END
   call s:assert.isdirectory(s:optdir . '/vader.vim')
   call s:assert.filereadable(s:optdir . '/vader.vim/plugin/vader.vim')
@@ -144,7 +144,7 @@ function s:suite.on_option_cmd()
   let s:loaded_abolish_vim = 0
   augroup JetpackTest
     au!
-    autocmd User JetpackVimAbolish let s:loaded_abolish_vim = 1
+    autocmd User JetpackVimAbolishPost let s:loaded_abolish_vim = 1
   augroup END
   call s:assert.isdirectory(s:optdir . '/vim-abolish')
   call s:assert.filereadable(s:optdir . '/vim-abolish/plugin/abolish.vim')
@@ -164,7 +164,7 @@ function s:suite.on_option_plug()
   let s:loaded_eskk_vim = 0
   augroup JetpackTest
     au!
-    autocmd User JetpackEskkVim let s:loaded_eskk_vim = 1
+    autocmd User JetpackEskkVimPost let s:loaded_eskk_vim = 1
   augroup END
   call s:assert.cmd_not_exists('EskkMap')
   call s:assert.false(s:loaded_eskk_vim)

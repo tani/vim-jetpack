@@ -466,9 +466,13 @@ function! jetpack#end() abort
         endif
       endfor
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
+      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once doautocmd User Jetpack%sPre', pkg.name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once doautocmd User Jetpack%sPost', pkg.name, event)
+      execute printf('autocmd Jetpack User Jetpack%sPre :', event)
+      execute printf('autocmd Jetpack User Jetpack%sPost :', event)
+      " Deprecated
       execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once doautocmd User Jetpack%s', pkg.name, event)
-      " Define a dummy autocmd to suppress "No matching autocommands" message
-      execute printf('autocmd Jetpack User Jetpack%s :', event)
+      execute printf('autocmd Jetpack User Jetpack%s echoerr "Jetpack%s is deprecated. Please use Jetpack%sPost"', event, event, event)
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
     endif
@@ -505,11 +509,19 @@ lua<<EOF
   local loaded = {}
   local _require = require
   function require(name)
+    if not loaded[name] then
+      loaded[name] = true
+      local event = vim.fn.substitute(name, [[\W\+]], [[_]], 'g')
+      event = vim.fn.substitute(event, [[\(^\|_\)\(.\)]], [[\u\2]], 'g')
+      vim.cmd(string.format('doautocmd User Jetpack%sPre', event))
+    end
     local module = _require(name)
     if not loaded[name] then
       loaded[name] = true
       local event = vim.fn.substitute(name, [[\W\+]], [[_]], 'g')
       event = vim.fn.substitute(event, [[\(^\|_\)\(.\)]], [[\u\2]], 'g')
+      vim.cmd(string.format('doautocmd User Jetpack%sPost', event))
+      --- Deprecated
       vim.cmd(string.format('doautocmd User Jetpack%s', event))
     end
     return module
