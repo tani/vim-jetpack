@@ -111,7 +111,7 @@ Plug 'easymotion/vim-easymotion'
 Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'rhysd/committia.vim'
-Plug 'vim-denops/denops.vim'
+
 call plug#end()
 
 function! s:keymap(force_map, modes, ...) abort

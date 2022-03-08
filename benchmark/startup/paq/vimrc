@@ -112,7 +112,7 @@ require'paq' {
   'prabirshrestha/asyncomplete.vim',
   'prabirshrestha/asyncomplete-lsp.vim',
   'rhysd/committia.vim',
-  'vim-denops/denops.vim',
+
 }
 EOF
 

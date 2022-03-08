@@ -112,7 +112,7 @@ call minpac#add('easymotion/vim-easymotion')
 call minpac#add('prabirshrestha/asyncomplete.vim')
 call minpac#add('prabirshrestha/asyncomplete-lsp.vim')
 call minpac#add('rhysd/committia.vim')
-call minpac#add('vim-denops/denops.vim')
+
 
 function! s:keymap(force_map, modes, ...) abort
   let arg = join(a:000, ' ')

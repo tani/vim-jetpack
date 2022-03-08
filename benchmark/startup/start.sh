@@ -1,6 +1,4 @@
 #!/bin/bash
-for i in {1..10}; do
-  for name in dein jetpack plug paq packer minpac; do
-    sh $name/start.sh
-  done
+for i in $(seq 10); do
+  ls */start.sh | xargs -n1 -P2 sh
 done

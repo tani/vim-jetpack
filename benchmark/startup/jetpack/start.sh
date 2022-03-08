@@ -1,1 +1,1 @@
-docker run --rm -it -v $(pwd):/work jetpack sh -c 'nvim -c "PackSync" -c ":qa" && nvim  --startuptime "/work/startuptime_jetpack_$(date +%s).log" -c ":q"'
+docker run --rm -v $(pwd):/work jetpack sh -c 'nvim --headless -c "JetpackSync" -c "quitall" && nvim --headless  --startuptime "/work/startuptime_jetpack_$(date +%s).log" -c "quit"'

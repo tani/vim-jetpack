@@ -113,7 +113,7 @@ require'packer'.startup(function()
   use 'prabirshrestha/asyncomplete.vim'
   use 'prabirshrestha/asyncomplete-lsp.vim'
   use 'rhysd/committia.vim'
-  use 'vim-denops/denops.vim'
+
 end)
 EOF
 

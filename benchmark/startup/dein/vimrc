@@ -113,7 +113,7 @@ call dein#add('easymotion/vim-easymotion')
 call dein#add('prabirshrestha/asyncomplete.vim')
 call dein#add('prabirshrestha/asyncomplete-lsp.vim')
 call dein#add('rhysd/committia.vim')
-call dein#add('vim-denops/denops.vim')
+
 call dein#end()
 
 function! s:keymap(force_map, modes, ...) abort
