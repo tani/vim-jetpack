@@ -251,7 +251,7 @@ vim-plug, i.e., this plugin provides less options than dein.
   }
   ```
 
-### Is it possible to isntall plugins if they are not installed?
+### Is it possible to install plugins if they are not installed?
 
 Yes, you can. We have `jetpack#names()` and `jetpack#tap()`
 to retrieve a list of plugin names and check the availability.
