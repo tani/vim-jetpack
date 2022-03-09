@@ -268,7 +268,7 @@ function! jetpack#bundle() abort
   let unbundle = s:packages
   if g:jetpack#optimization >= 1
     let bundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && !get(v:val, "opt") && !has_key(v:val, "do")')
-    let unbundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && (get(v:val, "opt") || has_key(v:val, "do"))') 
+    let unbundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && (get(v:val, "opt") || has_key(v:val, "do"))')
   endif
 
   call delete(s:optdir, 'rf')
@@ -382,7 +382,7 @@ function! jetpack#add(plugin, ...) abort
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let path = get(opts, 'dir', s:path(s:srcdir,  name))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
-  let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
+  let opt = has_key(opts, 'for') || has_key(opts, 'on') || has_key(opts, 'event') || has_key(opts, 'autoload') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \   'url': url,
   \   'opt': opt,
@@ -451,6 +451,7 @@ function! jetpack#end() abort
       for it in s:flatten([get(pkg, 'for', [])])
         execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg.name)
       endfor
+
       for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
           " Original: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/plug.vim#L262-L269
@@ -465,6 +466,15 @@ function! jetpack#end() abort
           execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg.name)
         endif
       endfor
+
+      for it in s:flatten([get(pkg, 'event', [])])
+        execute printf('autocmd Jetpack %s * ++once ++nested silent! packadd %s', it, pkg.name)
+      endfor
+
+      for it in s:flatten([get(pkg, 'autoload', [])])
+        execute printf('autocmd Jetpack FuncUndefined %s ++once ++nested silent! packadd %s', it, pkg.name)
+      endfor
+
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
       execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* doautocmd User Jetpack%sPre', pkg.name, event)
       execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%sPost', pkg.name, event)
