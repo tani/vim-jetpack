@@ -470,8 +470,9 @@ function! jetpack#end() abort
       execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%sPost', pkg.name, event)
       execute printf('autocmd Jetpack User Jetpack%sPre :', event)
       execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-      " Deprecated
+      " Deprecated autocommand (show a message if used)
       execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%s', pkg.name, event)
+      execute printf('autocmd Jetpack User Jetpack%sPost ++once call s:warn_deprecated_autocmd(%s)', event, string(event))
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
     endif
@@ -479,6 +480,15 @@ function! jetpack#end() abort
   silent! packadd! _
   syntax enable
   filetype plugin indent on
+endfunction
+
+function! s:warn_deprecated_autocmd(event) abort
+  if exists('#User#Jetpack' . a:event)
+    echohl ErrorMsg
+    echomsg printf("Jetpack%s is deprecated. Please use Jetpack%sPost.", a:event, a:event)
+    echohl None
+  endif
+  execute printf('autocmd User Jetpack%s :', a:event)
 endfunction
 
 function! jetpack#tap(name) abort
