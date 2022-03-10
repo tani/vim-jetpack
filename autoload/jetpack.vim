@@ -485,7 +485,7 @@ endfunction
 function! s:warn_deprecated_autocmd(event) abort
   if exists('#User#Jetpack' . a:event)
     echohl ErrorMsg
-    echomsg printf("Jetpack%s is deprecated. Please use Jetpack%sPost.", a:event, a:event)
+    echomsg printf('Jetpack%s is deprecated. Please use Jetpack%sPost.', a:event, a:event)
     echohl None
   endif
   execute printf('autocmd User Jetpack%s :', a:event)
