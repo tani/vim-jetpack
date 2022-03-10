@@ -466,12 +466,12 @@ function! jetpack#end() abort
         endif
       endfor
       let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* doautocmd User Jetpack%sPre', pkg.name, event)
-      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%sPost', pkg.name, event)
+      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg.name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg.name, event)
       execute printf('autocmd Jetpack User Jetpack%sPre :', event)
       execute printf('autocmd Jetpack User Jetpack%sPost :', event)
       " Deprecated autocommand (show a message if used)
-      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* doautocmd User Jetpack%s', pkg.name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%s', pkg.name, event)
       execute printf('autocmd Jetpack User Jetpack%sPost ++once call s:warn_deprecated_autocmd(%s)', event, string(event))
     elseif isdirectory(s:path(s:optdir, pkg.name))
       execute 'silent! packadd! ' . pkg.name
