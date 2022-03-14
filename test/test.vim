@@ -174,6 +174,23 @@ function s:suite.on_option_plug()
   call s:assert.true(s:loaded_eskk_vim)
 endfunction
 
+function s:suite.on_option_event()
+  call s:setup(['tpope/vim-fugitive', { 'on': 'User Test' }])
+  let s:loaded_fugitive = 0
+  augroup JetpackTest
+    autocmd!
+    autocmd User JetpackVimFugitive let s:loaded_fugitive = 1
+  augroup END
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/fugitive.vim')
+  call s:assert.isdirectory(s:optdir .  '/vim-fugitive')
+  call s:assert.filereadable(s:optdir .  '/vim-fugitive/plugin/fugitive.vim')
+  call s:assert.cmd_not_exists('Git')
+  call s:assert.false(s:loaded_fugitive)
+  doautocmd User Test
+  call s:assert.true(s:loaded_fugitive)
+  call s:assert.cmd_exists('Git')
+endfunction
+
 function s:suite.rtp_option()
   call s:setup(['vlime/vlime', { 'rtp': 'vim' }])
   call s:assert.isnotdirectory(s:optdir . '/vlime')

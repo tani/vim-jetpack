@@ -460,6 +460,9 @@ function! jetpack#end() abort
             \ '%snoremap <silent> %s %s:<C-U>call <SID>lod_map(%s, %s, %s, "%s")<CR>',
             \ mode, it, map_prefix, string(it), string(pkg.name), mode !=# 'i', key_prefix)
           endfor
+        elseif exists('#'.substitute(it, ' .*', '', ''))
+          let it .= (it =~? ' ' ? '' : ' *')
+          execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg.name)
         else
           let cmd = substitute(it, '^:', '', '')
           execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg.name)
