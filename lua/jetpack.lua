@@ -20,7 +20,9 @@ local function use(plugin)
       vim.fn['jetpack#add'](name)
     else 
       for key, value in pairs(alias) do
-        plugin[value] = plugin[key]
+        if plugin[key] ~= nil then
+          plugin[value] = plugin[key]
+        end
       end
       local opts = plugin
       vim.fn['jetpack#add'](name, opts)
