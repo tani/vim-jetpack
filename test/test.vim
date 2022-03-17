@@ -79,30 +79,6 @@ function s:suite.no_option_url()
   call s:assert.filereadable(s:optdir . '/_/plugin/undotree.vim')
 endfunction
 
-function s:suite.branch_option()
-  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
-  let branch = system(printf('git -C "%s" branch', s:srcdir . '/coc.nvim'))
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(branch, 'release')
-endfunction
-
-function s:suite.tag_option()
-  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
-  let tag = system(printf('git -C "%s" describe --tags --abbrev=0', s:srcdir . '/coc.nvim')) 
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(tag, 'v0.0.80')
-endfunction
-
-function s:suite.commit_option()
-  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
-  let commit = system(printf('git -C "%s" rev-parse HEAD', s:srcdir . '/coc.nvim')) 
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(commit, 'ce448a6')
-endfunction
-
 function s:suite.opt_option()
   call s:setup(['junegunn/goyo.vim', { 'opt': 1 }]) 
   let s:loaded_goyo_vim = 0
@@ -234,6 +210,31 @@ function s:suite.get()
   call s:assert.equals(data.name, 'vim-test')
   call s:assert.equals(substitute(data.path, '\', '/', 'g'), s:srcdir . '/vim-test')
 endfunction
+
+function s:suite.branch_option()
+  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
+  let branch = system(printf('git -C "%s" branch', s:srcdir . '/coc.nvim'))
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(branch, 'release')
+endfunction
+
+function s:suite.tag_option()
+  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
+  let tag = system(printf('git -C "%s" describe --tags --abbrev=0', s:srcdir . '/coc.nvim')) 
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(tag, 'v0.0.80')
+endfunction
+
+function s:suite.commit_option()
+  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
+  let commit = system(printf('git -C "%s" rev-parse HEAD', s:srcdir . '/coc.nvim')) 
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(commit, 'ce448a6')
+endfunction
+
 
 function s:suite.frozen_option()
   call s:assert.skip('')
