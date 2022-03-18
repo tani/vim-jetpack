@@ -341,7 +341,6 @@ endfunction
 function! jetpack#postupdate() abort
   silent! packadd _
   for pkg in s:packages
-    execute 'silent! packadd ' . pkg.name
     if !has_key(pkg, 'do')
       continue
     endif
@@ -349,6 +348,7 @@ function! jetpack#postupdate() abort
     if !s:match(pkg.path, s:srcdir)
       call chdir(pkg.path)
     else
+      execute 'silent! packadd ' . pkg.name
       call chdir(s:path(s:optdir, pkg.name))
     endif
     if type(pkg.do) == v:t_func
@@ -364,7 +364,10 @@ function! jetpack#postupdate() abort
     endif
     call chdir(pwd)
   endfor
-  silent! helptags ALL
+  for dir in glob(s:optdir . '/*/doc', '', 1)
+    echomsg dir
+    execute 'silent! helptags ' . dir
+  endfor
 endfunction
 
 function! jetpack#sync() abort
