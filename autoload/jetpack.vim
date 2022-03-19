@@ -365,7 +365,6 @@ function! jetpack#postupdate() abort
     call chdir(pwd)
   endfor
   for dir in glob(s:optdir . '/*/doc', '', 1)
-    echomsg dir
     execute 'silent! helptags ' . dir
   endfor
 endfunction
