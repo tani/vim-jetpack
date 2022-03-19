@@ -137,15 +137,13 @@ else
 endif
 
 function! s:copy(from, to) abort
-  call mkdir(fnamemodify(a:to, ':p:h'), 'p')
-  let doc = a:from =~# '**/doc/tags*'
-  if has('nvim') && !doc
-    call v:lua.vim.loop.fs_link(a:from, a:to)
-  elseif has('unix') && !doc
-    call system(printf('ln -f "%s" "%s"', a:from, a:to))
-  else
-    call writefile(readfile(a:from, 'b'), a:to, 'b')
-    call setfperm(a:to, getfperm(a:from))
+  call mkdir(a:to, 'p')
+  if has('mac')
+    call system(printf('cp -R "%s/." "%s"', a:from, a:to))
+  elseif has('linux')
+    call system(printf('cp -r "%s/." "%s"', a:from, a:to))
+  elseif has('win32') || has('win64')
+    call system(printf('xcopy "%s" "%s" /E', a:from, a:to))
   endif
 endfunction
 
@@ -289,10 +287,7 @@ function! jetpack#bundle() abort
         continue
       endif
     endif
-    for i in range(0, len(srcfiles) - 1)
-      call s:copy(srcfiles[i], destfiles[i])
-      let merged_files[destfiles[i]] = v:true
-    endfor
+    call s:copy(srcdir, destdir)
     call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
     let merged_count += 1
   endfor
@@ -304,10 +299,7 @@ function! jetpack#bundle() abort
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:packages) * 100))
     let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
     let destdir = s:path(s:optdir, pkg.name)
-    for srcfile in s:files(srcdir)
-      let destfile = s:substitute(srcfile, srcdir, destdir)
-      call s:copy(srcfile, s:substitute(srcfile, srcdir, destdir))
-    endfor
+    call s:copy(srcdir, destdir)
     call s:setbufline(i+merged_count+3, printf('Copied %s ...', pkg.name))
   endfor
 endfunction
