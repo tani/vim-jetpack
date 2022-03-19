@@ -446,13 +446,10 @@ function! jetpack#end() abort
       endfor
       for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
-          " Original: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/plug.vim#L262-L269
-          "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
-          for [mode, map_prefix, key_prefix] in [['i', '<C-\><C-O>', ''], ['n', '', ''], ['v', '', 'gv'], ['o', '', '']]
-            execute printf(
-            \ '%snoremap <silent> %s %s:<C-U>call <SID>lod_map(%s, %s, %s, "%s")<CR>',
-            \ mode, it, map_prefix, string(it), string(pkg.name), mode !=# 'i', key_prefix)
-          endfor
+          execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg.name))
+          execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
+          execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg.name))
+          execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
         elseif exists('#'.substitute(it, ' .*', '', ''))
           let it .= (it =~? ' ' ? '' : ' *')
           execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg.name)
