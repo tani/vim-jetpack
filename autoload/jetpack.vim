@@ -138,10 +138,8 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(a:to, 'p')
-  if has('mac')
+  if has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
-  elseif has('linux')
-    call system(printf('cp -r "%s/." "%s"', a:from, a:to))
   elseif has('win32') || has('win64')
     call system(printf('xcopy "%s" "%s" /E', a:from, a:to))
   endif

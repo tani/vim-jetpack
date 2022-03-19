@@ -67,6 +67,7 @@ function s:suite.optimization_0()
  call s:assert.isdirectory(s:optdir . '/fzf.vim')
  let g:jetpack#optimization = 1
 endfunction
+
 function s:suite.no_option_github()
  call s:setup(['mbbill/undotree'])
  call s:assert.isnotdirectory(s:optdir . '/undotree')
