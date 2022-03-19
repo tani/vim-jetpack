@@ -273,7 +273,7 @@ function! jetpack#bundle() abort
   let destdir = s:path(s:optdir, '_')
   " Merge plugins if possible.
   let merged_count = 0
-  let merged_files = {}
+  let merged_files = []
   for i in range(len(bundle))
     let pkg = bundle[i]
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
@@ -282,12 +282,13 @@ function! jetpack#bundle() abort
     let srcfiles = filter(s:files(srcdir), '!s:ignorable(s:substitute(v:val, srcdir, ""))')
     let destfiles = map(copy(srcfiles), 's:substitute(v:val, srcdir, destdir)')
     if g:jetpack#optimization == 1
-      if filter(copy(destfiles), 'has_key(merged_files, v:val)') != []
+      if filter(copy(destfiles), 'index(merged_files, v:val) >= 0') != []
         call add(unbundle, pkg)
         continue
       endif
     endif
     call s:copy(srcdir, destdir)
+    call extend(merged_files, destfiles)
     call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
     let merged_count += 1
   endfor
