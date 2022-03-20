@@ -141,7 +141,7 @@ function! s:copy(from, to) abort
   if has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
   elseif has('win32') || has('win64')
-    call system(printf('xcopy "%s" "%s" /E', a:from, a:to))
+    call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
   endif
 endfunction
 
