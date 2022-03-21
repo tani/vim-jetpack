@@ -141,7 +141,7 @@ function! s:copy(from, to) abort
   if has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
   elseif has('win32') || has('win64')
-    call system(printf('xcopy "%s" "%s" /E', a:from, a:to))
+    call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
   endif
 endfunction
 
@@ -450,7 +450,7 @@ function! jetpack#end() abort
           execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
           execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg.name))
           execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
-        elseif exists('#'.substitute(it, ' .*', '', ''))
+        elseif exists('##'.substitute(it, ' .*', '', ''))
           let it .= (it =~? ' ' ? '' : ' *')
           execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg.name)
         else
