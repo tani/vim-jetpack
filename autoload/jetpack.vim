@@ -280,12 +280,17 @@ function! jetpack#bundle() abort
     let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
     if g:jetpack#optimization == 1
       let files = map(s:files(srcdir), 's:substitute(v:val, srcdir, "")')
-      let files = filter(copy(files), '!s:ignorable(v:val)')
-      if filter(copy(files), 'has_key(merged_files, v:val)') != []
+      let files = filter(files, '!s:ignorable(v:val)')
+      for file_index in range(len(files))
+        if has_key(merged_files, files[file_index])
+          break
+        endif
+      endfor
+      if file_index < len(files) - 1
         call add(unbundle, pkg)
         continue
       endif
-      call map(copy(files), 'extend(merged_files, { v:val: v:true })')
+      call map(files, 'extend(merged_files, { v:val: v:true })')
     endif
     call s:copy(srcdir, destdir)
     call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
