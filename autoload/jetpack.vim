@@ -281,12 +281,14 @@ function! jetpack#bundle() abort
     if g:jetpack#optimization == 1
       let files = map(s:files(srcdir), 's:substitute(v:val, srcdir, "")')
       let files = filter(files, '!s:ignorable(v:val)')
-      for file_index in range(len(files))
-        if has_key(merged_files, files[file_index])
+      let should_unbundle = v:false
+      for i in range(len(files))
+        if has_key(merged_files, files[i])
+          let should_unbundle = v:true
           break
         endif
       endfor
-      if file_index < len(files) - 1
+      if should_unbundle
         call add(unbundle, pkg)
         continue
       endif
