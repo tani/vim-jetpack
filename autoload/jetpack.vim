@@ -513,19 +513,3 @@ function! jetpack#get(name) abort
   endfor
   return {}
 endfunction
-
-if has('nvim')
-lua<<EOF
-  local _require = require
-  function require(name)
-    local event = vim.fn.substitute(name, [[\W\+]], [[_]], 'g')
-    event = vim.fn.substitute(event, [[\(^\|_\)\(.\)]], [[\u\2]], 'g')
-    vim.cmd(string.format('doautocmd User Jetpack%sPre', event))
-    local module = _require(name)
-    vim.cmd(string.format('doautocmd User Jetpack%sPost', event))
-    -- Deprecated
-    vim.cmd(string.format('doautocmd User Jetpack%s', event))
-    return module
-  end
-EOF
-endif

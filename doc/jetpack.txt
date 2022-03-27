@@ -135,15 +135,6 @@ User Jetpack{PluginName}Post                           *User-Jetpack-post-event*
     because Neovim does not load any files until the module is required.
     Instead, consider |User-Jetpack-post-event-lua|.
 
-User Jetpack{ModuleName}Pre                         *User-Jetpack-pre-lua-event*
-User Jetpack{ModuleName}Post                       *User-Jetpack-post-lua-event*
-    Let {ModuleName} be a CamelCase of module name.
-        vim-jetpack --> VimJetpack
-        goyo.vim --> GoyoVim
-        vim_foo -> VimFoo
-    Code to execute when the plugin is required as a lua module with
-    `User Jetpack{ModuleName}Post` .
-
 ================================================================================
 Groups ( *jetpack-groups* )
 
