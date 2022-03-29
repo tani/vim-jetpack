@@ -409,6 +409,7 @@ function! jetpack#begin(...) abort
   if a:0 != 0
     let s:home = expand(a:1)
     execute 'set packpath^=' . s:home
+    execute 'set runtimepath^=' . s:home
   endif
   let s:optdir = s:path(s:home, 'pack', 'jetpack', 'opt')
   let s:srcdir = s:path(s:home, 'pack', 'jetpack', 'src')
