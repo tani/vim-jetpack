@@ -142,16 +142,18 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(a:to, 'p')
-  if g:jetpack#copy_method ==# 'copy'
+  if g:jetpack#copy_method !=# 'system'
     for src in s:files(a:from)
       let dest = s:substitute(src, a:from, a:to)
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
-      call writefile(readfile(src, 'b'), dest, 'b')
+      if g:jetpack#copy_method ==# 'copy'
+        call writefile(readfile(src, 'b'), dest, 'b')
+      elseif g:jetpack#copy_method ==# 'hardlink'
+        call v:lua.vim.loop.fs_link(src, dest)
+      elseif g:jetpack#copy_method ==# 'symlink'
+        call v:lua.vim.loop.fs_symlink(src, dest)
+      endif
     endfor
-  elseif g:jetpack#copy_method ==# 'hardlink'
-    call v:lua.vim.loop.fs_link(a:from, a:to)
-  elseif g:jetpack#copy_method ==# 'symlink'
-    call v:lua.vim.loop.fs_symlink(a:from, a:to)
   elseif has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
   elseif has('win32') || has('win64')
