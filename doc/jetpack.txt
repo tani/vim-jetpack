@@ -116,7 +116,7 @@ g:jetpack#copy_method                                   *g:jetpack#copy_method*
     The default value is `'system'`.
     Consider using the `'copy'` if you have some trouble to run the
     external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
-    but these are unavailable in Vim.
+    but these are available in Neovim only.
     - `'system'` Use `cp`/ `xcopy` to copy files.
     - `'copy'` Use |readfile| and |writefile| to copy files.
     - `'hardlink'` Use |vim.loop| to make hardlink of files.
