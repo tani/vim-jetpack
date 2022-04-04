@@ -114,7 +114,7 @@ g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
 
 g:jetpack#copy_method                                   *g:jetpack#copy_method*
     The default value is `'system'`.
-    Consider that use the `'copy'` if you have some trouble to run the
+    Consider using the `'copy'` if you have some trouble to run the
     external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
     but these are unavailable in Vim.
     - `'system'` Use `cp`/ `xcopy` to copy files.
