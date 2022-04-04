@@ -39,6 +39,7 @@ let g:jetpack#ignore_patterns =
   \ get(g:, 'jetpack#ignore_patterns', [
   \   '/.*',
   \   '/.*/**/*',
+  \   '/doc/tags*',
   \   '/t/**/*',
   \   '/test/**/*',
   \   '/Makefile*',
