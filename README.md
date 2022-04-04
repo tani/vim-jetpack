@@ -102,15 +102,12 @@ Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 
 - `g:jetpack#optimization` -- The optimization level for the bundle algorithm.
 
-  |  speed  |    0    |   1    |    2    |
-  | :-----: | :-----: | :----: | :-----: |
-  | install | fastest |  slow  | faster  |
-  | startup |  slow   | faster | fastest |
+  |  speed  |    0   |   1    |
+  | :-----: | :----: | :----: |
+  | install |  fast  |  slow  |
+  | startup |  slow  |  fast  |
   - `0` -- Bundle nothing. This is the same as vim-plug and is the safest level.
-  - `1` -- Bundle if there are no conflicts. It tries to bundle plgins as
-    possible. This is default and is safer than `2`.
-  - `2` -- Bundle everything. This may be the same as dein.vim, and is the
-    fastest level. It overwrites some duplicated files.
+  - `1` -- Bundle if there are no conflicts. It tries to bundle plugins as possible.
 
 ## Commands
 
