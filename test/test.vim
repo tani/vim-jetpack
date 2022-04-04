@@ -44,14 +44,6 @@ function s:assert.isnotdirectory(dir)
   endif
 endfunction
 
-function s:suite.optimization_2()
-  let g:jetpack#optimization = 2
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isnotdirectory(s:optdir . '/fzf')
-  call s:assert.isnotdirectory(s:optdir . '/fzf.vim')
-  let g:jetpack#optimization = 1
-endfunction
-
 function s:suite.optimization_1()
   let g:jetpack#optimization = 1
   call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
@@ -235,7 +227,6 @@ function s:suite.commit_option()
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(commit, 'ce448a6')
 endfunction
-
 
 function s:suite.frozen_option()
  call s:assert.skip('')

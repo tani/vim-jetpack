@@ -279,7 +279,7 @@ function! jetpack#bundle() abort
   call s:setupbuf()
   let bundle = []
   let unbundle = s:packages
-  if g:jetpack#optimization >= 1
+  if g:jetpack#optimization == 1
     let bundle = []
     let unbundle = []
     for pkg in s:packages
