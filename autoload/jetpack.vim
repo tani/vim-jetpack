@@ -29,16 +29,14 @@ if exists('*flatten')
   endfunction
 endif
 
-if !exists('g:jetpack#optimization')
-  let g:jetpack#optimization = 1
-endif
+let g:jetpack#optimization =
+  \ get(g:, 'jetpack#optimization', 1)
 
-if !exists('g:jetpack#njobs')
-  let g:jetpack#njobs = 8
-endif
+let g:jetpack#njobs =
+  \ get(g:, 'jetpack#njobs', 8)
 
-if !exists('g:jetpack#ignore_patterns')
-  let g:jetpack#ignore_patterns = [
+let g:jetpack#ignore_patterns =
+  \ get(g:, 'jetpack#ignore_patterns', [
   \   '/.*',
   \   '/.*/**/*',
   \   '/t/**/*',
@@ -53,8 +51,7 @@ if !exists('g:jetpack#ignore_patterns')
   \   '/CONTRIBUTING*',
   \   '/CHANGELOG*',
   \   '/NEWS*',
-  \ ]
-endif
+  \ ])
 
 let s:packages = []
 
