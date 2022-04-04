@@ -112,6 +112,16 @@ g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
     >
     > call add(g:jetpack#ignore_patterns, '/*.json')
 
+g:jetpack#copy_method                                   *g:jetpack#copy_method*
+    The default value is `'system'`.
+    Consider that use the `'copy'` if you have some trouble to run the
+    external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
+    but these are unavailable in Vim.
+    - `'system'` Use `cp`/ `xcopy` to copy files.
+    - `'copy'` Use |readfile| and |writefile| to copy files.
+    - `'hardlink'` Use |vim.loop| to make hardlink of files.
+    - `'symlink'` Use |vim.loop| to make symlink of files.
+
 ================================================================================
 Events ( *jetpack-events* )
 
