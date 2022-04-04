@@ -281,7 +281,6 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:packages
   if g:jetpack#optimization == 1
-    let bundle = []
     let unbundle = []
     for pkg in s:packages
       if s:match(get(pkg, 'path'), s:srcdir) 
@@ -307,14 +306,12 @@ function! jetpack#bundle() abort
     let files = map(s:files(srcdir), { _, file -> s:substitute(file, srcdir, '')})
     let files = filter(files, { _, file -> !s:ignorable(file) })
     let conflicted = v:false
-    if g:jetpack#optimization == 1
-      for file in files
-        if has_key(merged_files, file)
-          let conflicted = v:true
-          break
-        endif
-      endfor
-    endif
+    for file in files
+      if has_key(merged_files, file)
+        let conflicted = v:true
+        break
+      endif
+    endfor
     if conflicted
       call add(unbundle, pkg)
     else
