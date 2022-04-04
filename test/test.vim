@@ -1,6 +1,8 @@
 execute 'set pp-=' . (has('nvim') ? stdpath('data') . '/site' : expand('~/.vim'))
 execute 'set rtp^=' . expand('<sfile>:p:h:h')
 
+let g:jetpack#copy_method = 'system'
+
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
 let s:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')

@@ -145,6 +145,7 @@ function! s:copy(from, to) abort
   if g:jetpack#copy_method ==# 'copy'
     for src in s:files(a:from)
       let dest = s:substitute(src, a:from, a:to)
+      call mkdir(fnamemodify(dest, ':p:h'), 'p')
       call writefile(readfile(src, 'b'), dest, 'b')
     endfor
   elseif g:jetpack#copy_method ==# 'hardlink'
