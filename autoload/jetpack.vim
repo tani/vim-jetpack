@@ -53,6 +53,13 @@ let g:jetpack#ignore_patterns =
   \   '/NEWS*',
   \ ])
 
+let g:jetpack#copy_method =
+  \ get(g:, 'jetpack#copy_method', 'system')
+  " sytem    : cp/ xcopy
+  " copy     : readfile and writefile
+  " symlink  : fs_symlink (nvim only)
+  " hardlink : fs_link (nvim only)
+
 let s:packages = []
 
 let s:progress_type = {
@@ -135,7 +142,16 @@ endif
 
 function! s:copy(from, to) abort
   call mkdir(a:to, 'p')
-  if has('unix')
+  if g:jetpack#copy_method ==# 'copy'
+    for src in s:files(a:from)
+      let dest = s:substitute(src, a:from, a:to)
+      call writefile(readfile(src, 'b'), dest, 'b')
+    endfor
+  elseif g:jetpack#copy_method ==# 'hardlink'
+    call v:lua.vim.loop.fs_link(a:from, a:to)
+  elseif g:jetpack#copy_method ==# 'symlink'
+    call v:lua.vim.loop.fs_symlink(a:from, a:to)
+  elseif has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
   elseif has('win32') || has('win64')
     call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
