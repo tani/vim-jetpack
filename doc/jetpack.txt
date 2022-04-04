@@ -115,23 +115,16 @@ g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
 ================================================================================
 Events ( *jetpack-events* )
 
-User Jetpack{PluginName}                                    *User-Jetpack-event*
-    Deprecated.
-
-User Jetpack{ModuleName}                                *User-Jetpack-lua-event*
-    Deprecated.
-
 User Jetpack{PluginName}Pre                             *User-Jetpack-pre-event*
 User Jetpack{PluginName}Post                           *User-Jetpack-post-event*
     Let {PluginName} be a CamelCase of plugin name.
-        vim-jetpack --> VimJetpack
-        goyo.vim --> GoyoVim
-        vim_foo -> VimFoo
+        vim-jetpack -> VimJetpack
+        goyo.vim    -> GoyoVim
+        vim_foo     -> VimFoo
     Code to execute when the plugin is lazily loaded on demand with
     `User Jetpack{PluginName}Post` .
     It is impossible to hook `packadd` for a lua plugin in Neovim,
     because Neovim does not load any files until the module is required.
-    Instead, consider |User-Jetpack-post-event-lua|.
 
 ================================================================================
 Groups ( *jetpack-groups* )
