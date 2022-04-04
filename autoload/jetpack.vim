@@ -77,11 +77,11 @@ function s:substitute(a, b, c)
 endfunction
 
 function! s:files(path) abort
-  return filter(glob(a:path . '/**/*', '', 1), '!isdirectory(v:val)')
+  return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
 endfunction
 
 function! s:ignorable(filename) abort
-  return filter(copy(g:jetpack#ignore_patterns), 'a:filename =~? glob2regpat(v:val)') != []
+  return filter(copy(g:jetpack#ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
 endfunction
 
 function! s:progressbar(n) abort
@@ -96,7 +96,7 @@ function! s:jobstatus(job) abort
 endfunction
 
 function! s:jobcount(jobs) abort
-  return len(filter(copy(a:jobs), 's:jobstatus(v:val) ==# "run"'))
+  return len(filter(copy(a:jobs), { _, val -> s:jobstatus(val) ==# 'run' }))
 endfunction
 
 function! s:jobwait(jobs, njobs) abort
@@ -222,7 +222,10 @@ function! jetpack#update(...) abort
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
-    if pkg.progress.type ==# s:progress_type.install || (a:0 > 0 && index(a:000, pkg.name) < 0) || (get(pkg, 'frozen') || !isdirectory(pkg.path))
+    if pkg.progress.type ==# s:progress_type.install
+       \ || (a:0 > 0 && index(a:000, pkg.name) < 0)
+       \ || (get(pkg, 'frozen')
+       \ || !isdirectory(pkg.path))
       call s:setbufline(i+3, printf('Skipped %s', pkg.name))
       continue
     endif
@@ -244,16 +247,17 @@ endfunction
 
 function! jetpack#clean() abort
   for pkg in s:packages
-    if isdirectory(pkg.path) && has_key(pkg, 'commit')
-      if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
-        call delete(pkg.path)
-      endif
-    endif
-    if isdirectory(pkg.path) && (has_key(pkg, 'branch') || has_key(pkg, 'tag'))
-      let branch = trim(system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path)))
-      if get(pkg, 'branch', get(pkg, 'tag')) != branch
-        call delete(pkg.path, 'rf')
-      endif
+    if isdirectory(pkg.path) 
+      if has_key(pkg, 'commit')
+        if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
+          call delete(pkg.path)
+        endif
+      elseif has_key(pkg, 'branch') || has_key(pkg, 'tag')
+        let branch = trim(system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path)))
+        if get(pkg, 'branch', get(pkg, 'tag')) != branch
+          call delete(pkg.path, 'rf')
+        endif
+      endif 
     endif
   endfor
 endfunction
@@ -263,8 +267,17 @@ function! jetpack#bundle() abort
   let bundle = []
   let unbundle = s:packages
   if g:jetpack#optimization >= 1
-    let bundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && !get(v:val, "opt") && !has_key(v:val, "do")')
-    let unbundle = filter(copy(s:packages), 's:match(v:val["path"], s:srcdir) && (get(v:val, "opt") || has_key(v:val, "do"))') 
+    let bundle = []
+    let unbundle = []
+    for pkg in s:packages
+      if s:match(get(pkg, 'path'), s:srcdir) 
+        if get(pkg, 'opt') || has_key(pkg, 'do')
+          call add(unbundle, pkg)
+        else
+          call add(bundle, pkg)
+        endif
+      endif
+    endfor
   endif
 
   call delete(s:optdir, 'rf')
@@ -273,30 +286,31 @@ function! jetpack#bundle() abort
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
-  for i in range(len(bundle))
-    let pkg = bundle[i]
+  for pkg in bundle
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:packages) * 100))
     let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
+    let files = map(s:files(srcdir), { _, file -> s:substitute(file, srcdir, '')})
+    let files = filter(files, { _, file -> !s:ignorable(file) })
+    let conflicted = v:false
     if g:jetpack#optimization == 1
-      let files = map(s:files(srcdir), 's:substitute(v:val, srcdir, "")')
-      let files = filter(files, '!s:ignorable(v:val)')
-      let should_unbundle = v:false
-      for i in range(len(files))
-        if has_key(merged_files, files[i])
-          let should_unbundle = v:true
+      for file in files
+        if has_key(merged_files, file)
+          let conflicted = v:true
           break
         endif
       endfor
-      if should_unbundle
-        call add(unbundle, pkg)
-        continue
-      endif
-      call map(files, 'extend(merged_files, { v:val: v:true })')
     endif
-    call s:copy(srcdir, destdir)
-    call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
-    let merged_count += 1
+    if conflicted
+      call add(unbundle, pkg)
+    else
+      for file in files
+        let merged_files[file] = v:true
+      endfor
+      call s:copy(srcdir, destdir)
+      call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
+      let merged_count += 1
+    endif
   endfor
 
   " Copy plugins.
@@ -503,7 +517,7 @@ function! jetpack#tap(name) abort
 endfunction
 
 function! jetpack#names() abort
-  return map(copy(s:packages), 'v:val["name"]')
+  return map(copy(s:packages), { _, val -> get(val, 'name') })
 endfunction
 
 function! jetpack#get(name) abort
