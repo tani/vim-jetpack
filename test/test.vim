@@ -148,7 +148,7 @@ function s:suite.on_option_event()
  let s:loaded_fugitive = 0
  augroup JetpackTest
    autocmd!
-   autocmd User JetpackVimFugitive let s:loaded_fugitive = 1
+   autocmd User JetpackVimFugitivePost let s:loaded_fugitive = 1
  augroup END
  call s:assert.notfilereadable(s:optdir . '/_/plugin/fugitive.vim')
  call s:assert.isdirectory(s:optdir .  '/vim-fugitive')
