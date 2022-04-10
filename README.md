@@ -249,7 +249,7 @@ to retrieve a list of plugin names and check the availability.
 
 ```vim
 for name in jetpack#names()
-  if jetpack#tap(name)
+  if !jetpack#tap(name)
     call jetpack#sync()
     break
   endif
