@@ -84,10 +84,10 @@ Options ( *jetpack#add-options* )
 dir
   By this option, we isolate the plugin directory from |packages| and put it
   in the specified drectory. Thus, we cannot use |packadd|. Further, we disable
-  the lazy-loading features for this plugin. Instead, we add the
-  directory into |runtimepath|. Moreover, we omit the directory from the target
-  to be removed for the update/ installaion because of we must avoid removing
-  unexpected directories such as `/`.
+  the lazy-loading features for this plugin. Instead, we add the directory into
+  |runtimepath|. Moreover, we omit the directory from the target to be removed
+  for the update/ installaion if the directory is out of `pack/*/opt`,
+  because we must avoid removing unexpected directories such as `/`.
 
 ================================================================================
 Commands ( *jetpack-commands* )
