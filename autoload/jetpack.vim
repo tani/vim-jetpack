@@ -4,31 +4,6 @@
 "          All Rights Reserved.
 "=============================================
 
-" Original: https://github.com/vim-jp/vital.vim/blob/1168f6fcbf2074651b62d4ba70b9689c43db8c7d/autoload/vital/__vital__/Data/List.vim#L102-L117
-"  License: NYSL, http://www.kmonos.net/nysl/index.en.html
-function! s:flatten(list, ...) abort
-  let limit = a:0 > 0 ? a:1 : -1
-  let memo = []
-  if limit == 0
-    return a:list
-  endif
-  let limit -= 1
-  for Value in a:list
-    let memo +=
-          \ type(Value) == type([]) ?
-          \   s:flatten(Value, limit) :
-          \   [Value]
-    unlet! Value
-  endfor
-  return memo
-endfunction
-
-if exists('*flatten')
-  function! s:flatten(x)
-    return flatten(a:x)
-  endfunction
-endif
-
 let g:jetpack#optimization =
   \ get(g:, 'jetpack#optimization', 1)
 
@@ -68,6 +43,28 @@ let s:progress_type = {
 \   'install': 'install',
 \   'update': 'update',
 \ }
+
+" Original: https://github.com/vim-jp/vital.vim/blob/1168f6fcbf2074651b62d4ba70b9689c43db8c7d/autoload/vital/__vital__/Data/List.vim#L102-L117
+"  License: NYSL, http://www.kmonos.net/nysl/index.en.html
+function! s:flatten(list, ...) abort
+  if exists('*flatten')
+    return flatten(a:list)
+  endif
+  let limit = a:0 > 0 ? a:1 : -1
+  let memo = []
+  if limit == 0
+    return a:list
+  endif
+  let limit -= 1
+  for Value in a:list
+    let memo +=
+          \ type(Value) == type([]) ?
+          \   s:flatten(Value, limit) :
+          \   [Value]
+    unlet! Value
+  endfor
+  return memo
+endfunction
 
 function s:path(...)
   return expand(join(a:000, '/'))
