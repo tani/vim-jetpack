@@ -28,7 +28,8 @@ Functions ( *jetpack-functions* )
 
 jetpack#add({repo} [, {options}])                                *jetpack#add()*
     {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
-    {options} is a dictionary consits of the following.
+    {options} is a dictionary consits of the following. See also
+    |jetpack#add-options|.
 
     vim-plug interface
     |   name   |        type        | description                           |
@@ -76,6 +77,17 @@ jetpack#names()                                                *jetpack#names()*
 
 Jetpack expoted some other functions but they are only for the developers.
 Unlisted functions might be changed without any announcements in the future.
+
+================================================================================
+Options ( *jetpack#add-options* )
+
+dir
+  By this option, we isolate the plugin directory from |packages| and put it
+  in the specified drectory. Thus, we cannot use |packadd|. Further, we disable
+  the lazy-loading features for this plugin. Instead, we add the
+  directory into |runtimepath|. Moreover, we omit the directory from the target
+  to be removed for the update/ installaion because of we must avoid removing
+  unexpected directories such as `/`.
 
 ================================================================================
 Commands ( *jetpack-commands* )
