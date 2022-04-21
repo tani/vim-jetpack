@@ -114,7 +114,7 @@ g:jetpack#optimization                                  *g:jetpack#optimization*
     | startup |  slow  |  fast  |
 
     - `0` Bundle nothing. This is the same as vim-plug and is the safest level.
-    - `1` Bundle if there are no conflicts. It tries to bundle plgins as
+    - `1` Bundle if there are no conflicts. It tries to bundle plugins as
       possible.
 
 g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
