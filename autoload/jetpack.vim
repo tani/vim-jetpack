@@ -36,7 +36,7 @@ let g:jetpack#copy_method =
   " symlink  : fs_symlink (nvim only)
   " hardlink : fs_link (nvim only)
 
-let s:packages = []
+let s:packages = {}
 
 let s:progress_type = {
 \   'skip': 'skip',
@@ -172,8 +172,9 @@ endfunction
 function! jetpack#install(...) abort
   call s:setupbuf()
   let jobs = []
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for pkg in values(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Installing %s ...', pkg.name))
@@ -206,8 +207,9 @@ endfunction
 
 function! jetpack#checkout(...) abort
   call s:setupbuf()
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for pkg in values(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + i) / len(s:packages) * 100))
     if (a:0 > 0 && index(a:000, pkg.name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
@@ -223,8 +225,9 @@ endfunction
 function! jetpack#update(...) abort
   call s:setupbuf()
   let jobs = []
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for pkg in values(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
@@ -252,7 +255,7 @@ function! jetpack#update(...) abort
 endfunction
 
 function! jetpack#clean() abort
-  for pkg in s:packages
+  for pkg in values(s:packages)
     if isdirectory(pkg.path) 
       if has_key(pkg, 'commit')
         if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
@@ -271,10 +274,10 @@ endfunction
 function! jetpack#bundle() abort
   call s:setupbuf()
   let bundle = []
-  let unbundle = s:packages
+  let unbundle = values(s:packages)
   if g:jetpack#optimization == 1
     let unbundle = []
-    for pkg in s:packages
+    for pkg in values(s:packages)
       if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
         call add(unbundle, pkg)
       else
@@ -339,7 +342,7 @@ function! s:display() abort
   let msg[s:progress_type.update] = 'Updated'
 
   let line_count = 1
-  for pkg in s:packages
+  for pkg in values(s:packages)
     let output = pkg.progress.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
     let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
@@ -359,7 +362,7 @@ endfunction
 
 function! jetpack#postupdate() abort
   silent! packadd _
-  for pkg in s:packages
+  for pkg in values(s:packages)
     if !has_key(pkg, 'do')
       continue
     endif
@@ -414,11 +417,11 @@ function! jetpack#add(plugin, ...) abort
   \     'output': 'Skipped',
   \   },
   \ })
-  call add(s:packages, pkg)
+  let s:packages[name] = pkg
 endfunction
 
 function! jetpack#begin(...) abort
-  let s:packages = []
+  let s:packages = {}
   if has('nvim')
     let s:home = s:path(stdpath('data'), 'site')
   elseif has('win32') || has('win64')
@@ -468,7 +471,7 @@ function! jetpack#end() abort
   augroup Jetpack
     autocmd!
   augroup END
-  for pkg in s:packages
+  for pkg in values(s:packages)
     if has_key(pkg, 'dir')
       let &runtimepath .= printf(',%s/%s', pkg.dir, get(pkg, 'rtp', ''))
       continue
@@ -506,23 +509,15 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  for pkg in s:packages
-    if pkg.name ==# a:name
-      return isdirectory(pkg.path)
-    endif
-  endfor
-  return 0
+  return has_key(s:packages, a:name)
 endfunction
 
 function! jetpack#names() abort
-  return map(copy(s:packages), { _, val -> get(val, 'name') })
+  return keys(s:packages)
 endfunction
 
 function! jetpack#get(name) abort
-  for pkg in s:packages
-    if pkg.name ==# a:name
-      return pkg
-    endif
-  endfor
-  return {}
+  return get(s:packages, a:name, {})
 endfunction
+
+
