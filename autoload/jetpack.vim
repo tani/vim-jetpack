@@ -509,7 +509,7 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:packages, a:name)
+  return has_key(s:packages, a:name) ? isdirectory(jetpack#get(a:name).path) : 0
 endfunction
 
 function! jetpack#names() abort
