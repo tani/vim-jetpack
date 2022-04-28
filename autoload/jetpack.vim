@@ -411,7 +411,6 @@ function! jetpack#add(plugin, ...) abort
   let pkg  = extend(opts, {
   \   'url': url,
   \   'opt': opt,
-  \   'name': name,
   \   'path': path,
   \   'progress': {
   \     'type': s:progress_type.skip,
