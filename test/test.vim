@@ -49,8 +49,11 @@ endfunction
 function s:suite.optimization_1()
   let g:jetpack#optimization = 1
   call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  call s:assert.isdirectory(s:optdir . '/fzf.vim')
-  call s:assert.isnotdirectory(s:optdir . '/fzf')
+  if isdirectory(s:optdir . '/fzf.vim')
+    call s:assert.isnotdirectory(s:optdir . '/fzf')
+  else
+    call s:assert.isdirectory(s:optdir . '/fzf')
+  endif
   let g:jetpack#optimization = 1
 endfunction
 
