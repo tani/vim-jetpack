@@ -1,7 +1,5 @@
 # 🚀 vim-jetpack
-[![linux](https://github.com/tani/vim-jetpack/actions/workflows/linux.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/linux.yml)
-[![macos](https://github.com/tani/vim-jetpack/actions/workflows/macos.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/macos.yml)
-[![windows](https://github.com/tani/vim-jetpack/actions/workflows/windows.yml/badge.svg)](https://github.com/tani/vim-jetpack/actions/workflows/windows.yml)
+[![](http://github-actions.40ants.com/tani/vim-jetpack/matrix.svg)](https://github.com/tani/vim-jetpack)
 
 The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
