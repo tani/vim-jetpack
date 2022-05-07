@@ -21,6 +21,7 @@ jobs:
           version: 'stable'
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests
+        timeout-minutes: 1
         env:
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
