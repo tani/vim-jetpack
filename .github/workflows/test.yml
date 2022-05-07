@@ -14,12 +14,12 @@ jobs:
         with:
           repository: thinca/vim-themis
           path: vim-themis
-      - uses: ConorMacBride/install-package@v1
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
         with:
-          brew: ${{ matrix.vi }}
-          choco: ${{ matrix.vi }}
-          apt: ${{ matrix.vi }}
+          version: 'stable'
+          neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests
         env:
-          THEMIS_VIM: ${{ matrix.vi == 'neovim' && 'nvim' || 'vim' }}
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
