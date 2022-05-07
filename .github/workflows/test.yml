@@ -1,0 +1,25 @@
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    name: ${{ matrix.os }} / ${{ matrix.vi }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        vi: [neovim, vim]
+        os: [ubuntu, windows, macos]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
+      - uses: ConorMacBride/install-package@v1
+        with:
+          brew: ${{ matrix.vi }}
+          choco: ${{ matrix.vi }}
+          apt: ${{ matrix.vi }}
+      - name: Run tests
+        env:
+          THEMIS_VIM: ${{ matrix.vi }}
+        run: ./vim-themis/bin/themis ./test/test.vim
