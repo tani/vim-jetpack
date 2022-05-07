@@ -1,10 +1,11 @@
-name: Test
+name: test
 on: [push, pull_request]
 jobs:
   test:
     name: ${{ matrix.os }} / ${{ matrix.vi }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-11]
         vi: [neovim, vim]
