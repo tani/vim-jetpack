@@ -3,11 +3,11 @@ on: [push, pull_request]
 jobs:
   test:
     name: ${{ matrix.os }} / ${{ matrix.vi }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-20.04, windows-2019, macos-11]
         vi: [neovim, vim]
-        os: [ubuntu, windows, macos]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/checkout@v2
