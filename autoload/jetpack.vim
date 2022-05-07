@@ -36,7 +36,7 @@ let g:jetpack#copy_method =
   " symlink  : fs_symlink (nvim only)
   " hardlink : fs_link (nvim only)
 
-let s:packages = []
+let s:packages = {}
 
 let s:progress_type = {
 \   'skip': 'skip',
@@ -172,13 +172,14 @@ endfunction
 function! jetpack#install(...) abort
   call s:setupbuf()
   let jobs = []
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for [pkg_name, pkg] in items(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Installing %s ...', pkg.name))
-    if (a:0 > 0 && index(a:000, pkg.name) < 0) || isdirectory(pkg.path)
-      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
+    call s:setbufline(i+3, printf('Installing %s ...', pkg_name))
+    if (a:0 > 0 && index(a:000, pkg_name) < 0) || isdirectory(pkg.path)
+      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
       continue
     endif
     let cmd = ['git', 'clone']
@@ -196,7 +197,7 @@ function! jetpack#install(...) abort
     \       'output': output
     \     }
     \   }),
-    \   s:setbufline(i+3, printf('Installed %s', pkg.name))
+    \   s:setbufline(i+3, printf('Installed %s', pkg_name))
     \ ] }, [i, pkg]))
     call add(jobs, job)
     call s:jobwait(jobs, g:jetpack#njobs)
@@ -206,33 +207,35 @@ endfunction
 
 function! jetpack#checkout(...) abort
   call s:setupbuf()
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for [pkg_name, pkg] in items(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + i) / len(s:packages) * 100))
-    if (a:0 > 0 && index(a:000, pkg.name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
-      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
+    if (a:0 > 0 && index(a:000, pkg_name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
+      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
       continue
     endif
     call system(printf('git -C "%s" switch "-"', pkg.path))
     call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
-    call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg.name))
+    call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg_name))
   endfor
 endfunction
 
 function! jetpack#update(...) abort
   call s:setupbuf()
   let jobs = []
-  for i in range(len(s:packages))
-    let pkg = s:packages[i]
+  let i = -1
+  for [pkg_name, pkg] in items(s:packages)
+    let i += 1
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Updating %s ...', pkg.name))
+    call s:setbufline(i+3, printf('Updating %s ...', pkg_name))
     if pkg.progress.type ==# s:progress_type.install
-       \ || (a:0 > 0 && index(a:000, pkg.name) < 0)
+       \ || (a:0 > 0 && index(a:000, pkg_name) < 0)
        \ || (get(pkg, 'frozen')
        \ || !isdirectory(pkg.path))
-      call s:setbufline(i+3, printf('Skipped %s', pkg.name))
+      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
       continue
     endif
     let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
@@ -243,7 +246,7 @@ function! jetpack#update(...) abort
     \       'output': output
     \     }
     \   }),
-    \   s:setbufline(i+3, printf('Updated %s', pkg.name))
+    \   s:setbufline(i+3, printf('Updated %s', pkg_name))
     \ ] }, [i, pkg]))
     call add(jobs, job)
     call s:jobwait(jobs, g:jetpack#njobs)
@@ -252,7 +255,7 @@ function! jetpack#update(...) abort
 endfunction
 
 function! jetpack#clean() abort
-  for pkg in s:packages
+  for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path) 
       if has_key(pkg, 'commit')
         if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
@@ -270,15 +273,15 @@ endfunction
 
 function! jetpack#bundle() abort
   call s:setupbuf()
-  let bundle = []
+  let bundle = {}
   let unbundle = s:packages
   if g:jetpack#optimization == 1
-    let unbundle = []
-    for pkg in s:packages
+    let unbundle = {}
+    for [pkg_name, pkg] in items(s:packages)
       if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
-        call add(unbundle, pkg)
+        let unbundle[pkg_name] = pkg
       else
-        call add(bundle, pkg)
+        let bundle[pkg_name] = pkg
       endif
     endfor
   endif
@@ -289,7 +292,7 @@ function! jetpack#bundle() abort
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
-  for pkg in bundle
+  for [pkg_name, pkg] in items(bundle)
     call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
     call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:packages) * 100))
     let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
@@ -304,29 +307,30 @@ function! jetpack#bundle() abort
       endif
     endfor
     if conflicted
-      call add(unbundle, pkg)
+      let unbundle[pkg_name] = pkg
     else
       for file in files
         let merged_files[file] = v:true
       endfor
       call s:copy(srcdir, destdir)
-      call s:setbufline(merged_count+3, printf('Merged %s ...', pkg.name))
+      call s:setbufline(merged_count+3, printf('Merged %s ...', pkg_name))
       let merged_count += 1
     endif
   endfor
 
   " Copy plugins.
-  for i in range(len(unbundle))
-    let pkg = unbundle[i]
+  let i = -1
+  for [pkg_name, pkg] in items(unbundle)
+    let i += 1
     call s:setbufline(1, printf('Copying Plugins (%d / %d)', i+merged_count, len(s:packages)))
     call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:packages) * 100))
     if has_key(pkg, 'dir')
-      call s:setbufline(i+merged_count+3, printf('Skipped %s ...', pkg.name))
+      call s:setbufline(i+merged_count+3, printf('Skipped %s ...', pkg_name))
     else
       let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
-      let destdir = s:path(s:optdir, pkg.name)
+      let destdir = s:path(s:optdir, pkg_name)
       call s:copy(srcdir, destdir)
-      call s:setbufline(i+merged_count+3, printf('Copied %s ...', pkg.name))
+      call s:setbufline(i+merged_count+3, printf('Copied %s ...', pkg_name))
     endif
   endfor
 endfunction
@@ -339,12 +343,12 @@ function! s:display() abort
   let msg[s:progress_type.update] = 'Updated'
 
   let line_count = 1
-  for pkg in s:packages
+  for [pkg_name, pkg] in items(s:packages)
     let output = pkg.progress.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
     let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
 
-    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg.name))
+    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg_name))
     let line_count += 1
     for o in split(output, '\n')
       if o !=# ''
@@ -359,7 +363,7 @@ endfunction
 
 function! jetpack#postupdate() abort
   silent! packadd _
-  for pkg in s:packages
+  for [pkg_name, pkg] in items(s:packages)
     if !has_key(pkg, 'do')
       continue
     endif
@@ -367,8 +371,8 @@ function! jetpack#postupdate() abort
     if has_key(pkg, 'dir')
       call chdir(pkg.path)
     else
-      execute 'silent! packadd ' . pkg.name
-      call chdir(s:path(s:optdir, pkg.name))
+      execute 'silent! packadd ' . pkg_name
+      call chdir(s:path(s:optdir, pkg_name))
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
@@ -407,18 +411,17 @@ function! jetpack#add(plugin, ...) abort
   let pkg  = extend(opts, {
   \   'url': url,
   \   'opt': opt,
-  \   'name': name,
   \   'path': path,
   \   'progress': {
   \     'type': s:progress_type.skip,
   \     'output': 'Skipped',
   \   },
   \ })
-  call add(s:packages, pkg)
+  let s:packages[name] = pkg
 endfunction
 
 function! jetpack#begin(...) abort
-  let s:packages = []
+  let s:packages = {}
   if has('nvim')
     let s:home = s:path(stdpath('data'), 'site')
   elseif has('win32') || has('win64')
@@ -468,36 +471,36 @@ function! jetpack#end() abort
   augroup Jetpack
     autocmd!
   augroup END
-  for pkg in s:packages
+  for [pkg_name, pkg] in items(s:packages)
     if has_key(pkg, 'dir')
       let &runtimepath .= printf(',%s/%s', pkg.dir, get(pkg, 'rtp', ''))
       continue
     endif
     if pkg.opt
       for it in s:flatten([get(pkg, 'for', [])])
-        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg.name)
+        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
       endfor
       for it in s:flatten([get(pkg, 'on', [])])
         if it =~? '^<Plug>'
-          execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg.name))
-          execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
-          execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg.name))
-          execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg.name))
+          execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
+          execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+          execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
+          execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
         elseif exists('##'.substitute(it, ' .*', '', ''))
           let it .= (it =~? ' ' ? '' : ' *')
-          execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg.name)
+          execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
         else
           let cmd = substitute(it, '^:', '', '')
-          execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg.name)
+          execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg_name)
         endif
       endfor
-      let event = substitute(substitute(pkg.name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg.name, event)
-      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg.name, event)
+      let event = substitute(substitute(pkg_name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
+      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg_name, event)
+      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
       execute printf('autocmd Jetpack User Jetpack%sPre :', event)
       execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-    elseif isdirectory(s:path(s:optdir, pkg.name))
-      execute 'silent! packadd! ' . pkg.name
+    elseif isdirectory(s:path(s:optdir, pkg_name))
+      execute 'silent! packadd! ' . pkg_name
     endif
   endfor
   silent! packadd! _
@@ -506,23 +509,15 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  for pkg in s:packages
-    if pkg.name ==# a:name
-      return isdirectory(pkg.path)
-    endif
-  endfor
-  return 0
+  return has_key(s:packages, a:name) ? isdirectory(jetpack#get(a:name).path) : 0
 endfunction
 
 function! jetpack#names() abort
-  return map(copy(s:packages), { _, val -> get(val, 'name') })
+  return keys(s:packages)
 endfunction
 
 function! jetpack#get(name) abort
-  for pkg in s:packages
-    if pkg.name ==# a:name
-      return pkg
-    endif
-  endfor
-  return {}
+  return get(s:packages, a:name, {})
 endfunction
+
+
