@@ -463,7 +463,7 @@ function! s:lod_map(map, name, with_prefix, prefix)
   call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
-function! s:lod_cmd(cmd, name, ...)
+function! s:lod_cmd(cmd, name, ...) abort
   execute printf('delc %s', a:cmd)
   execute printf('packadd %s', a:name)
   let args = a:0>0 ? join(a:000, ' ') : ''
