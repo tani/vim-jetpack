@@ -463,6 +463,19 @@ function! s:lod_map(map, name, with_prefix, prefix)
   call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
+function! s:lod_cmd(cmd, name, ...)
+  execute printf('delc %s', a:cmd)
+  execute printf('packadd %s', a:name)
+  let args = a:0>0 ? join(a:000, ' ') : ''
+  try
+    execute printf('%s %s', a:cmd, args)
+  catch /.*/
+    echohl ErrorMsg
+    echomsg v:exception
+    echohl None
+  endtry
+endfunction
+
 function! jetpack#end() abort
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
@@ -491,7 +504,7 @@ function! jetpack#end() abort
           execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
         else
           let cmd = substitute(it, '^:', '', '')
-          execute printf('autocmd Jetpack CmdUndefined %s ++once ++nested silent! packadd %s', cmd, pkg_name)
+          execute printf('command! -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
         endif
       endfor
       let event = substitute(substitute(pkg_name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
@@ -519,5 +532,6 @@ endfunction
 function! jetpack#get(name) abort
   return get(s:packages, a:name, {})
 endfunction
+
 
 

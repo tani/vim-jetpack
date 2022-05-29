@@ -123,10 +123,12 @@ function s:suite.on_option_cmd()
  call s:assert.isdirectory(s:optdir . '/vim-abolish')
  call s:assert.filereadable(s:optdir . '/vim-abolish/plugin/abolish.vim')
  call s:assert.notfilereadable(s:optdir . '/_/plugin/abolish.vim')
- call s:assert.cmd_not_exists('Abolish')
+ call s:assert.cmd_exists('Abolish')
+ call s:assert.cmd_not_exists('Subvert')
  call s:assert.false(s:loaded_abolish_vim)
  silent! Abolish
  call s:assert.cmd_exists('Abolish')
+ call s:assert.cmd_exists('Subvert')
  call s:assert.true(s:loaded_abolish_vim)
 endfunction
 
