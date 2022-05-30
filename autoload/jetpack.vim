@@ -464,8 +464,8 @@ function! s:lod_map(map, name, with_prefix, prefix)
 endfunction
 
 function! s:lod_cmd(cmd, name, ...) abort
-  execute printf('delc %s', a:cmd)
-  execute printf('packadd %s', a:name)
+  execute printf('delcommand %s', a:cmd)
+  execute printf('silent! packadd %s', a:name)
   let args = a:0>0 ? join(a:000, ' ') : ''
   try
     execute printf('%s %s', a:cmd, args)
