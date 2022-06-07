@@ -504,7 +504,7 @@ function! jetpack#end() abort
           execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
         else
           let cmd = substitute(it, '^:', '', '')
-          execute printf('command! -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+          execute printf('command! -range -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
         endif
       endfor
       let event = substitute(substitute(pkg_name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
