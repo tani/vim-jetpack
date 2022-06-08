@@ -68,11 +68,11 @@ Download jetpack.vim and put it in the `autoload` directory.
 
 - Vim
   ```
-  curl -fLo ~\vimfiles\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo %USERPROFILE%\vimfiles\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
   ```
 - Neovim
   ```
-  curl -fLo ~\AppData\Local\nvim\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo %USERPROFILE%\AppData\Local\nvim\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
   ```
 
 ## Supported options
