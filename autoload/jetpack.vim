@@ -533,6 +533,7 @@ function! jetpack#get(name) abort
   return get(s:packages, a:name, {})
 endfunction
 
+if has('nvim')
 lua <<EOF
 package.preload['jetpack'] = function()
   local alias = {
@@ -587,3 +588,4 @@ package.preload['jetpack'] = function()
   }
 end
 EOF
+endif
