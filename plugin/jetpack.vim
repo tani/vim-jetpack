@@ -534,7 +534,8 @@ function! jetpack#get(name) abort
 endfunction
 
 if has('nvim')
-lua <<EOF
+lua<<========================================
+
 package.preload['jetpack'] = function()
   local alias = {
     run = 'do',
@@ -587,5 +588,6 @@ package.preload['jetpack'] = function()
     names = vim.fn["jetpack#names"]
   }
 end
-EOF
+
+========================================
 endif
