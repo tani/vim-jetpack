@@ -36,7 +36,7 @@ let g:jetpack#copy_method =
   " symlink  : fs_symlink (nvim only)
   " hardlink : fs_link (nvim only)
 
-let s:packages = {}
+let s:packages = get(s:, 'packages', {})
 
 let s:progress_type = {
 \   'skip': 'skip',
@@ -533,5 +533,57 @@ function! jetpack#get(name) abort
   return get(s:packages, a:name, {})
 endfunction
 
+lua <<EOF
+package.preload['jetpack'] = function()
+  local alias = {
+    run = 'do',
+    ft = 'for'
+  }
 
+  local function use(plugin)
+    if (type(plugin) == 'string') then
+      vim.fn['jetpack#add'](plugin)
+    else
+      local name = plugin[1]
+      plugin[1] = nil
+      if vim.fn.type(plugin) == vim.v.t_list then
+        vim.fn['jetpack#add'](name)
+      else 
+        for key, value in pairs(alias) do
+          if plugin[key] ~= nil then
+            plugin[value] = plugin[key]
+          end
+        end
+        local opts = plugin
+        vim.fn['jetpack#add'](name, opts)
+      end
+    end
+  end
 
+  local function startup(config)
+    vim.fn['jetpack#begin']()
+    config(use)
+    vim.fn['jetpack#end']()
+  end
+
+  local function setup(config)
+    vim.fn['jetpack#begin']()
+    for _, plugin in pairs(config) do
+      use(plugin)
+    end
+    vim.fn['jetpack#end']()
+  end
+
+  local function tap(name)
+    return vim.fn['jetpack#tap'](name) == 1
+  end
+
+  return {
+    startup = startup,
+    setup = setup,
+    tap = tap,
+    sync = vim.fn["jetpack#sync"],
+    names = vim.fn["jetpack#names"]
+  }
+end
+EOF

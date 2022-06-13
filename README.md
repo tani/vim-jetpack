@@ -147,22 +147,10 @@ call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
 call jetpack#end()
 ```
 
-### Lua extension
-
-You additionally need to download the lua extension and put it in the `lua`
-directory as follows.
-
-```
-curl -fLo ~/.config/nvim/lua/jetpack.lua --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/lua/jetpack.lua
-```
-
-You can use aliases `run` and `ft` insetead of `do` and `for` because of the
-reserved keywords in lua.
-
-#### packer style
+### packer style
 
 ```lua
+vim.cmd('runtime */jetpack.vim')
 require('jetpack').startup(function(use)
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
@@ -175,9 +163,10 @@ require('jetpack').startup(function(use)
 end)
 ```
 
-#### paq style
+### paq style
 
 ```lua
+vim.cmd('runtime */jetpack.vim')
 require('jetpack').setup {
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
@@ -227,6 +216,7 @@ vim-plug, i.e., this plugin provides less options than dein.
   call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
   call jetpack#end()
   ```
+
 - Lua
   ```lua
   vim.cmd('packadd vim-jetpack')
