@@ -51,28 +51,28 @@ directory for more detail.
 
 ## Installation
 
-Download jetpack.vim and put it in the `autoload` directory.
+Download jetpack.vim and put it in the `plugin` directory.
 
 ### Linux / macOS
 
 - Vim
   ```
-  curl -fLo ~/.vim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo ~/.vim/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
   ```
 - Neovim
   ```
-  curl -fLo ~/.config/nvim/autoload/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo ~/.config/nvim/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
   ```
 
 ### Windows
 
 - Vim
   ```
-  curl -fLo %USERPROFILE%\vimfiles\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo %USERPROFILE%\vimfiles\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
   ```
 - Neovim
   ```
-  curl -fLo %USERPROFILE%\AppData\Local\nvim\autoload\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+  curl -fLo %USERPROFILE%\AppData\Local\nvim\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
   ```
 
 ## Supported options
@@ -120,6 +120,7 @@ The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/jetpack/g`
 and `:%s/Plug/Jetpack/g`.
 
 ```vim
+runtime */jetpack.vim
 call jetpack#begin()
 Jetpack 'https://github.com/dense-analysis/ale'
 Jetpack 'junegunn/fzf.vim'
@@ -135,6 +136,7 @@ call jetpack#end()
 ### dein/ minpac style
 
 ```vim
+runtime */jetpack.vim
 call jetpack#begin()
 call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
