@@ -605,7 +605,8 @@ package.preload['jetpack'] = function()
     setup = setup,
     tap = tap,
     sync = vim.fn["jetpack#sync"],
-    names = vim.fn["jetpack#names"]
+    names = vim.fn["jetpack#names"],
+    get = vim.fn["jetpack#get"]
   }
 end
 
