@@ -64,28 +64,6 @@ let s:progress_type = {
 \   'update': 'update',
 \ }
 
-" Original: https://github.com/vim-jp/vital.vim/blob/1168f6fcbf2074651b62d4ba70b9689c43db8c7d/autoload/vital/__vital__/Data/List.vim#L102-L117
-"  License: NYSL, http://www.kmonos.net/nysl/index.en.html
-function! s:flatten(list, ...) abort
-  if exists('*flatten')
-    return flatten(a:list)
-  endif
-  let limit = a:0 > 0 ? a:1 : -1
-  let memo = []
-  if limit == 0
-    return a:list
-  endif
-  let limit -= 1
-  for Value in a:list
-    let memo +=
-          \ type(Value) == type([]) ?
-          \   s:flatten(Value, limit) :
-          \   [Value]
-    unlet! Value
-  endfor
-  return memo
-endfunction
-
 function s:path(...)
   return expand(join(a:000, '/'))
 endfunction
@@ -509,32 +487,35 @@ function! jetpack#end() abort
       let &runtimepath .= printf(',%s/%s', pkg.dir, get(pkg, 'rtp', ''))
       continue
     endif
-    if pkg.opt
-      for it in s:flatten([get(pkg, 'for', [])])
-        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
-      endfor
-      for it in s:flatten([get(pkg, 'on', [])])
-        if it =~? '^<Plug>'
-          execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
-          execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
-          execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
-          execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
-        elseif exists('##'.substitute(it, ' .*', '', ''))
-          let it .= (it =~? ' ' ? '' : ' *')
-          execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
-        else
-          let cmd = substitute(it, '^:', '', '')
-          execute printf('command! -range -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
-        endif
-      endfor
-      let event = substitute(substitute(pkg_name, '\W\+', '_', 'g'), '\(^\|_\)\(.\)', '\u\2', 'g')
-      execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg_name, event)
-      execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
-      execute printf('autocmd Jetpack User Jetpack%sPre :', event)
-      execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-    elseif isdirectory(s:path(s:optdir, pkg_name))
+    if !pkg.opt
       execute 'silent! packadd! ' . pkg_name
+      continue
     endif
+    let items = get(pkg, 'for', [])
+    for it in (type(items) ==# v:t_list ? items : [items])
+      execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
+    endfor
+    let items = get(pkg, 'on', [])
+    for it in (type(items) ==# v:t_list ? items : [items])
+      if it =~? '^<Plug>'
+        execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
+        execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+        execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
+        execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+      elseif exists('##'.substitute(it, ' .*', '', ''))
+        let it .= (it =~? ' ' ? '' : ' *')
+        execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
+      else
+        let cmd = substitute(it, '^:', '', '')
+        execute printf('command! -range -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+      endif
+    endfor
+    let event = substitute(pkg_name, '\W\+', '_', 'g')
+    let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
+    execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg_name, event)
+    execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
+    execute printf('autocmd Jetpack User Jetpack%sPre :', event)
+    execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
   syntax enable
