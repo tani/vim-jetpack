@@ -235,13 +235,10 @@ function s:suite.commit_option()
 endfunction
 
 function s:suite.change_repo_url()
- if has('win32')
-   call s:assert.skip('')
- endif
- call s:setup(['tensorflow/examples'])
- call s:setup(['serverless/examples'])
- let url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(s:srcdir . '/examples'))))
- call s:assert.match(url, 'serverless')
+ call s:setup(['sveltejs/template'])
+ call s:setup(['readthedocs/template'])
+ let url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(s:srcdir . '/template'))))
+ call s:assert.match(url, 'readthedocs')
 endfunction
 
 function s:suite.frozen_option()
