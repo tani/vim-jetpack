@@ -254,17 +254,28 @@ endfunction
 
 function! jetpack#clean() abort
   for [pkg_name, pkg] in items(s:packages)
-    if isdirectory(pkg.path) 
+    if isdirectory(pkg.path)
+      "Check the url of the repository
+      let remote_url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(pkg.path))))
+      if remote_url !=# pkg.url
+        call delete(pkg.path, 'rf')
+        continue
+      endif
+      "Check the commit
       if has_key(pkg, 'commit')
-        if system(printf('git -c "%s" cat-file -t %s', pkg.path, pkg.commit)) !~# 'commit'
-          call delete(pkg.path)
+        let commit = system(printf('git -C %s cat-file -t %s', shellescape(pkg.path), shellescape(pkg.commit)))
+        if commit !~# 'commit'
+          call delete(pkg.path, 'rf')
+          continue
         endif
-      elseif has_key(pkg, 'branch') || has_key(pkg, 'tag')
-        let branch = trim(system(printf('git -C "%s" rev-parse --abbrev-ref HEAD', pkg.path)))
-        if get(pkg, 'branch', get(pkg, 'tag')) != branch
+      endif
+      "Check the branch and the tag
+      if has_key(pkg, 'branch') || has_key(pkg, 'tag')
+        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', shellescape(pkg.path))))
+        if  get(pkg, 'branch', get(pkg, 'tag')) != branch
           call delete(pkg.path, 'rf')
         endif
-      endif 
+      endif
     endif
   endfor
 endfunction

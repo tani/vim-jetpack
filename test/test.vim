@@ -234,6 +234,13 @@ function s:suite.commit_option()
  call s:assert.match(commit, 'ce448a6')
 endfunction
 
+function s:suite.change_repo_url()
+ call s:setup(['tensorflow/examples'])
+ call s:setup(['serverless/examples'])
+ let url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(s:srcdir . '/examples'))))
+ call s:assert.match(url, 'serverless')
+endfunction
+
 function s:suite.frozen_option()
  call s:assert.skip('')
 endfunction
