@@ -175,8 +175,8 @@ function s:suite.rtp_option()
 endfunction
 
 function s:suite.dir_do_option()
- if has('win32') || has('win64')
-   call s:assert.skip('Skim is not for Windows')
+ if has('win32')
+   call s:assert.skip('')
  endif
  call s:setup(['lotabout/skim', { 'dir': s:vimhome . '/pack/skim', 'do': './install' }])
  call s:assert.isnotdirectory(s:vimhome . '/pack/opt/skim')
@@ -235,6 +235,9 @@ function s:suite.commit_option()
 endfunction
 
 function s:suite.change_repo_url()
+ if has('win32')
+   call s:assert.skip('')
+ endif
  call s:setup(['tensorflow/examples'])
  call s:setup(['serverless/examples'])
  let url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(s:srcdir . '/examples'))))

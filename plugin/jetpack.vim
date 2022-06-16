@@ -144,7 +144,7 @@ function! s:copy(from, to) abort
     endfor
   elseif has('unix')
     call system(printf('cp -R "%s/." "%s"', a:from, a:to))
-  elseif has('win32') || has('win64')
+  elseif has('win32')
     call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
   endif
 endfunction
@@ -433,7 +433,7 @@ function! jetpack#begin(...) abort
   let s:packages = {}
   if has('nvim')
     let s:home = s:path(stdpath('data'), 'site')
-  elseif has('win32') || has('win64')
+  elseif has('win32')
     let s:home = expand('~/vimfiles')
   else
     let s:home = expand('~/.vim')
