@@ -178,7 +178,7 @@ endfunction
 
 function! s:setupbuf() abort
   execute 'silent! bdelete! ' . bufnr('JetpackStatus')
-  40vnew +setlocal\ buftype=nofile\ nobuflisted\ noswapfile\ nonumber\ nowrap JetpackStatus
+  40vnew +setlocal\ buftype=nofile\ nobuflisted\ \nonumber \norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[A-Z][a-z]*ing/
   syntax match jetpackComplete /^[A-Z][a-z]*ed/
