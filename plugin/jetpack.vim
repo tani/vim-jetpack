@@ -24,6 +24,11 @@
 "SOFTWARE.
 "=============================================
 
+if exists('g:loaded_jetpack')
+  finish
+endif
+let g:loaded_jetpack = 1
+
 let g:jetpack#optimization =
   \ get(g:, 'jetpack#optimization', 1)
 
