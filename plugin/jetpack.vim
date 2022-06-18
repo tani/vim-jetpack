@@ -559,6 +559,22 @@ package.preload['jetpack'] = function()
     ft = 'for'
   }
 
+
+  local function init(config)
+    local config = config or {}
+
+    local function _set_option(name)
+      local j_name = 'jetpack#' .. name
+      local v = vim.g[j_name]
+      vim.g[j_name] = config[name] or vim.g[j_name]
+    end
+
+    for _, name in ipairs({'optimization', 'njobs', 'ignore_patterns', 'copy_method'}) do
+      _set_option(name)
+    end
+  end
+
+
   local function use(plugin)
     if (type(plugin) == 'string') then
       vim.fn['jetpack#add'](plugin)
@@ -598,6 +614,7 @@ package.preload['jetpack'] = function()
   end
 
   return {
+    init = init,
     startup = startup,
     setup = setup,
     tap = tap,
@@ -609,3 +626,4 @@ end
 
 ========================================
 endif
+
