@@ -25,14 +25,11 @@ if exists('g:loaded_jetpack')
 endif
 let g:loaded_jetpack = 1
 
-let g:jetpack#optimization =
-  \ get(g:, 'jetpack#optimization', 1)
+let g:jetpack_njobs =
+  \ get(g:, 'jetpack_njobs', 8)
 
-let g:jetpack#njobs =
-  \ get(g:, 'jetpack#njobs', 8)
-
-let g:jetpack#ignore_patterns =
-  \ get(g:, 'jetpack#ignore_patterns', [
+let g:jetpack_ignore_patterns =
+  \ get(g:, 'jetpack_ignore_patterns', [
   \   '/.*',
   \   '/.*/**/*',
   \   '/doc/tags*',
@@ -50,8 +47,8 @@ let g:jetpack#ignore_patterns =
   \   '/NEWS*',
   \ ])
 
-let g:jetpack#copy_method =
-  \ get(g:, 'jetpack#copy_method', 'system')
+let g:jetpack_copy_method =
+  \ get(g:, 'jetpack_copy_method', 'system')
   " sytem    : cp/ xcopy
   " copy     : readfile and writefile
   " symlink  : fs_symlink (nvim only)
@@ -80,7 +77,7 @@ function! s:files(path) abort
 endfunction
 
 function! s:ignorable(filename) abort
-  return filter(copy(g:jetpack#ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
 endfunction
 
 function! s:progressbar(n) abort
@@ -136,15 +133,15 @@ endfunction
 
 function! s:copy(from, to) abort
   call mkdir(a:to, 'p')
-  if g:jetpack#copy_method !=# 'system'
+  if g:jetpack_copy_method !=# 'system'
     for src in s:files(a:from)
       let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
-      if g:jetpack#copy_method ==# 'copy'
+      if g:jetpack_copy_method ==# 'copy'
         call writefile(readfile(src, 'b'), dest, 'b')
-      elseif g:jetpack#copy_method ==# 'hardlink'
+      elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
-      elseif g:jetpack#copy_method ==# 'symlink'
+      elseif g:jetpack_copy_method ==# 'symlink'
         call v:lua.vim.loop.fs_symlink(src, dest)
       endif
     endfor
@@ -248,7 +245,7 @@ function! s:update_plugins() abort
     \  execute("let pkg.output = output")
     \ ] }, [pkg]))
     call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
+    call s:jobwait(jobs, g:jetpack_njobs)
   endfor
   call s:jobwait(jobs, 0)
 endfunction
@@ -279,7 +276,7 @@ function! s:install_plugins() abort
     \   execute("let pkg.output = output")
     \ ]}, [pkg]))
     call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
+    call s:jobwait(jobs, g:jetpack_njobs)
   endfor
   call s:jobwait(jobs, 0)
 endfunction
@@ -307,17 +304,14 @@ function! s:merge_plugins() abort
   endfor
 
   let bundle = {}
-  let unbundle = s:packages
-  if g:jetpack#optimization == 1
-    let unbundle = {}
-    for [pkg_name, pkg] in items(s:packages)
-      if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
-        let unbundle[pkg_name] = pkg
-      else
-        let bundle[pkg_name] = pkg
-      endif
-    endfor
-  endif
+  let unbundle = {}
+  for [pkg_name, pkg] in items(s:packages)
+    if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
+      let unbundle[pkg_name] = pkg
+    else
+      let bundle[pkg_name] = pkg
+    endif
+  endfor
 
   call delete(s:optdir, 'rf')
   let destdir = s:path(s:optdir, '_')
@@ -546,22 +540,6 @@ package.preload['jetpack'] = function()
     run = 'do',
     ft = 'for'
   }
-
-
-  local function init(config)
-    local config = config or {}
-
-    local function _set_option(name)
-      local j_name = 'jetpack#' .. name
-      local v = vim.g[j_name]
-      vim.g[j_name] = config[name] or vim.g[j_name]
-    end
-
-    for _, name in ipairs({'optimization', 'njobs', 'ignore_patterns', 'copy_method'}) do
-      _set_option(name)
-    end
-  end
-
 
   local function use(plugin)
     if (type(plugin) == 'string') then

@@ -1,7 +1,7 @@
-execute 'set pp-=' . (has('nvim') ? stdpath('data') . '/site' : expand('~/.vim'))
-execute 'set rtp^=' . expand('<sfile>:p:h:h')
+set packpath=
+call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
-let g:jetpack#copy_method = 'system'
+let g:jetpack_copy_method = 'system'
 
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
@@ -44,25 +44,6 @@ function s:assert.isnotdirectory(dir)
   if isdirectory(a:dir)
     call s:assert.fail(a:dir . ' is a directory')
   endif
-endfunction
-
-function s:suite.optimization_1()
-  let g:jetpack#optimization = 1
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  if isdirectory(s:optdir . '/fzf.vim')
-    call s:assert.isnotdirectory(s:optdir . '/fzf')
-  else
-    call s:assert.isdirectory(s:optdir . '/fzf')
-  endif
-  let g:jetpack#optimization = 1
-endfunction
-
-function s:suite.optimization_0()
- let g:jetpack#optimization = 0
- call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
- call s:assert.isdirectory(s:optdir . '/fzf')
- call s:assert.isdirectory(s:optdir . '/fzf.vim')
- let g:jetpack#optimization = 1
 endfunction
 
 function s:suite.no_option_github()
@@ -117,7 +98,7 @@ function s:suite.on_option_cmd()
  call s:setup(['tpope/vim-abolish', { 'on': 'Abolish' }]) 
  let s:loaded_abolish_vim = 0
  augroup JetpackTest
-   au!
+   autocmd!
    autocmd User JetpackVimAbolishPost let s:loaded_abolish_vim = 1
  augroup END
  call s:assert.isdirectory(s:optdir . '/vim-abolish')
@@ -139,7 +120,7 @@ function s:suite.on_option_plug()
  call s:assert.filereadable(s:optdir . '/eskk.vim/plugin/eskk.vim')
  let s:loaded_eskk_vim = 0
  augroup JetpackTest
-   au!
+   autocmd!
    autocmd User JetpackEskkVimPost let s:loaded_eskk_vim = 1
  augroup END
  call s:assert.cmd_not_exists('EskkMap')
