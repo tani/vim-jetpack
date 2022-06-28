@@ -315,6 +315,7 @@ function! s:merge_plugins() abort
     endif
   endfor
 
+  "TODO do not delete directories
   call delete(s:optdir, 'rf')
   let destdir = s:path(s:optdir, '_')
 
