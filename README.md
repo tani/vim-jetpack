@@ -142,7 +142,7 @@ call g:jetpack.end()
 
 ```lua
 vim.cmd('runtime */jetpack.vim')
-require('jetpack').startup(function(use)
+vim.g.jetpack.startup(function(use)
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -158,7 +158,7 @@ end)
 
 ```lua
 vim.cmd('runtime */jetpack.vim')
-require('jetpack').setup {
+vim.g.jetpack.setup {
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
   {'junegunn/fzf', run = 'call fzf#install()' },
@@ -212,11 +212,11 @@ vim-plug, i.e., this plugin provides less options than dein.
   ```lua
   vim.cmd('packadd vim-jetpack')
 
-  require'jetpack'.startup(function ()
+  vim.g.jetpack.startup(function (use)
     use { 'tani/vim-jetpack', opt = 1 }
   end)
 
-  require'jetpack'.setup {
+  vim.g.jetpack.setup {
     { 'tani/vim-jetpack', opt = 1 }
   }
   ```
