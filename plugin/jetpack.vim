@@ -171,7 +171,7 @@ endfunction
 function! s:show_progress(title) abort
   let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
-  let processed = len(filter(copy(s:packages), "v:val.status[-1] =~# 'ed'"))
+  let processed = len(filter(copy(s:packages), { _, val -> val.status[-1] =~# 'ed' }))
   call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
   call appendbufline(buf, '$', s:progressbar((0.0 + processed) / len(s:packages) * 100))
   for [pkg_name, pkg] in items(s:packages)
