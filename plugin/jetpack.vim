@@ -159,10 +159,6 @@ function! s:copy(from, to) abort
   endif
 endfunction
 
-function! s:setbufline(lnum, text, ...) abort
-  call setbufline(bufnr('JetpackStatus'), a:lnum, a:text)
-endfunction
-
 function! s:setupbuf() abort
   execute 'silent! bdelete! ' . bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
@@ -177,44 +173,34 @@ function! s:setupbuf() abort
 endfunction
 
 function! s:show_progress(title) abort
+  let buf = bufnr('JetpackStatus')
+  call deletebufline(buf, 1, '$')
   let processed = len(filter(copy(s:packages), "v:val.status[-1] =~# 'ed'"))
-  call s:setbufline(1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
-  call s:setbufline(2, s:progressbar((0.0 + processed / len(s:packages) * 100)))
-  let line_count = 3
+  call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
+  call appendbufline(buf, '$', s:progressbar((0.0 + processed) / len(s:packages) * 100))
   for [pkg_name, pkg] in items(s:packages)
-    call s:setbufline(line_count, printf('%s %s', pkg.status[-1], pkg_name))
-    let line_count += 1
+    call appendbufline(buf, '$', printf('%s %s', pkg.status[-1], pkg_name))
   endfor
   redraw
 endfunction
 
 function! s:show_result() abort
-  call s:setupbuf()
-  call s:setbufline(1, printf("Result"))
-  call s:setbufline(2, s:progressbar(100))
-  let line_count = 3
+  let buf = bufnr('JetpackStatus')
+  call deletebufline(buf, 1, '$')
+  call setbufline(buf, 1, 'Result')
+  call appendbufline(buf, '$', s:progressbar(100))
   for [pkg_name, pkg] in items(s:packages)
+    if index(pkg.status, s:status.installed) >= 0
+      call appendbufline(buf, '$', printf('installed %s', pkg_name))
+    elseif index(pkg.status, s:status.updated) >= 0
+      call appendbufline(buf, '$', printf('updated %s', pkg_name))
+    else
+      call appendbufline(buf, '$', printf('skipped %s', pkg_name))
+    endif
     let output = pkg.output
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
     let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
-
-    if index(pkg.status, s:status.installed) >= 0
-      call s:setbufline(line_count, printf('installed %s', pkg_name))
-    elseif index(pkg.status, s:status.updated) >= 0
-      call s:setbufline(line_count, printf('updated %s', pkg_name))
-    else
-      call s:setbufline(line_count, printf('skipped %s', pkg_name))
-    endif
-
-    let line_count += 1
-    for o in split(output, '\n')
-      if o !=# ''
-        call s:setbufline(line_count, printf('  %s', o))
-        let line_count += 1
-      endif
-    endfor
-    call s:setbufline(line_count, '')
-    let line_count += 1
+    call appendbufline(buf, '$', output)
   endfor
   redraw
 endfunction
@@ -248,7 +234,6 @@ function! s:clean_plugins() abort
 endfunction
 
 function! s:update_plugins() abort
-  call s:setupbuf()
   let jobs = []
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
@@ -273,7 +258,6 @@ function! s:update_plugins() abort
 endfunction
 
 function! s:install_plugins() abort
-  call s:setupbuf()
   let jobs = []
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
@@ -305,7 +289,6 @@ function! s:install_plugins() abort
 endfunction
 
 function! s:switch_plugins() abort
-  call s:setupbuf()
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
   endfor
@@ -323,7 +306,6 @@ function! s:switch_plugins() abort
 endfunction
 
 function! s:merge_plugins() abort
-  call s:setupbuf()
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
   endfor
@@ -418,6 +400,7 @@ function! s:postupdate_plugins() abort
 endfunction
 
 function! jetpack#sync() abort
+  call s:setupbuf()
   call s:clean_plugins()
   call s:update_plugins()
   call s:install_plugins()
