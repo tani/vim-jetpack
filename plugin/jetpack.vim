@@ -255,7 +255,7 @@ function! s:update_plugins() abort
   endfor
   for [pkg_name, pkg] in items(s:packages)
     call s:show_progress('Update Plugins')
-    if get(pkg, 'frozen') || isdirectory(pkg.path)
+    if get(pkg, 'frozen') || !isdirectory(pkg.path)
       call add(pkg.status, s:status.skipped)
       continue
     else
