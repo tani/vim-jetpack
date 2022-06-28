@@ -161,7 +161,6 @@ endfunction
 
 function! s:setbufline(lnum, text, ...) abort
   call setbufline(bufnr('JetpackStatus'), a:lnum, a:text)
-  redraw
 endfunction
 
 function! s:setupbuf() abort
@@ -186,6 +185,7 @@ function! s:show_progress(title) abort
     call s:setbufline(line_count, printf('%s %s', pkg.status[-1], pkg_name))
     let line_count += 1
   endfor
+  redraw
 endfunction
 
 function! s:show_result() abort
@@ -216,6 +216,7 @@ function! s:show_result() abort
     call s:setbufline(line_count, '')
     let line_count += 1
   endfor
+  redraw
 endfunction
 
 function! s:clean_plugins() abort
@@ -247,6 +248,7 @@ function! s:clean_plugins() abort
 endfunction
 
 function! s:update_plugins() abort
+  call s:setupbuf()
   let jobs = []
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
@@ -271,6 +273,7 @@ function! s:update_plugins() abort
 endfunction
 
 function! s:install_plugins() abort
+  call s:setupbuf()
   let jobs = []
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
@@ -302,6 +305,7 @@ function! s:install_plugins() abort
 endfunction
 
 function! s:switch_plugins() abort
+  call s:setupbuf()
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
   endfor
@@ -319,6 +323,7 @@ function! s:switch_plugins() abort
 endfunction
 
 function! s:merge_plugins() abort
+  call s:setupbuf()
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
   endfor
