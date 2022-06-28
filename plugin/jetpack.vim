@@ -103,35 +103,34 @@ function! s:jobwait(jobs, njobs) abort
   endwhile
 endfunction
 
-if has('nvim')
-  function! s:jobstart(cmd, cb) abort
+" Original: https://github.com/lambdalisue/vital-Whisky/blob/90c71/autoload/vital/__vital__/System/Job/Vim.vim#L46
+"  License: https://github.com/lambdalisue/vital-Whisky/blob/90c71/LICENSE
+function! s:nvim_exit_cb(buf, cb, job, ...) abort
+  let ch = job_getchannel(a:job)
+  while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
+  while ch_status(ch) ==# 'buffered' | sleep 1ms | endwhile
+  call a:cb(join(a:buf, "\n"))
+endfunction
+
+function! s:jobstart(cmd, cb) abort
+  if has('nvim')
     let buf = []
     return jobstart(a:cmd, {
     \   'on_stdout': { _, data -> extend(buf, data) },
     \   'on_stderr': { _, data -> extend(buf, data) },
     \   'on_exit': { -> a:cb(join(buf, "\n")) }
     \ })
-  endfunction
-else
-  " Original: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/autoload/vital/__vital__/System/Job/Vim.vim#L46
-  "  License: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/LICENSE
-  function! s:exit_cb(buf, cb, job, ...) abort
-    let ch = job_getchannel(a:job)
-    while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
-    while ch_status(ch) ==# 'buffered' | sleep 1ms | endwhile
-    call a:cb(join(a:buf, "\n"))
-  endfunction
-  function! s:jobstart(cmd, cb) abort
+  else
     let buf = []
     return job_start(a:cmd, {
     \   'out_mode': 'raw',
     \   'out_cb': { _, data -> extend(buf, split(data, "\n")) },
     \   'err_mode': 'raw',
     \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
-    \   'exit_cb': function('s:exit_cb', [buf, a:cb])
+    \   'exit_cb': function('s:nvim_exit_cb', [buf, a:cb])
     \ })
-  endfunction
-endif
+  endif
+endfunction
 
 function! s:copy(from, to) abort
   call mkdir(a:to, 'p')
