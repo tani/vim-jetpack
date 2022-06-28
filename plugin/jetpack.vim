@@ -371,7 +371,7 @@ endfunction
 function! s:postupdate_plugins() abort
   silent! packadd _
   for [pkg_name, pkg] in items(s:packages)
-    if !has_key(pkg, 'do')
+    if !has_key(pkg, 'do') || pkg.output =~# 'Already up to date.'
       continue
     endif
     let pwd = getcwd()
