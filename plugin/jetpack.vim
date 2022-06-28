@@ -168,9 +168,9 @@ function! s:setupbuf() abort
   execute 'silent! bdelete! ' . bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
-  syntax match jetpackProgress /^[A-Z][a-z]*ing/
-  syntax match jetpackComplete /^[A-Z][a-z]*ed/
-  syntax keyword jetpackSkipped ^Skipped
+  syntax match jetpackProgress /^[a-z]*ing/
+  syntax match jetpackComplete /^[a-z]*ed/
+  syntax keyword jetpackSkipped ^skipped
   highlight def link jetpackProgress DiffChange
   highlight def link jetpackComplete DiffAdd
   highlight def link jetpackSkipped DiffDelete
