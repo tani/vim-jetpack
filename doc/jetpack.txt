@@ -21,15 +21,15 @@ the built-in plugin manager only.
 - Fancy UI (User Interface)
     - You can see a progress of installation with a graphical interface
 - `pack/*/start`-free architecture.
-    - Installed plugins do not pollutes your vim until calling `jetpack#`-functions
+    - Installed plugins do not pollutes your vim until calling `g:jetpack.`-functions
 
 ================================================================================
 Functions ( *jetpack-functions* )
 
-jetpack#add({repo} [, {options}])                                *jetpack#add()*
+g:jetpack.add({repo} [, {options}])                           *g:jetpack.add()*
     {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
     {options} is a dictionary consits of the following. See also
-    |jetpack#add-options|.
+    |g:jetpack.add-options|.
 
     vim-plug interface
     |   name   |        type        | description                           |
@@ -50,30 +50,30 @@ jetpack#add({repo} [, {options}])                                *jetpack#add()*
     | -------- | ------------------ | ------------------------------------- |
     |    opt   |      boolean       | On-demand loading: packadd {name}     |
 
-jetpack#begin([{path}])                                        *jetpack#begin()*
+g:jetpack.begin([{path}])                                    *g:jetpack.begin()*
     The function setups jetpack plugins. All plugin declarations should be
     placed after this function. You can give {path} if you want to use another
     directory to manage plugins.
 
-jetpack#end()                                                    *jetpack#end()*
+g:jetpack.end()                                                *g:jetpack.end()*
     The function loads declared plugins. All plugin declarations should be
     placed before this function.
 
-jetpack#sync()                                                  *jetpack#sync()*
+g:jetpack.sync()                                              *g:jetpack.sync()*
     The function performs to install, update, and bundle all plugins.
     The function is evenrything all you need to know.
     You must run this function after a change of your configuration.
 
-jetpack#tap({name})                                              *jetpack#tap()*
+g:jetpack.tap({name})                                          *g:jetpack.tap()*
     It returns |TRUE| if the plugin is available, otherwise it returns |FALSE|.
 
-jetpack#get({name})                                              *jetpack#get()*
+g:jetpack.get({name})                                          *g:jetpack.get()*
     It returns metadata of the plugin if possible, otherwise it returns `{}` .
     This is the same as `dein#get` of `dein.vim`.
 
-jetpack#names()                                                *jetpack#names()*
+g:jetpack.names()                                            *g:jetpack.names()*
     It returns the list of plugin names registered including unavailable
-    plugins. Please use it with |jetpack#tap()|.
+    plugins. Please use it with |g:jetpack.tap()|.
 
 Jetpack expoted some other functions but they are only for the developers.
 Unlisted functions might be changed without any announcements in the future.
@@ -82,26 +82,26 @@ Unlisted functions might be changed without any announcements in the future.
 Commands ( *jetpack-commands* )
 
 Jetpack {repo} [, {options}]                                           *Jetpack*
-    A command version of |jetpack#add()|.
+    A command version of |g:jetpack.add()|.
     It is useful for the vim-plug sytle declaration of plugins in vimrc.
 
 JetpackSync                                                        *JetpackSync*
-    A command version of |jetpack#sync()|.
-    The above command |Jetpack| is only available between |jetpack#begin()|
-    and |jetpack#end()|. Thus, you can use the shorthand `J` to call this
+    A command version of |g:jetpack.sync()|.
+    The above command |Jetpack| is only available between |g:jetpack.begin()|
+    and |g:jetpack.end()|. Thus, you can use the shorthand `J` to call this
     command.
 
 ================================================================================
 Variables ( *jetpack-variables* )
 
-g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
+g:jetpack.ignore_patterns                         *g:g:jetpack.ignore_patterns*
     The list of glob-patterns is used to skip duplicated files.
     Jetpack aggressively bundles plugins if you extend this list.
     The following example skip bunding any JSON files.
     >
-    > call add(g:jetpack#ignore_patterns, '/*.json')
+    > call add(g:jetpack.ignore_patterns, '/*.json')
 
-g:jetpack#copy_method                                   *g:jetpack#copy_method*
+g:jetpack.copy_method                                *g:g:jetpack.copy_method*
     The default value is `'system'`.
     Consider using the `'copy'` if you have some trouble to run the
     external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`

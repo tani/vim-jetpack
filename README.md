@@ -20,7 +20,7 @@ the built-in plugin manager only.
   - You can see a progress of installation with a graphical interface
 - `pack/*/start`-free architecture.
   - Installed plugins do not pollutes your vim until calling
-    `jetpack#`-functions
+    `g:jetpack.`-functions
 
 ## Benchmark
 
@@ -96,17 +96,6 @@ Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 | :---: | :-------: | :---------------------------------- |
 | `opt` | `boolean` | On-demand loading: `packadd {name}` |
 
-## Configuration
-
-- `g:jetpack#optimization` -- The optimization level for the bundle algorithm.
-
-  |  speed  |    0   |   1    |
-  | :-----: | :----: | :----: |
-  | install |  fast  |  slow  |
-  | startup |  slow  |  fast  |
-  - `0` -- Bundle nothing. This is the same as vim-plug and is the safest level.
-  - `1` -- Bundle if there are no conflicts. It tries to bundle plugins as possible.
-
 ## Commands
 
 - `:JetpackSync` -- Synchronize configuration and state. It performs to install,
@@ -116,12 +105,12 @@ Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 
 ### vim-plug style
 
-The most of vim-plug users can migrate to vim-jetpack by `:%s/plug/jetpack/g`
+The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack./g`
 and `:%s/Plug/Jetpack/g`.
 
 ```vim
 runtime */jetpack.vim
-call jetpack#begin()
+call g:jetpack.begin()
 Jetpack 'https://github.com/dense-analysis/ale'
 Jetpack 'junegunn/fzf.vim'
 Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
@@ -130,23 +119,38 @@ Jetpack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-
 Jetpack 'vlime/vlime', { 'rtp': 'vim' }
 Jetpack 'dracula/vim', { 'as': 'dracula' }
 Jetpack 'tpope/vim-fireplace', { 'for': 'clojure' }
-call jetpack#end()
+call g:jetpack.end()
 ```
 
 ### dein/ minpac style
 
 ```vim
 runtime */jetpack.vim
-call jetpack#begin()
-call jetpack#add('https://github.com/dense-analysis/ale')
-call jetpack#add('junegunn/fzf.vim')
-call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
-call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
-call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
-call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
-call jetpack#add('dracula/vim', { 'as': 'dracula' })
-call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
-call jetpack#end()
+call g:jetpack.begin()
+call g:jetpack.add('https://github.com/dense-analysis/ale')
+call g:jetpack.add('junegunn/fzf.vim')
+call g:jetpack.add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call g:jetpack.add('neoclide/coc.nvim', { 'branch': 'release' })
+call g:jetpack.add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call g:jetpack.add('vlime/vlime', { 'rtp': 'vim' })
+call g:jetpack.add('dracula/vim', { 'as': 'dracula' })
+call g:jetpack.add('tpope/vim-fireplace', { 'for': 'clojure' })
+call g:jetpack.end()
+```
+
+```lua
+vim.cmd('runtime */jetpack.vim')
+local jetpack = vim.g.jetpack
+jetpack.begin()
+jetpack.add('https://github.com/dense-analysis/ale')
+jetpack.add('junegunn/fzf.vim')
+jetpack.add('junegunn/fzf', { run = "call fzf#install()" })
+jetpack.add('neoclide/coc.nvim', { branch = 'release' })
+jetpack.add('neoclide/coc.nvim', { branch = 'master', 'do': 'yarn install --frozen-lockfile' })
+jetpack.add('vlime/vlime', { rtp = 'vim' })
+jetpack.add('dracula/vim', { as = 'dracula' })
+jetpack.add('tpope/vim-fireplace', { ft = 'clojure' })
+jetpack.end()
 ```
 
 ### packer style
@@ -213,10 +217,10 @@ vim-plug, i.e., this plugin provides less options than dein.
 - Vimscirpt
   ```vim
   packadd vim-jetpack
-  call jetpack#begin()
+  call g:jetpack.begin()
   Jetpack 'tani/vim-jetpack', { 'opt': 1 }
-  call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
-  call jetpack#end()
+  call g:jetpack.add('tani/vim-jetpack', { 'opt': 1 })
+  call g:jetpack.end()
   ```
 
 - Lua
@@ -234,13 +238,13 @@ vim-plug, i.e., this plugin provides less options than dein.
 
 ### Is it possible to install plugins if they are not installed?
 
-Yes, you can. We have `jetpack#names()` and `jetpack#tap()`
+Yes, you can. We have `g:jetpack.names()` and `g:jetpack.tap()`
 to retrieve a list of plugin names and check the availability.
 
 ```vim
-for name in jetpack#names()
-  if !jetpack#tap(name)
-    call jetpack#sync()
+for name in g:jetpack.names()
+  if !g:jetpack.tap(name)
+    call g:jetpack.sync()
     break
   endif
 endfor
