@@ -178,13 +178,13 @@ function! s:setupbuf() abort
 endfunction
 
 function! s:show_progress(title) abort
-  let index = 0
   let processed = len(filter(copy(s:packages), "v:val.status[-1] =~# 'ed'"))
   call s:setbufline(1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
   call s:setbufline(2, s:progressbar((0.0 + processed / len(s:packages) * 100)))
+  let line_count = 3
   for [pkg_name, pkg] in items(s:packages)
-    call s:setbufline(index + 3, printf('%s %s', pkg.status[-1], pkg_name))
-    let index += 1
+    call s:setbufline(line_count, printf('%s %s', pkg.status[-1], pkg_name))
+    let line_count += 1
   endfor
 endfunction
 
