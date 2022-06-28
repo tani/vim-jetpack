@@ -1,8 +1,4 @@
-"=============== JETPACK.vim =================
-"      The lightning-fast plugin manager
-"
-"                MIT License
-"
+"=================================== Jetpack ==================================
 "Copyright (c) 2022 TANIGUCHI Masaya
 "
 "Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +18,7 @@
 "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 "SOFTWARE.
-"=============================================
+"==============================================================================
 
 if exists('g:loaded_jetpack')
   finish
@@ -300,8 +296,8 @@ function! s:switch_plugins() abort
     else
       call add(pkg.status, s:status.switched)
     endif
-    call system(printf('git -C "%s" switch "-"', pkg.path))
-    call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
+    call system(printf('git -C %s switch -', shellescape(pkg.path)))
+    call system(printf('git -C %s checkout %s', shellescape(pkg.path), shellescape(pkg.commit)))
   endfor
 endfunction
 
