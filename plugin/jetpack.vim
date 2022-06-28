@@ -147,9 +147,9 @@ function! s:copy(from, to) abort
       endif
     endfor
   elseif has('unix')
-    call system(printf('cp -R "%s/." "%s"', a:from, a:to))
+    call system(printf('cp -R %s/. %s', shellescape(a:from), shellescape(a:to)))
   elseif has('win32')
-    call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
+    call system(printf('xcopy %s %s /E /Y', shellescape(a:from), shellescape(a:to)))
   endif
 endfunction
 
