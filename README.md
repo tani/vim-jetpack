@@ -138,21 +138,6 @@ call g:jetpack.add('tpope/vim-fireplace', { 'for': 'clojure' })
 call g:jetpack.end()
 ```
 
-```lua
-vim.cmd('runtime */jetpack.vim')
-local jetpack = vim.g.jetpack
-jetpack.begin()
-jetpack.add('https://github.com/dense-analysis/ale')
-jetpack.add('junegunn/fzf.vim')
-jetpack.add('junegunn/fzf', { run = "call fzf#install()" })
-jetpack.add('neoclide/coc.nvim', { branch = 'release' })
-jetpack.add('neoclide/coc.nvim', { branch = 'master', 'do': 'yarn install --frozen-lockfile' })
-jetpack.add('vlime/vlime', { rtp = 'vim' })
-jetpack.add('dracula/vim', { as = 'dracula' })
-jetpack.add('tpope/vim-fireplace', { ft = 'clojure' })
-jetpack.end()
-```
-
 ### packer style
 
 ```lua
