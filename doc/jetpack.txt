@@ -79,17 +79,6 @@ Jetpack expoted some other functions but they are only for the developers.
 Unlisted functions might be changed without any announcements in the future.
 
 ================================================================================
-Options ( *jetpack#add-options* )
-
-dir
-  By this option, we isolate the plugin directory from |packages| and put it
-  in the specified drectory. Thus, we cannot use |packadd|. Further, we disable
-  the lazy-loading features for this plugin. Instead, we add the directory into
-  |runtimepath|. Moreover, we omit the directory from the target to be removed
-  for the update/ installaion if the directory is out of `pack/*/opt`,
-  because we must avoid removing unexpected directories such as `/`.
-
-================================================================================
 Commands ( *jetpack-commands* )
 
 Jetpack {repo} [, {options}]                                           *Jetpack*
@@ -104,18 +93,6 @@ JetpackSync                                                        *JetpackSync*
 
 ================================================================================
 Variables ( *jetpack-variables* )
-
-g:jetpack#optimization                                  *g:jetpack#optimization*
-    The optimization level for the bundle algorithm.
-
-    |  speed  |    0   |   1    |
-    | :-----: | :----: | :----: |
-    | install |  fast  |  slow  |
-    | startup |  slow  |  fast  |
-
-    - `0` Bundle nothing. This is the same as vim-plug and is the safest level.
-    - `1` Bundle if there are no conflicts. It tries to bundle plugins as
-      possible.
 
 g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
     The list of glob-patterns is used to skip duplicated files.
