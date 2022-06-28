@@ -445,8 +445,8 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-" Original: https://github.com/junegunn/vim-plug/blob/e300178a0e2fb04b56de8957281837f13ecf0b27/plug.vim#L683-L693
-"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
+" Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
+"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 function! s:lod_map(map, name, with_prefix, prefix)
   execute 'packadd ' . a:name
   let extra = ''
