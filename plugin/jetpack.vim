@@ -63,10 +63,16 @@ let g:jetpack#copy_method =
 
 let s:packages = get(s:, 'packages', {})
 
-let s:progress_type = {
+let s:status = {
+\   'pending': 'pending',
 \   'skipped': 'skipped',
 \   'installed': 'installed',
+\   'installing': 'installing',
 \   'updated': 'updated',
+\   'updating': 'updating',
+\   'switched': 'switched',
+\   'merged': 'merged',
+\   'copied': 'copied'
 \ }
 
 function s:path(...)
@@ -171,91 +177,48 @@ function! s:setupbuf() abort
   redraw
 endfunction
 
-function! jetpack#install(...) abort
-  call s:setupbuf()
-  let jobs = []
-  let i = -1
+function! s:show_progress(title) abort
+  let index = 0
+  let processed = len(filter(copy(s:packages), "v:val.status[-1] =~# 'ed'"))
+  call s:setbufline(1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
+  call s:setbufline(2, s:progressbar((0.0 + processed / len(s:packages) * 100)))
   for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Installing %s ...', pkg_name))
-    if (a:0 > 0 && index(a:000, pkg_name) < 0) || isdirectory(pkg.path)
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
-    endif
-    let cmd = ['git', 'clone']
-    if !has_key(pkg, 'commit')
-      call extend(cmd, ['--depth', '1', '--recursive'])
-    endif
-    if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-      call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
-    endif
-    call extend(cmd, [pkg.url, pkg.path])
-    let job = s:jobstart(cmd, function({ i, pkg, output -> [
-    \   extend(pkg, {
-    \     'progress': {
-    \       'type': s:progress_type.installed,
-    \       'output': output
-    \     }
-    \   }),
-    \   s:setbufline(i+3, printf('Installed %s', pkg_name))
-    \ ] }, [i, pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
-  endfor
-  call s:jobwait(jobs, 0)
-endfunction
-
-function! jetpack#checkout(...) abort
-  call s:setupbuf()
-  let i = -1
-  for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + i) / len(s:packages) * 100))
-    if (a:0 > 0 && index(a:000, pkg_name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
-    endif
-    call system(printf('git -C "%s" switch "-"', pkg.path))
-    call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
-    call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg_name))
+    call s:setbufline(index + 3, printf('%s %s', pkg.status[-1], pkg_name))
+    let index += 1
   endfor
 endfunction
 
-function! jetpack#update(...) abort
+function! s:show_result() abort
   call s:setupbuf()
-  let jobs = []
-  let i = -1
+  call s:setbufline(1, printf("Result"))
+  call s:setbufline(2, s:progressbar(100))
+  let line_count = 3
   for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Updating %s ...', pkg_name))
-    if (a:0 > 0 && index(a:000, pkg_name) < 0)
-       \ || (get(pkg, 'frozen')
-       \ || !isdirectory(pkg.path))
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
+    let output = pkg.output
+    let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
+
+    if index(pkg.status, s:status.installed) >= 0
+      call s:setbufline(line_count, printf('installed %s', pkg_name))
+    elseif index(pkg.status, s:status.updated) >= 0
+      call s:setbufline(line_count, printf('updated %s', pkg_name))
+    else
+      call s:setbufline(line_count, printf('skipped %s', pkg_name))
     endif
-    let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
-    let job = s:jobstart(cmd, function({ i, pkg, output -> [
-    \   extend(pkg, {
-    \     'progress': {
-    \       'type': s:progress_type.updated,
-    \       'output': output
-    \     }
-    \   }),
-    \   s:setbufline(i+3, printf('Updated %s', pkg_name))
-    \ ] }, [i, pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
+
+    let line_count += 1
+    for o in split(output, '\n')
+      if o !=# ''
+        call s:setbufline(line_count, printf('  %s', o))
+        let line_count += 1
+      endif
+    endfor
+    call s:setbufline(line_count, '')
+    let line_count += 1
   endfor
-  call s:jobwait(jobs, 0)
 endfunction
 
-function! jetpack#clean() abort
+function! s:clean_plugins() abort
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
       "Check the url of the repository
@@ -283,8 +246,83 @@ function! jetpack#clean() abort
   endfor
 endfunction
 
-function! jetpack#bundle() abort
-  call s:setupbuf()
+function! s:update_plugins() abort
+  let jobs = []
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+  for [pkg_name, pkg] in items(s:packages)
+    call s:show_progress('Update Plugins')
+    if get(pkg, 'frozen') || isdirectory(pkg.path)
+      call add(pkg.status, s:status.skipped)
+      continue
+    else
+      call add(pkg.status, s:status.updating)
+    endif
+    let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
+    let job = s:jobstart(cmd, function({ pkg, output -> [
+    \  add(pkg.status, s:status.updated),
+    \  execute("let pkg.output = output")
+    \ ] }, [pkg]))
+    call add(jobs, job)
+    call s:jobwait(jobs, g:jetpack#njobs)
+  endfor
+  call s:jobwait(jobs, 0)
+endfunction
+
+function! s:install_plugins() abort
+  let jobs = []
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+  for [pkg_name, pkg] in items(s:packages)
+    call s:show_progress('Install Plugins')
+    if isdirectory(pkg.path)
+      call add(pkg.status, s:status.skipped)
+      continue
+    else
+      call add(pkg.status, s:status.installing)
+    endif
+    let cmd = ['git', 'clone']
+    if !has_key(pkg, 'commit')
+      call extend(cmd, ['--depth', '1', '--recursive'])
+    endif
+    if has_key(pkg, 'branch') || has_key(pkg, 'tag')
+      call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
+    endif
+    call extend(cmd, [pkg.url, pkg.path])
+    let job = s:jobstart(cmd, function({pkg, output -> [
+    \   add(pkg.status, s:status.installed),
+    \   execute("let pkg.output = output")
+    \ ]}, [pkg]))
+    call add(jobs, job)
+    call s:jobwait(jobs, g:jetpack#njobs)
+  endfor
+  call s:jobwait(jobs, 0)
+endfunction
+
+function! s:switch_plugins() abort
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+  for [pkg_name, pkg] in items(s:packages)
+    call s:show_progress('Switch Plugins')
+    if !isdirectory(pkg.path) || !has_key(pkg, 'commit')
+      call add(pkg.status, s:status.skipped)
+      continue
+    else
+      call add(pkg.status, s:status.switched)
+    endif
+    call system(printf('git -C "%s" switch "-"', pkg.path))
+    call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
+  endfor
+endfunction
+
+function! s:merge_plugins() abort
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+
   let bundle = {}
   let unbundle = s:packages
   if g:jetpack#optimization == 1
@@ -305,8 +343,7 @@ function! jetpack#bundle() abort
   let merged_count = 0
   let merged_files = {}
   for [pkg_name, pkg] in items(bundle)
-    call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
-    call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:packages) * 100))
+    call s:show_progress('Merge Plugins')
     let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
 
     let files = map(s:files(srcdir), {_, file -> file[len(srcdir):]})
@@ -325,55 +362,26 @@ function! jetpack#bundle() abort
         let merged_files[file] = v:true
       endfor
       call s:copy(srcdir, destdir)
-      call s:setbufline(merged_count+3, printf('Merged %s ...', pkg_name))
+      call add(pkg.status, s:status.merged)
       let merged_count += 1
     endif
   endfor
 
   " Copy plugins.
-  let i = -1
   for [pkg_name, pkg] in items(unbundle)
-    let i += 1
-    call s:setbufline(1, printf('Copying Plugins (%d / %d)', i+merged_count, len(s:packages)))
-    call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:packages) * 100))
+    call s:show_progress('Copy Plugins')
     if has_key(pkg, 'dir')
-      call s:setbufline(i+merged_count+3, printf('Skipped %s ...', pkg_name))
+      call add(pkg.status, s:status.skipped)
     else
       let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
       let destdir = s:path(s:optdir, pkg_name)
       call s:copy(srcdir, destdir)
-      call s:setbufline(i+merged_count+3, printf('Copied %s ...', pkg_name))
+      call add(pkg.status, s:status.copied)
     endif
   endfor
 endfunction
 
-function! s:display() abort
-  call s:setupbuf()
-  let msg = {}
-  let msg[s:progress_type.skipped] = 'Skipped'
-  let msg[s:progress_type.installed] = 'Installed'
-  let msg[s:progress_type.updated] = 'Updated'
-
-  let line_count = 1
-  for [pkg_name, pkg] in items(s:packages)
-    let output = pkg.progress.output
-    let output = substitute(output, '\r\n\|\r', '\n', 'g')
-    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
-
-    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg_name))
-    let line_count += 1
-    for o in split(output, '\n')
-      if o !=# ''
-        call s:setbufline(line_count, printf('  %s', o))
-        let line_count += 1
-      endif
-    endfor
-    call s:setbufline(line_count, '')
-    let line_count += 1
-  endfor
-endfunction
-
-function! jetpack#postupdate() abort
+function! s:postupdate_plugins() abort
   silent! packadd _
   for [pkg_name, pkg] in items(s:packages)
     if !has_key(pkg, 'do')
@@ -405,13 +413,13 @@ function! jetpack#postupdate() abort
 endfunction
 
 function! jetpack#sync() abort
-  call jetpack#clean()
-  call jetpack#update()
-  call jetpack#install()
-  call jetpack#checkout()
-  call jetpack#bundle()
-  call s:display()
-  call jetpack#postupdate()
+  call s:clean_plugins()
+  call s:update_plugins()
+  call s:install_plugins()
+  call s:switch_plugins()
+  call s:merge_plugins()
+  call s:show_result()
+  call s:postupdate_plugins()
 endfunction
 
 function! jetpack#add(plugin, ...) abort
@@ -424,10 +432,8 @@ function! jetpack#add(plugin, ...) abort
   \   'url': url,
   \   'opt': opt,
   \   'path': path,
-  \   'progress': {
-  \     'type': s:progress_type.skipped,
-  \     'output': 'Skipped',
-  \   },
+  \   'status': [s:status.pending],
+  \   'output': '',
   \ })
   let s:packages[name] = pkg
 endfunction
