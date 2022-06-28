@@ -64,9 +64,9 @@ let g:jetpack#copy_method =
 let s:packages = get(s:, 'packages', {})
 
 let s:progress_type = {
-\   'skip': 'skip',
-\   'install': 'install',
-\   'update': 'update',
+\   'skipped': 'skipped',
+\   'installed': 'installed',
+\   'updated': 'updated',
 \ }
 
 function s:path(...)
@@ -195,7 +195,7 @@ function! jetpack#install(...) abort
     let job = s:jobstart(cmd, function({ i, pkg, output -> [
     \   extend(pkg, {
     \     'progress': {
-    \       'type': s:progress_type.install,
+    \       'type': s:progress_type.installed,
     \       'output': output
     \     }
     \   }),
@@ -233,8 +233,7 @@ function! jetpack#update(...) abort
     call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
     call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
     call s:setbufline(i+3, printf('Updating %s ...', pkg_name))
-    if pkg.progress.type ==# s:progress_type.install
-       \ || (a:0 > 0 && index(a:000, pkg_name) < 0)
+    if (a:0 > 0 && index(a:000, pkg_name) < 0)
        \ || (get(pkg, 'frozen')
        \ || !isdirectory(pkg.path))
       call s:setbufline(i+3, printf('Skipped %s', pkg_name))
@@ -244,7 +243,7 @@ function! jetpack#update(...) abort
     let job = s:jobstart(cmd, function({ i, pkg, output -> [
     \   extend(pkg, {
     \     'progress': {
-    \       'type': s:progress_type.update,
+    \       'type': s:progress_type.updated,
     \       'output': output
     \     }
     \   }),
@@ -351,9 +350,9 @@ endfunction
 function! s:display() abort
   call s:setupbuf()
   let msg = {}
-  let msg[s:progress_type.skip] = 'Skipped'
-  let msg[s:progress_type.install] = 'Installed'
-  let msg[s:progress_type.update] = 'Updated'
+  let msg[s:progress_type.skipped] = 'Skipped'
+  let msg[s:progress_type.installed] = 'Installed'
+  let msg[s:progress_type.updated] = 'Updated'
 
   let line_count = 1
   for [pkg_name, pkg] in items(s:packages)
@@ -407,8 +406,8 @@ endfunction
 
 function! jetpack#sync() abort
   call jetpack#clean()
-  call jetpack#install()
   call jetpack#update()
+  call jetpack#install()
   call jetpack#checkout()
   call jetpack#bundle()
   call s:display()
@@ -426,7 +425,7 @@ function! jetpack#add(plugin, ...) abort
   \   'opt': opt,
   \   'path': path,
   \   'progress': {
-  \     'type': s:progress_type.skip,
+  \     'type': s:progress_type.skipped,
   \     'output': 'Skipped',
   \   },
   \ })
