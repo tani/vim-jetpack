@@ -10,16 +10,16 @@ let s:optdir =  s:vimhome . '/pack/jetpack/opt'
 let s:srcdir =  s:vimhome . '/pack/jetpack/src'
 
 function s:setup(...) 
-  call jetpack#begin(s:vimhome)
+  call g:jetpack.begin(s:vimhome)
   for plugin in a:000
     if len(plugin) == 2
-      call jetpack#add(plugin[0], plugin[1])
+      call g:jetpack.add(plugin[0], plugin[1])
     else
-      call jetpack#add(plugin[0])
+      call g:jetpack.add(plugin[0])
     endif
   endfor
-  call jetpack#end()
-  call jetpack#sync()
+  call g:jetpack.end()
+  call g:jetpack.sync()
 endfunction
 
 function s:assert.filereadable(file)
@@ -173,19 +173,19 @@ endfunction
 
 function s:suite.names()
  call s:setup(['vim-test/vim-test'])
- call s:assert.equals(jetpack#names(), ['vim-test'])
+ call s:assert.equals(g:jetpack.names(), ['vim-test'])
  call s:assert.isdirectory(s:optdir . '/_/autoload/test')
 endfunction
 
 function s:suite.tap()
  call s:setup(['vim-test/vim-test'])
- call s:assert.true(jetpack#tap('vim-test'))
- call s:assert.false(jetpack#tap('_____'))
+ call s:assert.true(g:jetpack.tap('vim-test'))
+ call s:assert.false(g:jetpack.tap('_____'))
 endfunction
 
 function s:suite.get()
  call s:setup(['vim-test/vim-test'])
- let data = jetpack#get('vim-test')
+ let data = g:jetpack.get('vim-test')
  call s:assert.equals(data.url, 'https://github.com/vim-test/vim-test')
  call s:assert.equals(data.opt, 0)
  call s:assert.equals(substitute(data.path, '\', '/', 'g'), s:srcdir . '/vim-test')
@@ -209,7 +209,7 @@ endfunction
 
 function s:suite.commit_option()
  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
- let commit = system(printf('git -C "%s" rev-parse HEAD', s:srcdir . '/coc.nvim')) 
+ let commit = system(printf('git -C %s rev-parse HEAD', shellescape(s:srcdir . '/coc.nvim')))
  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(commit, 'ce448a6')
