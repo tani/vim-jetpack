@@ -146,7 +146,7 @@ function! s:copy_dir(from, to) abort
   elseif has('unix')
     call system(printf('cp -R %s/. %s', shellescape(a:from), shellescape(a:to)))
   elseif has('win32')
-    call system(printf('xcopy %s %s /E /Y', shellescape(a:from), shellescape(a:to)))
+    call system(printf('xcopy %s %s /E /Y', shellescape(expand(a:from)), shellescape(expand(a:to))))
   endif
 endfunction
 
@@ -262,7 +262,7 @@ function! s:install_plugins() abort
     if has_key(pkg, 'branch') || has_key(pkg, 'tag')
       call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
     endif
-    call mkdir(pkg.path, 'p')
+    call mkdir(fnamemodify(pkg.path, ':p:h'), 'p')
     call extend(cmd, [pkg.url, pkg.path])
     let job = s:jobstart(cmd, function({pkg, output -> [
     \   add(pkg.status, s:status.installed),
