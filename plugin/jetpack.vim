@@ -315,9 +315,14 @@ function! s:merge_plugins() abort
     endif
   endfor
 
-  "TODO do not delete directories
-  call delete(s:optdir, 'rf')
-  let destdir = s:path(s:optdir, '_')
+  " Delete old directories
+  for dir in glob(s:optdir .. '/*', '', 1)
+    let pkg_name = fnamemodify(dir, ':t')
+    if !has_key(s:packages, pkg_name)
+     \ || s:packages[pkg_name].output !~# 'Already up to date.'
+      call delete(dir, 'rf')
+    endif
+  endfor
 
   " Merge plugins if possible.
   let merged_count = 0
