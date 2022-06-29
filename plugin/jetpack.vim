@@ -70,12 +70,8 @@ let s:status = {
 \   'copied': 'copied'
 \ }
 
-function s:path(...)
-  return expand(join(a:000, '/'))
-endfunction
-
 function! s:list_files(path) abort
-  return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
+  return filter(glob(a:path .. '/**/*', '', 1), { _, val -> !isdirectory(val)})
 endfunction
 
 function! s:check_ignorable(filename) abort
@@ -83,7 +79,7 @@ function! s:check_ignorable(filename) abort
 endfunction
 
 function! s:make_progressbar(n) abort
-  return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
+  return '[' .. join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') .. ']'
 endfunction
 
 function! s:jobstatus(job) abort
@@ -137,7 +133,7 @@ function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
   if g:jetpack.copy_method !=# 'system'
     for src in s:list_files(a:from)
-      let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
+      let dest = substitute(src, '\V' .. escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack.copy_method ==# 'copy'
         call writefile(readfile(src, 'b'), dest, 'b')
@@ -155,7 +151,7 @@ function! s:copy_dir(from, to) abort
 endfunction
 
 function! s:initialize_buffer() abort
-  execute 'silent! bdelete! ' . bufnr('JetpackStatus')
+  execute 'silent! bdelete! ' .. bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
@@ -203,12 +199,6 @@ endfunction
 function! s:clean_plugins() abort
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
-      "Check the url of the repository
-      let remote_url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(pkg.path))))
-      if remote_url !=# pkg.url
-        call delete(pkg.path, 'rf')
-        continue
-      endif
       "Check the commit
       if has_key(pkg, 'commit')
         let commit = system(printf('git -C %s cat-file -t %s', shellescape(pkg.path), shellescape(pkg.commit)))
@@ -272,6 +262,7 @@ function! s:install_plugins() abort
     if has_key(pkg, 'branch') || has_key(pkg, 'tag')
       call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
     endif
+    call mkdir(pkg.path, 'p')
     call extend(cmd, [pkg.url, pkg.path])
     let job = s:jobstart(cmd, function({pkg, output -> [
     \   add(pkg.status, s:status.installed),
@@ -295,7 +286,6 @@ function! s:switch_plugins() abort
     else
       call add(pkg.status, s:status.switched)
     endif
-    call system(printf('git -C %s switch -', shellescape(pkg.path)))
     call system(printf('git -C %s checkout %s', shellescape(pkg.path), shellescape(pkg.commit)))
   endfor
 endfunction
@@ -305,6 +295,7 @@ function! s:merge_plugins() abort
     call add(pkg.status, s:status.pending)
   endfor
 
+  "If opt/do/dir option is enabled, it should be placed isolated directory.
   let bundle = {}
   let unbundle = {}
   for [pkg_name, pkg] in items(s:packages)
@@ -329,14 +320,14 @@ function! s:merge_plugins() abort
   let merged_files = {}
   for [pkg_name, pkg] in items(bundle)
     call s:show_progress('Merge Plugins')
-    let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
+    let srcdir = pkg.path .. '/' .. get(pkg, 'rtp', '')
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
     let files = filter(files, { _, file -> !s:check_ignorable(file) })
     if empty(filter(copy(files), {_, file -> has_key(merged_files, file)}))
       for file in files
         let merged_files[file] = v:true
       endfor
-      call s:copy_dir(srcdir, destdir)
+      call s:copy_dir(srcdir, s:optdir .. '/_')
       call add(pkg.status, s:status.merged)
       let merged_count += 1
     else
@@ -350,8 +341,8 @@ function! s:merge_plugins() abort
     if has_key(pkg, 'dir')
       call add(pkg.status, s:status.skipped)
     else
-      let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
-      let destdir = s:path(s:optdir, pkg_name)
+      let srcdir = pkg.path .. '/' .. get(pkg, 'rtp', '')
+      let destdir = s:optdir .. '/' .. pkg_name
       call s:copy_dir(srcdir, destdir)
       call add(pkg.status, s:status.copied)
     endif
@@ -368,8 +359,8 @@ function! s:postupdate_plugins() abort
     if has_key(pkg, 'dir')
       call chdir(pkg.path)
     else
-      execute 'silent! packadd ' . pkg_name
-      call chdir(s:path(s:optdir, pkg_name))
+      execute 'silent! packadd ' .. pkg_name
+      call chdir(s:optdir .. '/' .. pkg_name)
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
@@ -384,8 +375,8 @@ function! s:postupdate_plugins() abort
     endif
     call chdir(pwd)
   endfor
-  for dir in glob(s:optdir . '/*/doc', '', 1)
-    execute 'silent! helptags ' . dir
+  for dir in glob(s:optdir .. '/*/doc', '', 1)
+    execute 'silent! helptags ' .. dir
   endfor
 endfunction
 
@@ -403,8 +394,8 @@ endfunction
 function! g:jetpack.add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
-  let path = get(opts, 'dir', s:path(s:srcdir,  name))
-  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
+  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
+  let path = get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', ''))
   let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \   'url': url,
@@ -419,7 +410,7 @@ endfunction
 function! g:jetpack.begin(...) abort
   let s:packages = {}
   if has('nvim')
-    let s:home = s:path(stdpath('data'), 'site')
+    let s:home = stdpath('data') .. '/' .. 'site'
   elseif has('win32')
     let s:home = expand('~/vimfiles')
   else
@@ -427,18 +418,18 @@ function! g:jetpack.begin(...) abort
   endif
   if a:0 != 0
     let s:home = expand(a:1)
-    execute 'set packpath^=' . s:home
-    execute 'set runtimepath^=' . s:home
+    execute 'set packpath^=' .. s:home
+    execute 'set runtimepath^=' .. s:home
   endif
-  let s:optdir = s:path(s:home, 'pack', 'jetpack', 'opt')
-  let s:srcdir = s:path(s:home, 'pack', 'jetpack', 'src')
+  let s:optdir = s:home .. '/pack/jetpack/opt'
+  let s:srcdir = s:home .. '/pack/jetpack/src'
   command! -nargs=+ -bar Jetpack call g:jetpack.add(<args>)
 endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 function! s:load_map(map, name, with_prefix, prefix)
-  execute 'packadd ' . a:name
+  execute 'packadd ' .. a:name
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -450,13 +441,13 @@ function! s:load_map(map, name, with_prefix, prefix)
     let prefix .= '"'.v:register.a:prefix
     if mode(1) ==# 'no'
       if v:operator ==# 'c'
-        let prefix = "\<Esc>" . prefix
+        let prefix = "\<Esc>" .. prefix
       endif
       let prefix .= v:operator
     endif
     call feedkeys(prefix, 'n')
   endif
-  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') .. extra)
 endfunction
 
 function! s:load_cmd(cmd, name, ...) abort
@@ -486,7 +477,7 @@ function! g:jetpack.end() abort
       continue
     endif
     if !pkg.opt
-      execute 'silent! packadd! ' . pkg_name
+      execute 'silent! packadd! ' .. pkg_name
       continue
     endif
     let items = get(pkg, 'for', [])
