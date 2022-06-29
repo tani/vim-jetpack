@@ -1,5 +1,4 @@
 # 🚀 vim-jetpack
-[![](http://github-actions.40ants.com/tani/vim-jetpack/matrix.svg)](https://github.com/tani/vim-jetpack)
 
 The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
@@ -37,7 +36,6 @@ mean, and median among the six plugin managers, indicating that it is stable and
 always runs fast.
 
 ![jetpack_benchmark](https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png)
-
 |          |  dein | jetpack | minpac | packer |   paq |  plug |
 | :------: | ----: | ------: | -----: | -----: | ----: | ----: |
 |   min    | 80.61 |   69.93 |  64.97 |  75.38 | 73.92 | 77.63 |
