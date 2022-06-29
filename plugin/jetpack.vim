@@ -149,9 +149,9 @@ function! s:copy_dir(from, to) abort
       endif
     endfor
   elseif has('unix')
-    call system(printf('cp -R %s/. %s', shellescape(a:from), shellescape(a:to)))
+    call system(printf('cp -R %s/. %s', a:from, a:to))
   elseif has('win32')
-    call system(printf('xcopy %s %s /E /Y', shellescape(expand(a:from)), shellescape(expand(a:to))))
+    call system(printf('xcopy %s %s /E /Y', expand(a:from), expand(a:to)))
   endif
 endfunction
 
@@ -209,7 +209,7 @@ function! s:clean_plugins() abort
     if isdirectory(pkg.path)
       "Check the commit
       if has_key(pkg, 'commit')
-        let commit = system(printf('git -C %s cat-file -t %s', shellescape(pkg.path), shellescape(pkg.commit)))
+        let commit = system(printf('git -C %s cat-file -t %s', pkg.path, pkg.commit))
         if commit !~# 'commit'
           call delete(pkg.path, 'rf')
           continue
@@ -217,7 +217,7 @@ function! s:clean_plugins() abort
       endif
       "Check the branch and the tag
       if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', shellescape(pkg.path))))
+        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', pkg.path)))
         if  get(pkg, 'branch', get(pkg, 'tag')) != branch
           call delete(pkg.path, 'rf')
         endif
@@ -243,15 +243,19 @@ function! s:make_download_cmd(pkg) abort
     endif
   else
     if g:jetpack.download_method ==# 'curl'
-      let download_cmd = 'curl -fsSL ' ..  shellescape(a:pkg.url .. '/archive/HEAD.tar.gz')
+      let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/HEAD.tar.gz'
     elseif g:jetpack.download_method ==# 'wget'
-      let download_cmd = 'wget -O - ' ..  shellescape(a:pkg.url .. '/archive/HEAD.tar.gz')
+      let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/HEAD.tar.gz'
     else
       throw g:jetpack.download_method .. '%s is not valid value of g:jetpack.download_method'
     endif
-    let extract_cmd = 'tar -zxf - -C ' .. shellescape(a:pkg.path) .. ' --strip-components 1'
+    let extract_cmd = 'tar -zxf - -C ' .. a:pkg.path .. ' --strip-components 1'
     call delete(a:pkg.path, 'rf')
-    return ['sh', '-c', download_cmd .. ' | ' .. extract_cmd]
+    if has('unix')
+      return ['sh', '-c', download_cmd .. ' | ' .. extract_cmd]
+    elseif has('win32')
+      return ['cmd.exe', '/c' .. download_cmd .. ' | ' .. extract_cmd]
+    endif
   endif
 endfunction
 
@@ -300,7 +304,7 @@ function! s:switch_plugins() abort
     else
       call add(pkg.status, s:status.switched)
     endif
-    call system(printf('git -C %s checkout %s', shellescape(pkg.path), shellescape(pkg.commit)))
+    call system(printf('git -C %s checkout %s', pkg.path, pkg.commit))
   endfor
 endfunction
 
@@ -408,7 +412,7 @@ function! g:jetpack.add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
-  let path = expand(get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')))
+  let path = get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', ''))
   let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \   'url': url,
