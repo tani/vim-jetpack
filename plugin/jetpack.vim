@@ -49,6 +49,11 @@ let g:jetpack.ignore_patterns =
   \   '/NEWS*',
   \ ])
 
+let g:jetpack.download_method =
+  \ get(g:, 'jetpack.download_method', 'git')
+  " curl: Use CURL to download
+  " wget: Use Wget to download
+
 let g:jetpack.copy_method =
   \ get(g:, 'jetpack.copy_method', 'system')
   " sytem    : cp/ xcopy
@@ -197,6 +202,9 @@ function! s:show_result() abort
 endfunction
 
 function! s:clean_plugins() abort
+  if g:jetpack.download_method !=# 'git'
+    return
+  endif
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
       "Check the commit
@@ -218,31 +226,36 @@ function! s:clean_plugins() abort
   endfor
 endfunction
 
-function! s:update_plugins() abort
-  let jobs = []
-  for [pkg_name, pkg] in items(s:packages)
-    call add(pkg.status, s:status.pending)
-  endfor
-  for [pkg_name, pkg] in items(s:packages)
-    call s:show_progress('Update Plugins')
-    if get(pkg, 'frozen') || !isdirectory(pkg.path)
-      call add(pkg.status, s:status.skipped)
-      continue
+function! s:make_download_cmd(pkg) abort
+  if g:jetpack.download_method ==# 'git'
+    if isdirectory(a:pkg.path)
+      return ['git', '-C', a:pkg.path, 'pull', '--rebase']
     else
-      call add(pkg.status, s:status.updating)
+      let cmd = ['git', 'clone']
+      if !has_key(a:pkg, 'commit')
+        call extend(cmd, ['--depth', '1', '--recursive'])
+      endif
+      if has_key(a:pkg, 'branch') || has_key(a:pkg, 'tag')
+        call extend(cmd, ['-b', get(a:pkg, 'branch', get(a:pkg, 'tag'))])
+      endif
+      call extend(cmd, [a:pkg.url, a:pkg.path])
+      return cmd
     endif
-    let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
-    let job = s:jobstart(cmd, function({ pkg, output -> [
-    \  add(pkg.status, s:status.updated),
-    \  execute("let pkg.output = output")
-    \ ] }, [pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack.njobs)
-  endfor
-  call s:jobwait(jobs, 0)
+  else
+    if g:jetpack.download_method ==# 'curl'
+      let download_cmd = 'curl -fsSL ' ..  shellescape(a:pkg.url .. '/archive/HEAD.tar.gz')
+    elseif g:jetpack.download_method ==# 'wget'
+      let download_cmd = 'wget -O - ' ..  shellescape(a:pkg.url .. '/archive/HEAD.tar.gz')
+    else
+      throw g:jetpack.download_method .. '%s is not valid value of g:jetpack.download_method'
+    endif
+    let extract_cmd = 'tar -zxf - -C ' .. shellescape(a:pkg.path) .. ' --strip-components 1'
+    call delete(a:pkg.path, 'rf')
+    return ['sh', '-c', download_cmd .. ' | ' .. extract_cmd]
+  endif
 endfunction
 
-function! s:install_plugins() abort
+function! s:download_plugins() abort
   let jobs = []
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
@@ -250,24 +263,22 @@ function! s:install_plugins() abort
   for [pkg_name, pkg] in items(s:packages)
     call s:show_progress('Install Plugins')
     if isdirectory(pkg.path)
-      call add(pkg.status, s:status.skipped)
-      continue
+      if get(pkg, 'frozen')
+        call add(pkg.status, s:status.skipped)
+        continue
+      endif
+      call add(pkg.status, s:status.updating)
+      let status = s:status.updated
     else
       call add(pkg.status, s:status.installing)
+      let status = s:status.installed
     endif
-    let cmd = ['git', 'clone']
-    if !has_key(pkg, 'commit')
-      call extend(cmd, ['--depth', '1', '--recursive'])
-    endif
-    if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-      call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
-    endif
-    call mkdir(fnamemodify(pkg.path, ':p:h'), 'p')
-    call extend(cmd, [pkg.url, pkg.path])
-    let job = s:jobstart(cmd, function({pkg, output -> [
-    \   add(pkg.status, s:status.installed),
+    let cmd = s:make_download_cmd(pkg)
+    call mkdir(pkg.path, 'p')
+    let job = s:jobstart(cmd, function({status, pkg, output -> [
+    \   add(pkg.status, status),
     \   execute("let pkg.output = output")
-    \ ]}, [pkg]))
+    \ ]}, [status, pkg]))
     call add(jobs, job)
     call s:jobwait(jobs, g:jetpack.njobs)
   endfor
@@ -275,6 +286,9 @@ function! s:install_plugins() abort
 endfunction
 
 function! s:switch_plugins() abort
+  if g:jetpack.download_method !=# 'git'
+    return
+  endif
   for [pkg_name, pkg] in items(s:packages)
     call add(pkg.status, s:status.pending)
   endfor
@@ -383,8 +397,7 @@ endfunction
 function! g:jetpack.sync() abort
   call s:initialize_buffer()
   call s:clean_plugins()
-  call s:update_plugins()
-  call s:install_plugins()
+  call s:download_plugins()
   call s:switch_plugins()
   call s:merge_plugins()
   call s:show_result()
