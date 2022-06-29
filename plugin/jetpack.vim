@@ -408,7 +408,7 @@ function! g:jetpack.add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
-  let path = get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', ''))
+  let path = expand(get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')))
   let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
   let pkg  = extend(opts, {
   \   'url': url,
