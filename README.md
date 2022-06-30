@@ -5,13 +5,13 @@ a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
 
 > **Note**
-> In new version released in July 2022,
-> we destructively have changed the API,
+>
+> In new version released in July 2022, we destructively have changed the API.
+>
 > Please update your `.vimrc`/ `init.vim`.
 >
 > 1. Add `runtime */jetpack.vim`.
-> 2. Rewrite `jetpack#`-functions to `g:jetpack.`-functions.
->    For example, `g:jetpack.begin()` is a new function of `jetpack#begin()`.
+> 2. Rewrite `jetpack#` to `g:jetpack.`.
 
 ## Features
 
@@ -217,7 +217,7 @@ Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
 
 - `g:jetpack.download_method`
   - The default value is `'git'`. 
-    Consider using `'curl'` or `wget`
+    Consider using `'curl'` or `'wget'`
     if `'git'` is not installed in your system.
     - `'git'` Use `'git'` to download plugins.
     - `'curl'` Use `'curl'` to download plugins.
