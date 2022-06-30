@@ -4,15 +4,6 @@ The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
 
-> **Note**
->
-> In new version released in July 2022, we destructively have changed the API.
->
-> Please update your `.vimrc`/ `init.vim`.
->
-> 1. Add `runtime */jetpack.vim`.
-> 2. Rewrite `jetpack#` to `g:jetpack.`.
-
 ## Features
 
 - Lightning-fast startup
@@ -59,12 +50,12 @@ Download `jetpack.vim` and put it in the `plugin/` directory.
 
 ### vim-plug style
 
-The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack./g`
+The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack#/g`
 and `:%s/Plug/Jetpack/g`.
 
 ```vim
 runtime */jetpack.vim
-call g:jetpack.begin()
+call jetpack#begin()
 Jetpack 'https://github.com/dense-analysis/ale'
 Jetpack 'junegunn/fzf.vim'
 Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
@@ -73,23 +64,23 @@ Jetpack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-
 Jetpack 'vlime/vlime', { 'rtp': 'vim' }
 Jetpack 'dracula/vim', { 'as': 'dracula' }
 Jetpack 'tpope/vim-fireplace', { 'for': 'clojure' }
-call g:jetpack.end()
+call jetpack#end()
 ```
 
 ### dein/ minpac style
 
 ```vim
 runtime */jetpack.vim
-call g:jetpack.begin()
-call g:jetpack.add('https://github.com/dense-analysis/ale')
-call g:jetpack.add('junegunn/fzf.vim')
-call g:jetpack.add('junegunn/fzf', { 'do': {-> fzf#install()} })
-call g:jetpack.add('neoclide/coc.nvim', { 'branch': 'release' })
-call g:jetpack.add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
-call g:jetpack.add('vlime/vlime', { 'rtp': 'vim' })
-call g:jetpack.add('dracula/vim', { 'as': 'dracula' })
-call g:jetpack.add('tpope/vim-fireplace', { 'for': 'clojure' })
-call g:jetpack.end()
+call jetpack#begin()
+call jetpack#add('https://github.com/dense-analysis/ale')
+call jetpack#add('junegunn/fzf.vim')
+call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
+call jetpack#add('dracula/vim', { 'as': 'dracula' })
+call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call jetpack#end()
 ```
 
 ### packer style
@@ -128,34 +119,34 @@ require('jetpack').setup {
 
 ### Function
 
-- `g:jetpack.begin([path])`
+- `jetpack#begin([path])`
   - The function setups jetpack plugins. All plugin declarations should be
     placed after this function. You can give `path` if you want to use another
     directory to manage plugins.
-- `g:jetpack.add(repo [, options])`
+- `jetpack#add(repo [, options])`
   - repo is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
     `options` is a dictionary. See below.
-- `g:jetpack.sync()`
+- `jetpack#sync()`
   - The function performs to install, update, and bundle all plugins.
     The function is evenrything all you need to know.
     You must run this function after a change of your configuration.
-- `g:jetpack.end()`
+- `jetpack#end()`
   - The function loads declared plugins. All plugin declarations should be
     placed before this function.
-- `g:jetpack.tap(name)`
+- `jetpack#tap(name)`
   - It returns a truthy value if the plugin is available,
     otherwise it returns a falsy value.
-- `g:jetpack.names()`
+- `jetpack#names()`
   - It returns the list of plugin names registered including unavailable
     plugins.
-- `g:jetpack.get(name)`
+- `jetpack#get(name)`
   - It returns metadata of the plugin if possible, otherwise it returns `{}` .
     This is the same as `dein#get` of `dein.vim`.
 
 ### Lua Function
 
-All `g:jetpack.` functions are exported as `jetpack` module.
-You can call them using `vim.g.jetpack` and `require('jetpack')` as you want.
+All `jetpack#` functions are exported as `jetpack` module.
+You can call them using `require('jetpack')` as you want.
 Additionaly, `startup` and `setup` functions are available.
 
 - `setup(config)`
@@ -187,7 +178,7 @@ vim-jetpack contains all optoins of vim-plug.
 ### Command
 
 - `:Jetpack repo [, options]`
-    A command version of `g:jetpack.add()`.
+    A command version of `jetpack#add()`.
     It is useful for the vim-plug sytle declaration of plugins in vimrc.
 - `:JetpackSync`
   - Synchronize configuration and state.
@@ -196,14 +187,14 @@ vim-jetpack contains all optoins of vim-plug.
 
 ### Variable
 
-- `g:jetpack.ignore_patterns`
+- `g:jetpack_ignore_patterns`
   - The list of glob-patterns is used to skip duplicated files.
     Jetpack aggressively bundles plugins if you extend this list.
     The following example skip bunding any JSON files.
     ```vim
-    call add(g:jetpack.ignore_patterns, '/*.json')
+    call add(g:jetpack_ignore_patterns, '/*.json')
     ```
-- `g:jetpack.copy_method`
+- `g:jetpack_copy_method`
   - The default value is `'system'`.
     Consider using `'copy'` if you have some trouble to run the
     external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
@@ -213,7 +204,7 @@ vim-jetpack contains all optoins of vim-plug.
     - `'hardlink'` Use |vim.loop| to make hardlink of files.
     - `'symlink'` Use |vim.loop| to make symlink of files.
 
-- `g:jetpack.download_method`
+- `g:jetpack_download_method`
   - The default value is `'git'`. 
     Consider using `'curl'` or `'wget'`
     if `'git'` is not installed in your system.
@@ -288,10 +279,10 @@ endif
 - VimL
   ```vim
   packadd vim-jetpack
-  call g:jetpack.begin()
+  call jetpack#begin()
   Jetpack 'tani/vim-jetpack', { 'opt': 1 }
-  "call g:jetpack.add('tani/vim-jetpack', { 'opt': 1 })
-  call g:jetpack.end()
+  "call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
+  call jetpack#end()
   ```
 
 - Lua
@@ -307,13 +298,13 @@ endif
 
 ### Is it possible to install plugins if they are not installed?
 
-Yes, it is. We have `g:jetpack.names()` and `g:jetpack.tap()`
+Yes, it is. We have `jetpack#names()` and `jetpack#tap()`
 to retrieve a list of plugin names and check the availability.
 
 ```vim
-for name in g:jetpack.names()
-  if !g:jetpack.tap(name)
-    call g:jetpack.sync()
+for name in jetpack#names()
+  if !jetpack#tap(name)
+    call jetpack#sync()
     break
   endif
 endfor

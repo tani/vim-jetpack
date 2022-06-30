@@ -25,24 +25,22 @@ if exists('g:loaded_jetpack')
 endif
 let g:loaded_jetpack = 1
 
-let g:jetpack = get(g:, 'jetpack', {})
+let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
-let g:jetpack.njobs = get(g:jetpack, 'njobs', 8)
-
-let g:jetpack.ignore_patterns =
-  \ get(g:jetpack, 'ignore_patterns', [
+let g:jetpack_ignore_patterns =
+  \ get(g:, 'jetpack_ignore_patterns', [
   \   '/doc/tags*',
   \   '/test/*',
   \   '/[.ABCDEFGHIJKLMNOPQRSTUVWXYZ]*'
   \ ])
 
-let g:jetpack.download_method =
-  \ get(g:jetpack, 'download_method', 'git')
+let g:jetpack_download_method =
+  \ get(g:, 'jetpack_download_method', 'git')
   " curl: Use CURL to download
   " wget: Use Wget to download
 
-let g:jetpack.copy_method =
-  \ get(g:jetpack, 'copy_method', 'system')
+let g:jetpack_copy_method =
+  \ get(g:, 'jetpack_copy_method', 'system')
   " sytem    : cp/ xcopy
   " copy     : readfile and writefile
   " symlink  : fs_symlink (nvim only)
@@ -67,7 +65,7 @@ function! s:list_files(path) abort
 endfunction
 
 function! s:check_ignorable(filename) abort
-  return filter(copy(g:jetpack.ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
 endfunction
 
 function! s:make_progressbar(n) abort
@@ -123,15 +121,15 @@ endfunction
 
 function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
-  if g:jetpack.copy_method !=# 'system'
+  if g:jetpack_copy_method !=# 'system'
     for src in s:list_files(a:from)
       let dest = substitute(src, '\V' .. escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
-      if g:jetpack.copy_method ==# 'copy'
+      if g:jetpack_copy_method ==# 'copy'
         call writefile(readfile(src, 'b'), dest, 'b')
-      elseif g:jetpack.copy_method ==# 'hardlink'
+      elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
-      elseif g:jetpack.copy_method ==# 'symlink'
+      elseif g:jetpack_copy_method ==# 'symlink'
         call v:lua.vim.loop.fs_symlink(src, dest)
       endif
     endfor
@@ -189,7 +187,7 @@ function! s:show_result() abort
 endfunction
 
 function! s:clean_plugins() abort
-  if g:jetpack.download_method !=# 'git'
+  if g:jetpack_download_method !=# 'git'
     return
   endif
   for [pkg_name, pkg] in items(s:packages)
@@ -210,7 +208,7 @@ function! s:clean_plugins() abort
 endfunction
 
 function! s:make_download_cmd(pkg) abort
-  if g:jetpack.download_method ==# 'git'
+  if g:jetpack_download_method ==# 'git'
     if isdirectory(a:pkg.path)
       return ['git', '-C', a:pkg.path, 'pull', '--rebase']
     else
@@ -235,12 +233,12 @@ function! s:make_download_cmd(pkg) abort
     else
       let label = a:pkg.commit
     endif
-    if g:jetpack.download_method ==# 'curl'
+    if g:jetpack_download_method ==# 'curl'
       let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
-    elseif g:jetpack.download_method ==# 'wget'
+    elseif g:jetpack_download_method ==# 'wget'
       let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
     else
-      throw g:jetpack.download_method .. '%s is not a valid value of g:jetpack.download_method'
+      throw g:jetpack_download_method .. '%s is not a valid value of g:jetpack_download_method'
     endif
     let extract_cmd = 'tar -zxf - -C ' .. a:pkg.path .. ' --strip-components 1'
     call delete(a:pkg.path, 'rf')
@@ -277,13 +275,13 @@ function! s:download_plugins() abort
     \   execute("let pkg.output = output")
     \ ]}, [status, pkg]))
     call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack.njobs)
+    call s:jobwait(jobs, g:jetpack_njobs)
   endfor
   call s:jobwait(jobs, 0)
 endfunction
 
 function! s:switch_plugins() abort
-  if g:jetpack.download_method !=# 'git'
+  if g:jetpack_download_method !=# 'git'
     return
   endif
   for [pkg_name, pkg] in items(s:packages)
@@ -391,7 +389,7 @@ function! s:postupdate_plugins() abort
   endfor
 endfunction
 
-function! g:jetpack.sync() abort
+function! jetpack#sync() abort
   call s:initialize_buffer()
   call s:clean_plugins()
   call s:download_plugins()
@@ -401,7 +399,7 @@ function! g:jetpack.sync() abort
   call s:postupdate_plugins()
 endfunction
 
-function! g:jetpack.add(plugin, ...) abort
+function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
   let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
@@ -428,7 +426,7 @@ function! g:jetpack.add(plugin, ...) abort
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
 
-function! g:jetpack.begin(...) abort
+function! jetpack#begin(...) abort
   let s:packages = {}
   if has('nvim')
     let s:home = stdpath('data') .. '/' .. 'site'
@@ -444,7 +442,7 @@ function! g:jetpack.begin(...) abort
   endif
   let s:optdir = s:home .. '/pack/jetpack/opt'
   let s:srcdir = s:home .. '/pack/jetpack/src'
-  command! -nargs=+ -bar Jetpack call g:jetpack.add(<args>)
+  command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
@@ -484,9 +482,9 @@ function! s:load_cmd(cmd, name, ...) abort
   endtry
 endfunction
 
-function! g:jetpack.end() abort
+function! jetpack#end() abort
   delcommand Jetpack
-  command! -bar JetpackSync call g:jetpack.sync()
+  command! -bar JetpackSync call jetpack#sync()
   syntax off
   filetype plugin indent off
   augroup Jetpack
@@ -529,20 +527,25 @@ function! g:jetpack.end() abort
   filetype plugin indent on
 endfunction
 
-function! g:jetpack.tap(name) abort
-  return has_key(s:packages, a:name) && isdirectory(g:jetpack.get(a:name).path) ? v:true : v:false
+function! jetpack#tap(name) abort
+  return has_key(s:packages, a:name) && isdirectory(jetpack#get(a:name).path) ? v:true : v:false
 endfunction
 
-function! g:jetpack.names() abort
+function! jetpack#names() abort
   return keys(s:packages)
 endfunction
 
-function! g:jetpack.get(name) abort
+function! jetpack#get(name) abort
   return get(s:packages, a:name, {})
 endfunction
 
 if has('nvim')
 lua<<========================================
+local M = {}
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap'}) do
+  M[name] = function(...) vim.fn['jetpack#' .. name](...) end
+end
+
 local function use(plugin)
   if (type(plugin) == 'string') then
     vim.fn['jetpack#add'](plugin)
@@ -557,13 +560,13 @@ local function use(plugin)
   end
 end
 
-vim.g.jetpack.startup = function(config)
+M.startup = function(config)
   vim.fn['jetpack#begin']()
   config(use)
   vim.fn['jetpack#end']()
 end
 
-vim.g.jetpack.setup = function(config)
+M.setup = function(config)
   vim.fn['jetpack#begin']()
   for _, plugin in pairs(config) do
     use(plugin)
@@ -572,7 +575,7 @@ vim.g.jetpack.setup = function(config)
 end
 
 package.preload['jetpack'] = function()
-  return vim.g.jetpack
+  return M
 end
 ========================================
 endif
