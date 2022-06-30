@@ -576,5 +576,9 @@ vim.g.jetpack.setup = function(config)
   end
   vim.fn['jetpack#end']()
 end
+
+package.preload['jetpack'] = function()
+  return vim.g.jetpack
+end
 ========================================
 endif
