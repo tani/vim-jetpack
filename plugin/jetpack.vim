@@ -27,35 +27,22 @@ let g:loaded_jetpack = 1
 
 let g:jetpack = get(g:, 'jetpack', {})
 
-let g:jetpack.njobs =
-  \ get(g:, 'jetpack.njobs', 8)
+let g:jetpack.njobs = get(g:jetpack, 'njobs', 8)
 
 let g:jetpack.ignore_patterns =
-  \ get(g:, 'jetpack.ignore_patterns', [
-  \   '/.*',
-  \   '/.*/**/*',
+  \ get(g:jetpack, 'ignore_patterns', [
   \   '/doc/tags*',
-  \   '/t/**/*',
-  \   '/test/**/*',
-  \   '/Makefile*',
-  \   '/Gemfile*',
-  \   '/Rakefile*',
-  \   '/VimFlavor*',
-  \   '/README*',
-  \   '/LICENSE*',
-  \   '/LICENCE*',
-  \   '/CONTRIBUTING*',
-  \   '/CHANGELOG*',
-  \   '/NEWS*',
+  \   '/test/*',
+  \   '/[.ABCDEFGHIJKLMNOPQRSTUVWXYZ]*'
   \ ])
 
 let g:jetpack.download_method =
-  \ get(g:, 'jetpack.download_method', 'git')
+  \ get(g:jetpack, 'download_method', 'git')
   " curl: Use CURL to download
   " wget: Use Wget to download
 
 let g:jetpack.copy_method =
-  \ get(g:, 'jetpack.copy_method', 'system')
+  \ get(g:jetpack, 'copy_method', 'system')
   " sytem    : cp/ xcopy
   " copy     : readfile and writefile
   " symlink  : fs_symlink (nvim only)
