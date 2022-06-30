@@ -195,19 +195,15 @@ function! s:clean_plugins() abort
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
       "Check the commit
-      if has_key(pkg, 'commit')
-        let commit = system(printf('git -C %s cat-file -t %s', pkg.path, pkg.commit))
-        if commit !~# 'commit'
-          call delete(pkg.path, 'rf')
-          continue
-        endif
+      let commit = system(printf('git -C %s cat-file -t %s', pkg.path, pkg.commit)) 
+      if commit !~# 'commit'
+        call delete(pkg.path, 'rf')
+        continue
       endif
       "Check the branch and the tag
-      if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', pkg.path)))
-        if  get(pkg, 'branch', get(pkg, 'tag')) != branch
-          call delete(pkg.path, 'rf')
-        endif
+      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', pkg.path)))
+      if !(pkg.branch ==# branch || pkg.tag ==# branch)
+        call delete(pkg.path, 'rf')
       endif
     endif
   endfor
@@ -219,11 +215,14 @@ function! s:make_download_cmd(pkg) abort
       return ['git', '-C', a:pkg.path, 'pull', '--rebase']
     else
       let cmd = ['git', 'clone']
-      if !has_key(a:pkg, 'commit')
+      if a:pkg.commit ==# 'HEAD'
         call extend(cmd, ['--depth', '1', '--recursive'])
       endif
-      if has_key(a:pkg, 'branch') || has_key(a:pkg, 'tag')
-        call extend(cmd, ['-b', get(a:pkg, 'branch', get(a:pkg, 'tag'))])
+      if !empty(a:pkg.branch)
+        call extend(cmd, ['-b', a:pkg.branch])
+      endif
+      if !empty(a:pkg.tag)
+        call extend(cmd, ['-b', a:pkg.tag])
       endif
       call extend(cmd, [a:pkg.url, a:pkg.path])
       return cmd
@@ -254,7 +253,7 @@ function! s:download_plugins() abort
   for [pkg_name, pkg] in items(s:packages)
     call s:show_progress('Install Plugins')
     if isdirectory(pkg.path)
-      if get(pkg, 'frozen')
+      if pkg.frozen
         call add(pkg.status, s:status.skipped)
         continue
       endif
@@ -285,7 +284,7 @@ function! s:switch_plugins() abort
   endfor
   for [pkg_name, pkg] in items(s:packages)
     call s:show_progress('Switch Plugins')
-    if !isdirectory(pkg.path) || !has_key(pkg, 'commit')
+    if !isdirectory(pkg.path)
       call add(pkg.status, s:status.skipped)
       continue
     else
@@ -304,7 +303,7 @@ function! s:merge_plugins() abort
   let bundle = {}
   let unbundle = {}
   for [pkg_name, pkg] in items(s:packages)
-    if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
+    if pkg.opt || !empty(pkg.do) || !empty(pkg.dir)
       let unbundle[pkg_name] = pkg
     else
       let bundle[pkg_name] = pkg
@@ -325,7 +324,7 @@ function! s:merge_plugins() abort
   let merged_files = {}
   for [pkg_name, pkg] in items(bundle)
     call s:show_progress('Merge Plugins')
-    let srcdir = pkg.path .. '/' .. get(pkg, 'rtp', '')
+    let srcdir = pkg.path .. '/' .. pkg.rtp
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
     let files = filter(files, { _, file -> !s:check_ignorable(file) })
     if empty(filter(copy(files), {_, file -> has_key(merged_files, file)}))
@@ -343,10 +342,10 @@ function! s:merge_plugins() abort
   " Copy plugins.
   for [pkg_name, pkg] in items(unbundle)
     call s:show_progress('Copy Plugins')
-    if has_key(pkg, 'dir')
+    if !empty(pkg.dir)
       call add(pkg.status, s:status.skipped)
     else
-      let srcdir = pkg.path .. '/' .. get(pkg, 'rtp', '')
+      let srcdir = pkg.path .. '/' .. pkg.rtp
       let destdir = s:optdir .. '/' .. pkg_name
       call s:copy_dir(srcdir, destdir)
       call add(pkg.status, s:status.copied)
@@ -357,11 +356,11 @@ endfunction
 function! s:postupdate_plugins() abort
   silent! packadd _
   for [pkg_name, pkg] in items(s:packages)
-    if !has_key(pkg, 'do') || pkg.output =~# 'Already up to date.'
+    if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
     endif
     let pwd = getcwd()
-    if has_key(pkg, 'dir')
+    if pkg.dir !=# ''
       call chdir(pkg.path)
     else
       execute 'silent! packadd ' .. pkg_name
@@ -397,18 +396,24 @@ endfunction
 
 function! g:jetpack.add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
-  let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
-  let path = get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', ''))
-  let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
-  let pkg  = extend(opts, {
+  let pkg  = {
   \   'url': url,
-  \   'opt': opt,
-  \   'path': path,
+  \   'branch': get(opts, 'branch', ''),
+  \   'tag': get(opts, 'tag', ''),
+  \   'commit': get(opts, 'commit', 'HEAD'),
+  \   'rtp': get(opts, 'rtp', ''),
+  \   'do': get(opts, 'do', ''),
+  \   'frozen': get(opts, 'frozen', v:false),
+  \   'dir': get(opts, 'dir', ''),
+  \   'on': has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : [],
+  \   'for': has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [],
+  \   'opt': has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt'),
+  \   'path': get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
-  \ })
-  let s:packages[name] = pkg
+  \ }
+  let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
 
 function! g:jetpack.begin(...) abort
@@ -476,20 +481,18 @@ function! g:jetpack.end() abort
     autocmd!
   augroup END
   for [pkg_name, pkg] in items(s:packages)
-    if has_key(pkg, 'dir')
-      let &runtimepath .= printf(',%s/%s', pkg.dir, get(pkg, 'rtp', ''))
+    if !empty(pkg.dir)
+      let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
       continue
     endif
     if !pkg.opt
       execute 'silent! packadd! ' .. pkg_name
       continue
     endif
-    let items = get(pkg, 'for', [])
-    for it in (type(items) ==# v:t_list ? items : [items])
+    for it in pkg.for
       execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
     endfor
-    let items = get(pkg, 'on', [])
-    for it in (type(items) ==# v:t_list ? items : [items])
+    for it in pkg.on
       if it =~? '^<Plug>'
         execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
         execute printf('nnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
