@@ -186,26 +186,22 @@ Additionaly, `startup` and `setup` functions are available.
 
 SUPPORTED OPTION                                       *jetpack-supported_option*
 
-vim-jetpack is almost compatible with vim-plug.
-
-| name      | type               | description                              |
-| :-------: | :----------------: | :--------------------------------------- |
-|  commit   |  sring             | Commit of the repository to use          |
-|  tag      |  sring             | Tag of the repository to use             |
-|  branch   |  sring             | Branch of the repository to use          |
-|  rtp      |  string            | Subdirectory that contains Vim plugin    |
-|  dir      |  string            | Custom directory for the plugin          |
-|  as       |  string            | Use different name for plugin            |
-|  do       |  string  or  func  | Post-update hook                         |
-|  on       |  string  or  list  | Lazy loading: Commands,  <Plug> , Events |
-|  for      |  string  or  list  | Lazy load loading: File types            |
-|  frozen   |  boolean           | Do not update                            |
-
-Additionally, vim-jetpack provides Vim 8/ Neovim packages interface.
-
-| name  |   type    | description                         |
-| :---: | :-------: | :---------------------------------- |
-|  opt  |  boolean  | Lazy loading:  packadd {name}       |
+| name         | type               | description                           |
+| :----------: | :----------------: | :------------------------------------ |
+|  commit      |  sring             | Commit of the repository to use       |
+|  tag         |  sring             | Tag of the repository to use          |
+|  branch      |  sring             | Branch of the repository to use       |
+|  rtp         |  string            | Subdirectory that contains Vim plugin |
+|  dir         |  string            | Custom directory for the plugin       |
+|  as          |  string            | Use different name for plugin         |
+|  do  /  run  |  string  or  func  | Post-update hook                      |
+|  on          |  string  or  list  | Commands, keymaps, events, file types |
+|  for  /  ft  |  string  or  list  | On-demand loading: File types         |
+|  cmd         |  string  or  list  | On-demand loading: Commands           |
+|  event       |  string  or  list  | On-demand loading: Events             |
+|  map         |  string  or  list  | On-demand loading: keymaps  <Plug>    |
+|  opt         |  boolean           | On-demand loading:  packadd {name}    |
+|  frozen      |  boolean           | Do not update                         |
 
 COMMAND                                                         *jetpack-command*
 

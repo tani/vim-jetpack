@@ -404,18 +404,23 @@ endfunction
 function! g:jetpack.add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
+  let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
+  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
+  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
+  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
+  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
+  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
   let pkg  = {
   \   'url': url,
   \   'branch': get(opts, 'branch', ''),
   \   'tag': get(opts, 'tag', ''),
   \   'commit': get(opts, 'commit', 'HEAD'),
   \   'rtp': get(opts, 'rtp', ''),
-  \   'do': get(opts, 'do', ''),
+  \   'do': get(opts, 'do', get(opts, 'run', '')),
   \   'frozen': get(opts, 'frozen', v:false),
   \   'dir': get(opts, 'dir', ''),
-  \   'on': has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : [],
-  \   'for': has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [],
-  \   'opt': has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt'),
+  \   'on': on,
+  \   'opt': !empty(on) || get(opts, 'opt'),
   \   'path': get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
@@ -496,9 +501,6 @@ function! g:jetpack.end() abort
       execute 'silent! packadd! ' .. pkg_name
       continue
     endif
-    for it in pkg.for
-      execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
-    endfor
     for it in pkg.on
       if it =~? '^<Plug>'
         execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
@@ -508,9 +510,11 @@ function! g:jetpack.end() abort
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let it .= (it =~? ' ' ? '' : ' *')
         execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
-      else
+      elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
         let cmd = substitute(it, '^:', '', '')
         execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+      else
+        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
       endif
     endfor
     let event = substitute(pkg_name, '\W\+', '_', 'g')
@@ -540,10 +544,6 @@ endfunction
 if has('nvim')
 lua<<========================================
 local function use(plugin)
-  local alias = {
-    run = 'do',
-    ft = 'for'
-  }
   if (type(plugin) == 'string') then
     vim.fn['jetpack#add'](plugin)
   else
@@ -552,13 +552,7 @@ local function use(plugin)
     if vim.fn.type(plugin) == vim.v.t_list then
       vim.fn['jetpack#add'](name)
     else 
-      for key, value in pairs(alias) do
-        if plugin[key] ~= nil then
-          plugin[value] = plugin[key]
-        end
-      end
-      local opts = plugin
-      vim.fn['jetpack#add'](name, opts)
+      vim.fn['jetpack#add'](name, plugin)
     end
   end
 end
