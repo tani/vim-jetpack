@@ -228,12 +228,19 @@ function! s:make_download_cmd(pkg) abort
       return cmd
     endif
   else
-    if g:jetpack.download_method ==# 'curl'
-      let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/HEAD.tar.gz'
-    elseif g:jetpack.download_method ==# 'wget'
-      let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/HEAD.tar.gz'
+    if !empty(a:pkg.tag)
+      let label = a:pkg.tag
+    elseif !empty(a:pkg.branch)
+      let label = a:pkg.branch
     else
-      throw g:jetpack.download_method .. '%s is not valid value of g:jetpack.download_method'
+      let label = a:pkg.commit
+    endif
+    if g:jetpack.download_method ==# 'curl'
+      let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+    elseif g:jetpack.download_method ==# 'wget'
+      let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+    else
+      throw g:jetpack.download_method .. '%s is not a valid value of g:jetpack.download_method'
     endif
     let extract_cmd = 'tar -zxf - -C ' .. a:pkg.path .. ' --strip-components 1'
     call delete(a:pkg.path, 'rf')
