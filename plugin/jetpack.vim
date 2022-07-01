@@ -541,11 +541,12 @@ function! jetpack#get(name) abort
   return get(s:packages, a:name, {})
 endfunction
 
-if has('nvim')
+if !has('nvim') | finish | endif
 lua<<========================================
 local M = {}
+
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
-  M[name] = function(...) vim.fn['jetpack#' .. name](...) end
+  M[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 
 local function use(plugin)
@@ -580,4 +581,3 @@ package.preload['jetpack'] = function()
   return M
 end
 ========================================
-endif
