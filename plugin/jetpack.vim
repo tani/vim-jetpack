@@ -192,11 +192,19 @@ function! s:clean_plugins() abort
   endif
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
-      "Check the commit
       let commit = system(printf('git -C %s cat-file -t %s', pkg.path, pkg.commit)) 
-      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
-      if !(commit =~# 'commit' || empty(branch) || pkg.branch ==# branch || pkg.tag ==# branch)
+      if commit !~# 'commit'
         call delete(pkg.path, 'rf')
+        continue
+      endif
+      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      if !empty(pkg.branch) && pkg.branch !=# branch
+        call delete(pkg.path, 'rf')
+        continue
+      endif
+      if !empty(pkg.tag) && pkg.tag !=# branch
+        call delete(pkg.path, 'rf')
+        continue
       endif
     endif
   endfor
