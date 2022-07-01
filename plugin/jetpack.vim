@@ -194,13 +194,8 @@ function! s:clean_plugins() abort
     if isdirectory(pkg.path)
       "Check the commit
       let commit = system(printf('git -C %s cat-file -t %s', pkg.path, pkg.commit)) 
-      if commit !~# 'commit'
-        call delete(pkg.path, 'rf')
-        continue
-      endif
-      "Check the branch and the tag
-      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', pkg.path)))
-      if !(pkg.branch ==# branch || pkg.tag ==# branch)
+      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      if !(commit =~# 'commit' || empty(branch) || pkg.branch ==# branch || pkg.tag ==# branch)
         call delete(pkg.path, 'rf')
       endif
     endif
