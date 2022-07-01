@@ -4,6 +4,8 @@ The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
 
+<img src="https://user-images.githubusercontent.com/5019902/154419764-d246c45c-8940-4e60-9658-9ed3424cbeaa.gif" width="70%">
+
 ## Features
 
 - Lightning-fast startup
@@ -18,6 +20,34 @@ the built-in plugin manager only.
   - Installed plugins do not pollute your vim.
 - git-free installation
   - Optionally, you can use `curl`/ `wget` instead of `git`
+
+## Benchmark
+
+In the simple cases, vim-jetpack is the fastest plugin manager.
+
+We measured a startup time 10 times for each plugin managers. The following
+chart is the result.
+
+Although jetpack is inferior to minpac in terms of minimum value, it has the
+lowest median and mean value of any plugin manager. More notably, the variance
+of jetpack's records is very small. vim-plug's variance is small enough, but
+jetpack's variance is by far the smallest. jetpack has the smallest variance,
+mean, and median among the six plugin managers, indicating that it is stable and
+always runs fast.
+
+<img src="https://user-images.githubusercontent.com/5019902/154288762-ff9def96-3f8e-428c-bcb5-d16b3712e9fe.png" width="70%">
+
+
+|          |  dein | jetpack | minpac | packer |   paq |  plug |
+| :------: | ----: | ------: | -----: | -----: | ----: | ----: |
+|   min    | 80.61 |   69.93 |  64.97 |  75.38 | 73.92 | 77.63 |
+|   max    | 96.02 |   74.48 |  81.30 |  89.40 | 84.95 | 82.82 |
+|  median  | 85.26 |   71.92 |  72.38 |  78.38 | 78.16 | 80.36 |
+|   mean   | 86.24 |   71.97 |  72.48 |  80.07 | 78.21 | 80.12 |
+| variance | 27.09 |    2.07 |  23.99 |  24.56 | 10.83 |  3.57 |
+
+You can run the benchmarks in your local environment. See the `benchmark`
+directory for more detail
 
 ## Installation
 
