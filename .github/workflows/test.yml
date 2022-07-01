@@ -20,8 +20,19 @@ jobs:
         with:
           version: 'stable'
           neovim: ${{ matrix.vi == 'neovim' }}
-      - name: Run tests
-        timeout-minutes: 1
+      - name: Run tests with git
+        timeout-minutes: 5
         env:
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
-        run: ./vim-themis/bin/themis ./test/test.vim
+        run: ./vim-themis/bin/themis ./test/git_test.vim
+      - name: Run tests with curl
+        timeout-minutes: 5
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+        run: ./vim-themis/bin/themis ./test/curl_test.vim
+      - name: Run tests with wget
+        timeout-minutes: 5
+        if: matrix.os != 'windows-2022'
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+        run: ./vim-themis/bin/themis ./test/wget_test.vim

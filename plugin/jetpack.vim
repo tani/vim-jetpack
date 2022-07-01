@@ -1,8 +1,4 @@
-"=============== JETPACK.vim =================
-"      The lightning-fast plugin manager
-"
-"                MIT License
-"
+"=================================== Jetpack ==================================
 "Copyright (c) 2022 TANIGUCHI Masaya
 "
 "Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,40 +18,29 @@
 "LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 "SOFTWARE.
-"=============================================
+"==============================================================================
 
 if exists('g:loaded_jetpack')
   finish
 endif
 let g:loaded_jetpack = 1
 
-let g:jetpack#optimization =
-  \ get(g:, 'jetpack#optimization', 1)
+let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
-let g:jetpack#njobs =
-  \ get(g:, 'jetpack#njobs', 8)
-
-let g:jetpack#ignore_patterns =
-  \ get(g:, 'jetpack#ignore_patterns', [
-  \   '/.*',
-  \   '/.*/**/*',
+let g:jetpack_ignore_patterns =
+  \ get(g:, 'jetpack_ignore_patterns', [
   \   '/doc/tags*',
-  \   '/t/**/*',
-  \   '/test/**/*',
-  \   '/Makefile*',
-  \   '/Gemfile*',
-  \   '/Rakefile*',
-  \   '/VimFlavor*',
-  \   '/README*',
-  \   '/LICENSE*',
-  \   '/LICENCE*',
-  \   '/CONTRIBUTING*',
-  \   '/CHANGELOG*',
-  \   '/NEWS*',
+  \   '/test/*',
+  \   '/[.ABCDEFGHIJKLMNOPQRSTUVWXYZ]*'
   \ ])
 
-let g:jetpack#copy_method =
-  \ get(g:, 'jetpack#copy_method', 'system')
+let g:jetpack_download_method =
+  \ get(g:, 'jetpack_download_method', 'git')
+  " curl: Use CURL to download
+  " wget: Use Wget to download
+
+let g:jetpack_copy_method =
+  \ get(g:, 'jetpack_copy_method', 'system')
   " sytem    : cp/ xcopy
   " copy     : readfile and writefile
   " symlink  : fs_symlink (nvim only)
@@ -63,26 +48,28 @@ let g:jetpack#copy_method =
 
 let s:packages = get(s:, 'packages', {})
 
-let s:progress_type = {
-\   'skip': 'skip',
-\   'install': 'install',
-\   'update': 'update',
+let s:status = {
+\   'pending': 'pending',
+\   'skipped': 'skipped',
+\   'installed': 'installed',
+\   'installing': 'installing',
+\   'updated': 'updated',
+\   'updating': 'updating',
+\   'switched': 'switched',
+\   'merged': 'merged',
+\   'copied': 'copied'
 \ }
 
-function s:path(...)
-  return expand(join(a:000, '/'))
+function! s:list_files(path) abort
+  return filter(glob(a:path .. '/**/*', '', 1), { _, val -> !isdirectory(val)})
 endfunction
 
-function! s:files(path) abort
-  return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
+function! s:check_ignorable(filename) abort
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
 endfunction
 
-function! s:ignorable(filename) abort
-  return filter(copy(g:jetpack#ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
-endfunction
-
-function! s:progressbar(n) abort
-  return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
+function! s:make_progressbar(n) abort
+  return '[' .. join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') .. ']'
 endfunction
 
 function! s:jobstatus(job) abort
@@ -103,290 +90,288 @@ function! s:jobwait(jobs, njobs) abort
   endwhile
 endfunction
 
-if has('nvim')
-  function! s:jobstart(cmd, cb) abort
+" Original: https://github.com/lambdalisue/vital-Whisky/blob/90c71/autoload/vital/__vital__/System/Job/Vim.vim#L46
+"  License: https://github.com/lambdalisue/vital-Whisky/blob/90c71/LICENSE
+function! s:nvim_exit_cb(buf, cb, job, ...) abort
+  let ch = job_getchannel(a:job)
+  while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
+  while ch_status(ch) ==# 'buffered' | sleep 1ms | endwhile
+  call a:cb(join(a:buf, "\n"))
+endfunction
+
+function! s:jobstart(cmd, cb) abort
+  if has('nvim')
     let buf = []
     return jobstart(a:cmd, {
     \   'on_stdout': { _, data -> extend(buf, data) },
     \   'on_stderr': { _, data -> extend(buf, data) },
     \   'on_exit': { -> a:cb(join(buf, "\n")) }
     \ })
-  endfunction
-else
-  " Original: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/autoload/vital/__vital__/System/Job/Vim.vim#L46
-  "  License: https://github.com/lambdalisue/vital-Whisky/blob/90c715b446993bf5bfcf6f912c20ae514051cbb2/LICENSE
-  function! s:exit_cb(buf, cb, job, ...) abort
-    let ch = job_getchannel(a:job)
-    while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
-    while ch_status(ch) ==# 'buffered' | sleep 1ms | endwhile
-    call a:cb(join(a:buf, "\n"))
-  endfunction
-  function! s:jobstart(cmd, cb) abort
+  else
     let buf = []
     return job_start(a:cmd, {
     \   'out_mode': 'raw',
     \   'out_cb': { _, data -> extend(buf, split(data, "\n")) },
     \   'err_mode': 'raw',
     \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
-    \   'exit_cb': function('s:exit_cb', [buf, a:cb])
+    \   'exit_cb': function('s:nvim_exit_cb', [buf, a:cb])
     \ })
-  endfunction
-endif
+  endif
+endfunction
 
-function! s:copy(from, to) abort
+function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
-  if g:jetpack#copy_method !=# 'system'
-    for src in s:files(a:from)
-      let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
+  if g:jetpack_copy_method !=# 'system'
+    for src in s:list_files(a:from)
+      let dest = substitute(src, '\V' .. escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
-      if g:jetpack#copy_method ==# 'copy'
+      if g:jetpack_copy_method ==# 'copy'
         call writefile(readfile(src, 'b'), dest, 'b')
-      elseif g:jetpack#copy_method ==# 'hardlink'
+      elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
-      elseif g:jetpack#copy_method ==# 'symlink'
+      elseif g:jetpack_copy_method ==# 'symlink'
         call v:lua.vim.loop.fs_symlink(src, dest)
       endif
     endfor
   elseif has('unix')
-    call system(printf('cp -R "%s/." "%s"', a:from, a:to))
+    call system(printf('cp -R %s/. %s', a:from, a:to))
   elseif has('win32')
-    call system(printf('xcopy "%s" "%s" /E /Y', a:from, a:to))
+    call system(printf('xcopy %s %s /E /Y', expand(a:from), expand(a:to)))
   endif
 endfunction
 
-function! s:setbufline(lnum, text, ...) abort
-  call setbufline(bufnr('JetpackStatus'), a:lnum, a:text)
-  redraw
-endfunction
-
-function! s:setupbuf() abort
-  execute 'silent! bdelete! ' . bufnr('JetpackStatus')
+function! s:initialize_buffer() abort
+  execute 'silent! bdelete! ' .. bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
-  syntax match jetpackProgress /^[A-Z][a-z]*ing/
-  syntax match jetpackComplete /^[A-Z][a-z]*ed/
-  syntax keyword jetpackSkipped ^Skipped
+  syntax match jetpackProgress /^[a-z]*ing/
+  syntax match jetpackComplete /^[a-z]*ed/
+  syntax keyword jetpackSkipped ^skipped
   highlight def link jetpackProgress DiffChange
   highlight def link jetpackComplete DiffAdd
   highlight def link jetpackSkipped DiffDelete
   redraw
 endfunction
 
-function! jetpack#install(...) abort
-  call s:setupbuf()
-  let jobs = []
-  let i = -1
+function! s:show_progress(title) abort
+  let buf = bufnr('JetpackStatus')
+  call deletebufline(buf, 1, '$')
+  let processed = len(filter(copy(s:packages), { _, val -> val.status[-1] =~# 'ed' }))
+  call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
+  call appendbufline(buf, '$', s:make_progressbar((0.0 + processed) / len(s:packages) * 100))
   for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Install Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Installing %s ...', pkg_name))
-    if (a:0 > 0 && index(a:000, pkg_name) < 0) || isdirectory(pkg.path)
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
-    endif
-    let cmd = ['git', 'clone']
-    if !has_key(pkg, 'commit')
-      call extend(cmd, ['--depth', '1', '--recursive'])
-    endif
-    if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-      call extend(cmd, ['-b', get(pkg, 'branch', get(pkg, 'tag'))])
-    endif
-    call extend(cmd, [pkg.url, pkg.path])
-    let job = s:jobstart(cmd, function({ i, pkg, output -> [
-    \   extend(pkg, {
-    \     'progress': {
-    \       'type': s:progress_type.install,
-    \       'output': output
-    \     }
-    \   }),
-    \   s:setbufline(i+3, printf('Installed %s', pkg_name))
-    \ ] }, [i, pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
+    call appendbufline(buf, '$', printf('%s %s', pkg.status[-1], pkg_name))
   endfor
-  call s:jobwait(jobs, 0)
+  redraw
 endfunction
 
-function! jetpack#checkout(...) abort
-  call s:setupbuf()
-  let i = -1
+function! s:show_result() abort
+  let buf = bufnr('JetpackStatus')
+  call deletebufline(buf, 1, '$')
+  call setbufline(buf, 1, 'Result')
+  call appendbufline(buf, '$', s:make_progressbar(100))
   for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Checkout Plugins (%d / %d)', i, len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + i) / len(s:packages) * 100))
-    if (a:0 > 0 && index(a:000, pkg_name) < 0) || !isdirectory(pkg.path) || !has_key(pkg, 'commit')
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
+    if index(pkg.status, s:status.installed) >= 0
+      call appendbufline(buf, '$', printf('installed %s', pkg_name))
+    elseif index(pkg.status, s:status.updated) >= 0
+      call appendbufline(buf, '$', printf('updated %s', pkg_name))
+    else
+      call appendbufline(buf, '$', printf('skipped %s', pkg_name))
     endif
-    call system(printf('git -C "%s" switch "-"', pkg.path))
-    call system(printf('git -C "%s" checkout "%s"', pkg.path, pkg.commit))
-    call s:setbufline(i+3, printf('Checkout %s in %s', pkg.commit, pkg_name))
+    let output = pkg.output
+    let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
+    call appendbufline(buf, '$', output)
   endfor
+  redraw
 endfunction
 
-function! jetpack#update(...) abort
-  call s:setupbuf()
-  let jobs = []
-  let i = -1
-  for [pkg_name, pkg] in items(s:packages)
-    let i += 1
-    call s:setbufline(1, printf('Update Plugins (%d / %d)', (len(jobs) - s:jobcount(jobs)), len(s:packages)))
-    call s:setbufline(2, s:progressbar((0.0 + len(jobs) - s:jobcount(jobs)) / len(s:packages) * 100))
-    call s:setbufline(i+3, printf('Updating %s ...', pkg_name))
-    if pkg.progress.type ==# s:progress_type.install
-       \ || (a:0 > 0 && index(a:000, pkg_name) < 0)
-       \ || (get(pkg, 'frozen')
-       \ || !isdirectory(pkg.path))
-      call s:setbufline(i+3, printf('Skipped %s', pkg_name))
-      continue
-    endif
-    let cmd = ['git', '-C', pkg.path, 'pull', '--rebase']
-    let job = s:jobstart(cmd, function({ i, pkg, output -> [
-    \   extend(pkg, {
-    \     'progress': {
-    \       'type': s:progress_type.update,
-    \       'output': output
-    \     }
-    \   }),
-    \   s:setbufline(i+3, printf('Updated %s', pkg_name))
-    \ ] }, [i, pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack#njobs)
-  endfor
-  call s:jobwait(jobs, 0)
-endfunction
-
-function! jetpack#clean() abort
+function! s:clean_plugins() abort
+  if g:jetpack_download_method !=# 'git'
+    return
+  endif
   for [pkg_name, pkg] in items(s:packages)
     if isdirectory(pkg.path)
-      "Check the url of the repository
-      let remote_url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(pkg.path))))
-      if remote_url !=# pkg.url
+      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      if v:shell_error
         call delete(pkg.path, 'rf')
         continue
       endif
-      "Check the commit
-      if has_key(pkg, 'commit')
-        let commit = system(printf('git -C %s cat-file -t %s', shellescape(pkg.path), shellescape(pkg.commit)))
-        if commit !~# 'commit'
-          call delete(pkg.path, 'rf')
-          continue
-        endif
+      if !empty(pkg.branch) && pkg.branch !=# branch
+        call delete(pkg.path, 'rf')
+        continue
       endif
-      "Check the branch and the tag
-      if has_key(pkg, 'branch') || has_key(pkg, 'tag')
-        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref HEAD', shellescape(pkg.path))))
-        if  get(pkg, 'branch', get(pkg, 'tag')) != branch
-          call delete(pkg.path, 'rf')
-        endif
+      if !empty(pkg.tag) && pkg.tag !=# branch
+        call delete(pkg.path, 'rf')
+        continue
       endif
     endif
   endfor
 endfunction
 
-function! jetpack#bundle() abort
-  call s:setupbuf()
-  let bundle = {}
-  let unbundle = s:packages
-  if g:jetpack#optimization == 1
-    let unbundle = {}
-    for [pkg_name, pkg] in items(s:packages)
-      if get(pkg, 'opt') || has_key(pkg, 'do') || has_key(pkg, 'dir')
-        let unbundle[pkg_name] = pkg
-      else
-        let bundle[pkg_name] = pkg
+function! s:make_download_cmd(pkg) abort
+  if g:jetpack_download_method ==# 'git'
+    if isdirectory(a:pkg.path)
+      return ['git', '-C', a:pkg.path, 'pull', '--rebase']
+    else
+      let cmd = ['git', 'clone']
+      if a:pkg.commit ==# 'HEAD'
+        call extend(cmd, ['--depth', '1', '--recursive'])
       endif
-    endfor
+      if !empty(a:pkg.branch)
+        call extend(cmd, ['-b', a:pkg.branch])
+      endif
+      if !empty(a:pkg.tag)
+        call extend(cmd, ['-b', a:pkg.tag])
+      endif
+      call extend(cmd, [a:pkg.url, a:pkg.path])
+      return cmd
+    endif
+  else
+    if !empty(a:pkg.tag)
+      let label = a:pkg.tag
+    elseif !empty(a:pkg.branch)
+      let label = a:pkg.branch
+    else
+      let label = a:pkg.commit
+    endif
+    if g:jetpack_download_method ==# 'curl'
+      let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+    elseif g:jetpack_download_method ==# 'wget'
+      let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+    else
+      throw g:jetpack_download_method .. '%s is not a valid value of g:jetpack_download_method'
+    endif
+    let extract_cmd = 'tar -zxf - -C ' .. a:pkg.path .. ' --strip-components 1'
+    call delete(a:pkg.path, 'rf')
+    if has('unix')
+      return ['sh', '-c', download_cmd .. ' | ' .. extract_cmd]
+    elseif has('win32')
+      return ['cmd.exe', '/c' .. download_cmd .. ' | ' .. extract_cmd]
+    endif
   endif
+endfunction
 
-  call delete(s:optdir, 'rf')
-  let destdir = s:path(s:optdir, '_')
+function! s:download_plugins() abort
+  let jobs = []
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+  for [pkg_name, pkg] in items(s:packages)
+    call s:show_progress('Install Plugins')
+    if isdirectory(pkg.path)
+      if pkg.frozen
+        call add(pkg.status, s:status.skipped)
+        continue
+      endif
+      call add(pkg.status, s:status.updating)
+      let status = s:status.updated
+    else
+      call add(pkg.status, s:status.installing)
+      let status = s:status.installed
+    endif
+    let cmd = s:make_download_cmd(pkg)
+    call mkdir(pkg.path, 'p')
+    let job = s:jobstart(cmd, function({status, pkg, output -> [
+    \   add(pkg.status, status),
+    \   execute("let pkg.output = output")
+    \ ]}, [status, pkg]))
+    call add(jobs, job)
+    call s:jobwait(jobs, g:jetpack_njobs)
+  endfor
+  call s:jobwait(jobs, 0)
+endfunction
+
+function! s:switch_plugins() abort
+  if g:jetpack_download_method !=# 'git'
+    return
+  endif
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+  for [pkg_name, pkg] in items(s:packages)
+    call s:show_progress('Switch Plugins')
+    if !isdirectory(pkg.path)
+      call add(pkg.status, s:status.skipped)
+      continue
+    else
+      call add(pkg.status, s:status.switched)
+    endif
+    call system(printf('git -C %s checkout %s', pkg.path, pkg.commit))
+  endfor
+endfunction
+
+function! s:merge_plugins() abort
+  for [pkg_name, pkg] in items(s:packages)
+    call add(pkg.status, s:status.pending)
+  endfor
+
+  "If opt/do/dir option is enabled, it should be placed isolated directory.
+  let bundle = {}
+  let unbundle = {}
+  for [pkg_name, pkg] in items(s:packages)
+    if pkg.opt || !empty(pkg.do) || !empty(pkg.dir)
+      let unbundle[pkg_name] = pkg
+    else
+      let bundle[pkg_name] = pkg
+    endif
+  endfor
+
+  " Delete old directories
+  for dir in glob(s:optdir .. '/*', '', 1)
+    let pkg_name = fnamemodify(dir, ':t')
+    if !has_key(s:packages, pkg_name)
+     \ || s:packages[pkg_name].output !~# 'Already up to date.'
+      call delete(dir, 'rf')
+    endif
+  endfor
 
   " Merge plugins if possible.
   let merged_count = 0
   let merged_files = {}
   for [pkg_name, pkg] in items(bundle)
-    call s:setbufline(1, printf('Merging Plugins (%d / %d)', merged_count, len(s:packages)))
-    call s:setbufline(2, s:progressbar(1.0 * merged_count / len(s:packages) * 100))
-    let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
-
-    let files = map(s:files(srcdir), {_, file -> file[len(srcdir):]})
-    let files = filter(files, { _, file -> !s:ignorable(file) })
-    let conflicted = v:false
-    for file in files
-      if has_key(merged_files, file)
-        let conflicted = v:true
-        break
-      endif
-    endfor
-    if conflicted
-      let unbundle[pkg_name] = pkg
-    else
+    call s:show_progress('Merge Plugins')
+    let srcdir = pkg.path .. '/' .. pkg.rtp
+    let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
+    let files = filter(files, { _, file -> !s:check_ignorable(file) })
+    if empty(filter(copy(files), {_, file -> has_key(merged_files, file)}))
       for file in files
         let merged_files[file] = v:true
       endfor
-      call s:copy(srcdir, destdir)
-      call s:setbufline(merged_count+3, printf('Merged %s ...', pkg_name))
+      call s:copy_dir(srcdir, s:optdir .. '/_')
+      call add(pkg.status, s:status.merged)
       let merged_count += 1
+    else
+      let unbundle[pkg_name] = pkg
     endif
   endfor
 
   " Copy plugins.
-  let i = -1
   for [pkg_name, pkg] in items(unbundle)
-    let i += 1
-    call s:setbufline(1, printf('Copying Plugins (%d / %d)', i+merged_count, len(s:packages)))
-    call s:setbufline(2, s:progressbar(1.0 * (i+merged_count) / len(s:packages) * 100))
-    if has_key(pkg, 'dir')
-      call s:setbufline(i+merged_count+3, printf('Skipped %s ...', pkg_name))
+    call s:show_progress('Copy Plugins')
+    if !empty(pkg.dir)
+      call add(pkg.status, s:status.skipped)
     else
-      let srcdir = s:path(pkg.path, get(pkg, 'rtp', ''))
-      let destdir = s:path(s:optdir, pkg_name)
-      call s:copy(srcdir, destdir)
-      call s:setbufline(i+merged_count+3, printf('Copied %s ...', pkg_name))
+      let srcdir = pkg.path .. '/' .. pkg.rtp
+      let destdir = s:optdir .. '/' .. pkg_name
+      call s:copy_dir(srcdir, destdir)
+      call add(pkg.status, s:status.copied)
     endif
   endfor
 endfunction
 
-function! s:display() abort
-  call s:setupbuf()
-  let msg = {}
-  let msg[s:progress_type.skip] = 'Skipped'
-  let msg[s:progress_type.install] = 'Installed'
-  let msg[s:progress_type.update] = 'Updated'
-
-  let line_count = 1
-  for [pkg_name, pkg] in items(s:packages)
-    let output = pkg.progress.output
-    let output = substitute(output, '\r\n\|\r', '\n', 'g')
-    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
-
-    call s:setbufline(line_count, printf('%s %s', msg[pkg.progress.type], pkg_name))
-    let line_count += 1
-    for o in split(output, '\n')
-      if o !=# ''
-        call s:setbufline(line_count, printf('  %s', o))
-        let line_count += 1
-      endif
-    endfor
-    call s:setbufline(line_count, '')
-    let line_count += 1
-  endfor
-endfunction
-
-function! jetpack#postupdate() abort
+function! s:postupdate_plugins() abort
   silent! packadd _
   for [pkg_name, pkg] in items(s:packages)
-    if !has_key(pkg, 'do')
+    if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
     endif
     let pwd = getcwd()
-    if has_key(pkg, 'dir')
+    if pkg.dir !=# ''
       call chdir(pkg.path)
     else
-      execute 'silent! packadd ' . pkg_name
-      call chdir(s:path(s:optdir, pkg_name))
+      execute 'silent! packadd ' .. pkg_name
+      call chdir(s:optdir .. '/' .. pkg_name)
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
@@ -401,43 +386,52 @@ function! jetpack#postupdate() abort
     endif
     call chdir(pwd)
   endfor
-  for dir in glob(s:optdir . '/*/doc', '', 1)
-    execute 'silent! helptags ' . dir
+  for dir in glob(s:optdir .. '/*/doc', '', 1)
+    execute 'silent! helptags ' .. dir
   endfor
 endfunction
 
 function! jetpack#sync() abort
-  call jetpack#clean()
-  call jetpack#install()
-  call jetpack#update()
-  call jetpack#checkout()
-  call jetpack#bundle()
-  call s:display()
-  call jetpack#postupdate()
+  call s:initialize_buffer()
+  call s:clean_plugins()
+  call s:download_plugins()
+  call s:switch_plugins()
+  call s:merge_plugins()
+  call s:show_result()
+  call s:postupdate_plugins()
 endfunction
 
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
-  let name = get(opts, 'as', fnamemodify(a:plugin, ':t'))
-  let path = get(opts, 'dir', s:path(s:srcdir,  name))
-  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
-  let opt = has_key(opts, 'for') || has_key(opts, 'on') || get(opts, 'opt')
-  let pkg  = extend(opts, {
+  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
+  let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
+  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
+  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
+  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
+  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
+  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
+  let pkg  = {
   \   'url': url,
-  \   'opt': opt,
-  \   'path': path,
-  \   'progress': {
-  \     'type': s:progress_type.skip,
-  \     'output': 'Skipped',
-  \   },
-  \ })
-  let s:packages[name] = pkg
+  \   'branch': get(opts, 'branch', ''),
+  \   'tag': get(opts, 'tag', ''),
+  \   'commit': get(opts, 'commit', 'HEAD'),
+  \   'rtp': get(opts, 'rtp', ''),
+  \   'do': get(opts, 'do', get(opts, 'run', '')),
+  \   'frozen': get(opts, 'frozen', v:false),
+  \   'dir': get(opts, 'dir', ''),
+  \   'on': on,
+  \   'opt': !empty(on) || get(opts, 'opt'),
+  \   'path': get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')),
+  \   'status': [s:status.pending],
+  \   'output': '',
+  \ }
+  let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
 
 function! jetpack#begin(...) abort
   let s:packages = {}
   if has('nvim')
-    let s:home = s:path(stdpath('data'), 'site')
+    let s:home = stdpath('data') .. '/' .. 'site'
   elseif has('win32')
     let s:home = expand('~/vimfiles')
   else
@@ -445,18 +439,18 @@ function! jetpack#begin(...) abort
   endif
   if a:0 != 0
     let s:home = expand(a:1)
-    execute 'set packpath^=' . s:home
-    execute 'set runtimepath^=' . s:home
+    execute 'set packpath^=' .. s:home
+    execute 'set runtimepath^=' .. s:home
   endif
-  let s:optdir = s:path(s:home, 'pack', 'jetpack', 'opt')
-  let s:srcdir = s:path(s:home, 'pack', 'jetpack', 'src')
+  let s:optdir = s:home .. '/pack/jetpack/opt'
+  let s:srcdir = s:home .. '/pack/jetpack/src'
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-" Original: https://github.com/junegunn/vim-plug/blob/e300178a0e2fb04b56de8957281837f13ecf0b27/plug.vim#L683-L693
-"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
-function! s:lod_map(map, name, with_prefix, prefix)
-  execute 'packadd ' . a:name
+" Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
+"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
+function! s:load_map(map, name, with_prefix, prefix)
+  execute 'packadd ' .. a:name
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -468,16 +462,16 @@ function! s:lod_map(map, name, with_prefix, prefix)
     let prefix .= '"'.v:register.a:prefix
     if mode(1) ==# 'no'
       if v:operator ==# 'c'
-        let prefix = "\<Esc>" . prefix
+        let prefix = "\<Esc>" .. prefix
       endif
       let prefix .= v:operator
     endif
     call feedkeys(prefix, 'n')
   endif
-  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') .. extra)
 endfunction
 
-function! s:lod_cmd(cmd, name, ...) abort
+function! s:load_cmd(cmd, name, ...) abort
   execute printf('delcommand %s', a:cmd)
   execute printf('silent! packadd %s', a:name)
   let args = a:0>0 ? join(a:000, ' ') : ''
@@ -499,31 +493,28 @@ function! jetpack#end() abort
     autocmd!
   augroup END
   for [pkg_name, pkg] in items(s:packages)
-    if has_key(pkg, 'dir')
-      let &runtimepath .= printf(',%s/%s', pkg.dir, get(pkg, 'rtp', ''))
+    if !empty(pkg.dir)
+      let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
       continue
     endif
     if !pkg.opt
-      execute 'silent! packadd! ' . pkg_name
+      execute 'silent! packadd! ' .. pkg_name
       continue
     endif
-    let items = get(pkg, 'for', [])
-    for it in (type(items) ==# v:t_list ? items : [items])
-      execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
-    endfor
-    let items = get(pkg, 'on', [])
-    for it in (type(items) ==# v:t_list ? items : [items])
+    for it in pkg.on
       if it =~? '^<Plug>'
-        execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>lod_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
-        execute printf('nnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
-        execute printf('vnoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
-        execute printf('onoremap <silent> %s :<C-U>call <SID>lod_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+        execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
+        execute printf('nnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+        execute printf('vnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
+        execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let it .= (it =~? ' ' ? '' : ' *')
         execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
-      else
+      elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
         let cmd = substitute(it, '^:', '', '')
-        execute printf('command! -range -nargs=* %s :call <SID>lod_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+        execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+      else
+        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
       endif
     endfor
     let event = substitute(pkg_name, '\W\+', '_', 'g')
@@ -539,7 +530,7 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:packages, a:name) ? isdirectory(jetpack#get(a:name).path) : 0
+  return has_key(s:packages, a:name) && isdirectory(jetpack#get(a:name).path) ? v:true : v:false
 endfunction
 
 function! jetpack#names() abort
@@ -552,78 +543,41 @@ endfunction
 
 if has('nvim')
 lua<<========================================
-
-package.preload['jetpack'] = function()
-  local alias = {
-    run = 'do',
-    ft = 'for'
-  }
-
-
-  local function init(config)
-    local config = config or {}
-
-    local function _set_option(name)
-      local j_name = 'jetpack#' .. name
-      local v = vim.g[j_name]
-      vim.g[j_name] = config[name] or vim.g[j_name]
-    end
-
-    for _, name in ipairs({'optimization', 'njobs', 'ignore_patterns', 'copy_method'}) do
-      _set_option(name)
-    end
-  end
-
-
-  local function use(plugin)
-    if (type(plugin) == 'string') then
-      vim.fn['jetpack#add'](plugin)
-    else
-      local name = plugin[1]
-      plugin[1] = nil
-      if vim.fn.type(plugin) == vim.v.t_list then
-        vim.fn['jetpack#add'](name)
-      else 
-        for key, value in pairs(alias) do
-          if plugin[key] ~= nil then
-            plugin[value] = plugin[key]
-          end
-        end
-        local opts = plugin
-        vim.fn['jetpack#add'](name, opts)
-      end
-    end
-  end
-
-  local function startup(config)
-    vim.fn['jetpack#begin']()
-    config(use)
-    vim.fn['jetpack#end']()
-  end
-
-  local function setup(config)
-    vim.fn['jetpack#begin']()
-    for _, plugin in pairs(config) do
-      use(plugin)
-    end
-    vim.fn['jetpack#end']()
-  end
-
-  local function tap(name)
-    return vim.fn['jetpack#tap'](name) == 1
-  end
-
-  return {
-    init = init,
-    startup = startup,
-    setup = setup,
-    tap = tap,
-    sync = vim.fn["jetpack#sync"],
-    names = vim.fn["jetpack#names"],
-    get = vim.fn["jetpack#get"]
-  }
+local M = {}
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap'}) do
+  M[name] = function(...) vim.fn['jetpack#' .. name](...) end
 end
 
+local function use(plugin)
+  if (type(plugin) == 'string') then
+    vim.fn['jetpack#add'](plugin)
+  else
+    local name = plugin[1]
+    plugin[1] = nil
+    if vim.fn.type(plugin) == vim.v.t_list then
+      vim.fn['jetpack#add'](name)
+    else 
+      vim.fn['jetpack#add'](name, plugin)
+    end
+  end
+end
+
+M.startup = function(config)
+  vim.fn['jetpack#begin']()
+  config(use)
+  vim.fn['jetpack#end']()
+end
+
+M.setup = function(config)
+  vim.fn['jetpack#begin']()
+  for _, plugin in pairs(config) do
+    use(plugin)
+  end
+  vim.fn['jetpack#end']()
+end
+
+package.preload['jetpack'] = function()
+  return M
+end
 ========================================
 endif
-

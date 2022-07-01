@@ -1,159 +1,256 @@
-*jetpack.txt*   The lighting-fast plugin manager
-
-Version: 0.0.0
-Author: TANIGUCHI Masaya <taniguchi@masaya.info>
-License: MIT
+jetpack.txt
 
 ================================================================================
-Introduction ( *jetpack-introduction* )
+CONTENTS                                                       *jetpack-contents*
 
-The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
+1. vim-jetpack..............................................|jetpack-vim-jetpack|
+    1.1. Features..............................................|jetpack-features|
+    1.2. Installation......................................|jetpack-installation|
+    1.3. Usage....................................................|jetpack-usage|
+        1.3.1. vim-plug style............................|jetpack-vim-plug_style|
+        1.3.2. dein/ minpac style....................|jetpack-dein/_minpac_style|
+        1.3.3. packer style................................|jetpack-packer_style|
+        1.3.4. paq style......................................|jetpack-paq_style|
+    1.4. API........................................................|jetpack-api|
+        1.4.1. Function........................................|jetpack-function|
+        1.4.2. Lua Function................................|jetpack-lua_function|
+        1.4.3. Supported Option........................|jetpack-supported_option|
+        1.4.4. Command..........................................|jetpack-command|
+        1.4.5. Variable........................................|jetpack-variable|
+        1.4.6. Event..............................................|jetpack-event|
+        1.4.7. Autocmd Group..............................|jetpack-autocmd_group|
+
+================================================================================
+VIM-JETPACK                                                 *jetpack-vim-jetpack*
+
+The lightning-fast minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
 the built-in plugin manager only.
+>
+--------------------------------------------------------------------------------
+FEATURES                                                       *jetpack-features*
 
-- Lightning-fast startup
-    - It optimizes the search algorithm for the runtimepath
-- Single file plugin
-    - You need to just put the single file to use this software
-- Multiple DSLs (Domain Specific Languages)
-    - You can use a favorite notations, which are similar to vim-plug,
-      dein.vim, packer.nvim, and paq.nvim
-- Fancy UI (User Interface)
-    - You can see a progress of installation with a graphical interface
-- `pack/*/start`-free architecture.
-    - Installed plugins do not pollutes your vim until calling `jetpack#`-functions
+*   Lightning-fast startup
+    *   It optimizes the search algorithm for the runtimepath.
+*   Single file plugin
+    *   You need to just put the single file to use this software.
+*   First-class Lua support
+    *   This plugin is not written in Lua but we provide a lua interface.
+*   Fancy UI (User Interface)
+    *   You can see a progress of installation with a graphical interface.
+*   `pack/*/start`-free architecture
+    *   Installed plugins do not pollute your vim.
+*   git-free installation
+    *   Optionally, you can use `curl`/ `wget` instead of `git`
 
-================================================================================
-Functions ( *jetpack-functions* )
+--------------------------------------------------------------------------------
+INSTALLATION                                               *jetpack-installation*
 
-jetpack#add({repo} [, {options}])                                *jetpack#add()*
-    {repo} is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
-    {options} is a dictionary consits of the following. See also
-    |jetpack#add-options|.
+Download `jetpack.vim` and put it in the `plugin/` directory.
 
-    vim-plug interface
-    |   name   |        type        | description                           |
-    | -------- | ------------------ | ------------------------------------- |
-    |  branch  |       string       | Branch of the repository to use       |
-    |   tag    |       string       | Tag of the repository to use          |
-    |  commit  |       string       | Commit of the repository to use       |
-    |    rtp   |       string       | Subdirectory that contains Vim plugin |
-    |    dir   |       string       | Custom directory for the plugin       |
-    |    as    |       string       | Use different name for plugin         |
-    |    do    |  string  or  func  | Post-updat hook                       |
-    |  frozen  |      boolean       | Do not update                         |
-    |    on    |  string  or  list  | lazy loading: Commands, <Plug>,Events |
-    |    for   |  string  or  list  | lazy loading: File types              |
+*   Linux / macOS (shell)
+    *   Vim
+>
+            curl -fLo ~/.vim/plugin/jetpack.vim --create-dirs \
+            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+<
+    *   Neovim
+>
+            curl -fLo ~/.config/nvim/plugin/jetpack.vim --create-dirs \
+            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+<
+*   Windows (cmd.exe)
+    *   Vim
+>
+            curl -fLo %USERPROFILE%\vimfiles\plugin\jetpack.vim --create-dirs \
+            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+<
+    *   Neovim
+>
+            curl -fLo %USERPROFILE%\AppData\Local\nvim\plugin\jetpack.vim --create-dirs \
+            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+<
 
-    Vim 8/ Neovim |packages| interface
-    |   name   |        type        | description                           |
-    | -------- | ------------------ | ------------------------------------- |
-    |    opt   |      boolean       | On-demand loading: packadd {name}     |
+--------------------------------------------------------------------------------
+USAGE                                                             *jetpack-usage*
 
-jetpack#begin([{path}])                                        *jetpack#begin()*
-    The function setups jetpack plugins. All plugin declarations should be
-    placed after this function. You can give {path} if you want to use another
-    directory to manage plugins.
+VIM-PLUG STYLE                                           *jetpack-vim-plug_style*
 
-jetpack#end()                                                    *jetpack#end()*
-    The function loads declared plugins. All plugin declarations should be
-    placed before this function.
+The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack#/g`
+and `:%s/Plug/Jetpack/g`.
+>
+    runtime */jetpack.vim
+    call jetpack#begin()
+    Jetpack 'https://github.com/dense-analysis/ale'
+    Jetpack 'junegunn/fzf.vim'
+    Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
+    Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
+    Jetpack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' }
+    Jetpack 'vlime/vlime', { 'rtp': 'vim' }
+    Jetpack 'dracula/vim', { 'as': 'dracula' }
+    Jetpack 'tpope/vim-fireplace', { 'for': 'clojure' }
+    call jetpack#end()
+<
 
-jetpack#sync()                                                  *jetpack#sync()*
-    The function performs to install, update, and bundle all plugins.
-    The function is evenrything all you need to know.
-    You must run this function after a change of your configuration.
+DEIN/ MINPAC STYLE                                   *jetpack-dein/_minpac_style*
+>
+    runtime */jetpack.vim
+    call jetpack#begin()
+    call jetpack#add('https://github.com/dense-analysis/ale')
+    call jetpack#add('junegunn/fzf.vim')
+    call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+    call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
+    call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+    call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
+    call jetpack#add('dracula/vim', { 'as': 'dracula' })
+    call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+    call jetpack#end()
+<
 
-jetpack#tap({name})                                              *jetpack#tap()*
-    It returns |TRUE| if the plugin is available, otherwise it returns |FALSE|.
+PACKER STYLE                                               *jetpack-packer_style*
+>
+    vim.cmd('runtime */jetpack.vim')
+    require('jetpack').startup(function(use)
+      use 'https://github.com/dense-analysis/ale'
+      use 'junegunn/fzf.vim'
+      use {'junegunn/fzf', run = 'call fzf#install()' }
+      use {'neoclide/coc.nvim', branch = 'release'}
+      use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
+      use {'vlime/vlime', rtp = 'vim' }
+      use {'dracula/vim', as = 'dracula' }
+      use {'tpope/vim-fireplace', ft = 'clojure' }
+    end)
+<
 
-jetpack#get({name})                                              *jetpack#get()*
-    It returns metadata of the plugin if possible, otherwise it returns `{}` .
-    This is the same as `dein#get` of `dein.vim`.
+PAQ STYLE                                                     *jetpack-paq_style*
+>
+    vim.cmd('runtime */jetpack.vim')
+    require('jetpack').setup {
+      'https://github.com/dense-analysis/ale',
+      'junegunn/fzf.vim',
+      {'junegunn/fzf', run = 'call fzf#install()' },
+      {'neoclide/coc.nvim', branch = 'release'},
+      {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
+      {'vlime/vlime', rtp = 'vim' },
+      {'dracula/vim', as = 'dracula' },
+      {'tpope/vim-fireplace', ft = 'clojure' },
+    }
+<
 
-jetpack#names()                                                *jetpack#names()*
-    It returns the list of plugin names registered including unavailable
-    plugins. Please use it with |jetpack#tap()|.
+--------------------------------------------------------------------------------
+API                                                                 *jetpack-api*
 
-Jetpack expoted some other functions but they are only for the developers.
-Unlisted functions might be changed without any announcements in the future.
+FUNCTION                                                       *jetpack-function*
 
-================================================================================
-Options ( *jetpack#add-options* )
+*   `jetpack#begin([path])`
+    *   The function setups jetpack plugins. All plugin declarations should be
+        placed after this function. You can give `path` if you want to use another
+        directory to manage plugins.
+*   `jetpack#add(repo [, options])`
+    *   repo is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
+        `options` is a dictionary. See below.
+*   `jetpack#sync()`
+    *   The function performs to install, update, and bundle all plugins.
+        The function is evenrything all you need to know.
+        You must run this function after a change of your configuration.
+*   `jetpack#end()`
+    *   The function loads declared plugins. All plugin declarations should be
+        placed before this function.
+*   `jetpack#tap(name)`
+    *   It returns a truthy value if the plugin is available,
+        otherwise it returns a falsy value.
+*   `jetpack#names()`
+    *   It returns the list of plugin names registered including unavailable
+        plugins.
+*   `jetpack#get(name)`
+    *   It returns metadata of the plugin if possible, otherwise it returns `{}` .
+        This is the same as `dein#get` of `dein.vim`.
 
-dir
-  By this option, we isolate the plugin directory from |packages| and put it
-  in the specified drectory. Thus, we cannot use |packadd|. Further, we disable
-  the lazy-loading features for this plugin. Instead, we add the directory into
-  |runtimepath|. Moreover, we omit the directory from the target to be removed
-  for the update/ installaion if the directory is out of `pack/*/opt`,
-  because we must avoid removing unexpected directories such as `/`.
+LUA FUNCTION                                               *jetpack-lua_function*
 
-================================================================================
-Commands ( *jetpack-commands* )
+All `g:jetpack#` functions are exported as `jetpack` module.
+You can call them using `require('jetpack')` as you want.
+Additionaly, `startup` and `setup` functions are available.
 
-Jetpack {repo} [, {options}]                                           *Jetpack*
-    A command version of |jetpack#add()|.
+*   `setup(config)`
+    *   This function loads plugins described in config like `pack.nvim`.
+*   `startup(config)`
+    *   This function loads plugins described by `use` function like `packer.nvim`.
+
+SUPPORTED OPTION                                       *jetpack-supported_option*
+
+| name         | type               | description                           |
+| :----------: | :----------------: | :------------------------------------ |
+|  commit      |  sring             | Commit of the repository to use       |
+|  tag         |  sring             | Tag of the repository to use          |
+|  branch      |  sring             | Branch of the repository to use       |
+|  rtp         |  string            | Subdirectory that contains Vim plugin |
+|  dir         |  string            | Custom directory for the plugin       |
+|  as          |  string            | Use different name for plugin         |
+|  do  /  run  |  string  or  func  | Post-update hook                      |
+|  on          |  string  or  list  | Commands, keymaps, events, file types |
+|  for  /  ft  |  string  or  list  | On-demand loading: File types         |
+|  cmd         |  string  or  list  | On-demand loading: Commands           |
+|  event       |  string  or  list  | On-demand loading: Events             |
+|  map         |  string  or  list  | On-demand loading: keymaps  <Plug>    |
+|  opt         |  boolean           | On-demand loading:  packadd {name}    |
+|  frozen      |  boolean           | Do not update                         |
+
+COMMAND                                                         *jetpack-command*
+
+*   `:Jetpack repo [, options]`
+    A command version of `jetpack#add()`.
     It is useful for the vim-plug sytle declaration of plugins in vimrc.
+*   `:JetpackSync`
+    *   Synchronize configuration and state.
+        It performs to install, update, and bundle.
+        The shortest abbreviation is `:J`.
 
-JetpackSync                                                        *JetpackSync*
-    A command version of |jetpack#sync()|.
-    The above command |Jetpack| is only available between |jetpack#begin()|
-    and |jetpack#end()|. Thus, you can use the shorthand `J` to call this
-    command.
+VARIABLE                                                       *jetpack-variable*
 
-================================================================================
-Variables ( *jetpack-variables* )
+*   `g:jetpack_ignore_patterns`
+    *   The list of glob-patterns is used to skip duplicated files.
+        Jetpack aggressively bundles plugins if you extend this list.
+        The following example skip bunding any JSON files.
+>
+            call add(g:jetpack_ignore_patterns, '/*.json')
+<
+*   `g:jetpack_copy_method`
+    *   The default value is `'system'`.
+        Consider using `'copy'` if you have some trouble to run the
+        external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
+        but these are available in Neovim only.
+    *   `'system'` Use `cp`/ `xcopy` to copy files.
+    *   `'copy'` Use |readfile| and |writefile| to copy files.
+    *   `'hardlink'` Use |vim.loop| to make hardlink of files.
+    *   `'symlink'` Use |vim.loop| to make symlink of files.
+*   `g:jetpack_download_method`
+    *   The default value is `'git'`.
+        Consider using `'curl'` or `'wget'`
+        if `'git'` is not installed in your system.
+    *   `'git'` Use `'git'` to download plugins.
+    *   `'curl'` Use `'curl'` to download plugins.
+    *   `'wget'` Use `'wget'` to download plugins.
 
-g:jetpack#optimization                                  *g:jetpack#optimization*
-    The optimization level for the bundle algorithm.
+EVENT                                                             *jetpack-event*
 
-    |  speed  |    0   |   1    |
-    | :-----: | :----: | :----: |
-    | install |  fast  |  slow  |
-    | startup |  slow  |  fast  |
+*   `User Jetpack{PluginName}Pre`/ `User Jetpack{PluginName}Post`
+    *   Let {PluginName} be a CamelCase of plugin name.
+        Code to execute when the plugin is lazily loaded on demand with
+        `User Jetpack{PluginName}Post` .
+        It is impossible to hook `packadd` for a lua plugin in Neovim,
+        because Neovim does not load any files until the module is required.
+        | plugin-name  | EventName  |
+        | :----------: | :--------: |
+        | vim-jetpack  | VimJetpack |
+        | goyo.vim     | GoyoVim    |
+        | vim_foo      | VimFoo     |
 
-    - `0` Bundle nothing. This is the same as vim-plug and is the safest level.
-    - `1` Bundle if there are no conflicts. It tries to bundle plugins as
-      possible.
+AUTOCMD GROUP                                             *jetpack-autocmd_group*
 
-g:jetpack#ignore_patterns                            *g:jetpack#ignore_patterns*
-    The list of glob-patterns is used to skip duplicated files.
-    Jetpack aggressively bundles plugins if you extend this list.
-    The following example skip bunding any JSON files.
-    >
-    > call add(g:jetpack#ignore_patterns, '/*.json')
-
-g:jetpack#copy_method                                   *g:jetpack#copy_method*
-    The default value is `'system'`.
-    Consider using the `'copy'` if you have some trouble to run the
-    external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
-    but these are available in Neovim only.
-    - `'system'` Use `cp`/ `xcopy` to copy files.
-    - `'copy'` Use |readfile| and |writefile| to copy files.
-    - `'hardlink'` Use |vim.loop| to make hardlink of files.
-    - `'symlink'` Use |vim.loop| to make symlink of files.
-
-================================================================================
-Events ( *jetpack-events* )
-
-User Jetpack{PluginName}Pre                             *User-Jetpack-pre-event*
-User Jetpack{PluginName}Post                           *User-Jetpack-post-event*
-    Let {PluginName} be a CamelCase of plugin name.
-        vim-jetpack -> VimJetpack
-        goyo.vim    -> GoyoVim
-        vim_foo     -> VimFoo
-    Code to execute when the plugin is lazily loaded on demand with
-    `User Jetpack{PluginName}Post` .
-    It is impossible to hook `packadd` for a lua plugin in Neovim,
-    because Neovim does not load any files until the module is required.
-
-================================================================================
-Groups ( *jetpack-groups* )
-
-Jetpack                                                         *Jetpack-group*
-    Jetpack's on-demand loading uses autocommands defined under the `Jetpack`
-    |autocmd-groups| .
+*   `Jetpack`
+    *   vim-jetpack's lazy loading system uses autocommands defined
+        under the `Jetpack` autocmd-groups.
 
 ================================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl

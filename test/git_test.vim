@@ -1,7 +1,8 @@
-execute 'set pp-=' . (has('nvim') ? stdpath('data') . '/site' : expand('~/.vim'))
-execute 'set rtp^=' . expand('<sfile>:p:h:h')
+set packpath=
+call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
-let g:jetpack#copy_method = 'system'
+let g:jetpack_copy_method = 'system'
+let g:jetpack_download_method = 'git'
 
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
@@ -44,25 +45,6 @@ function s:assert.isnotdirectory(dir)
   if isdirectory(a:dir)
     call s:assert.fail(a:dir . ' is a directory')
   endif
-endfunction
-
-function s:suite.optimization_1()
-  let g:jetpack#optimization = 1
-  call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
-  if isdirectory(s:optdir . '/fzf.vim')
-    call s:assert.isnotdirectory(s:optdir . '/fzf')
-  else
-    call s:assert.isdirectory(s:optdir . '/fzf')
-  endif
-  let g:jetpack#optimization = 1
-endfunction
-
-function s:suite.optimization_0()
- let g:jetpack#optimization = 0
- call s:setup(['junegunn/fzf'], ['junegunn/fzf.vim'])
- call s:assert.isdirectory(s:optdir . '/fzf')
- call s:assert.isdirectory(s:optdir . '/fzf.vim')
- let g:jetpack#optimization = 1
 endfunction
 
 function s:suite.no_option_github()
@@ -117,7 +99,7 @@ function s:suite.on_option_cmd()
  call s:setup(['tpope/vim-abolish', { 'on': 'Abolish' }]) 
  let s:loaded_abolish_vim = 0
  augroup JetpackTest
-   au!
+   autocmd!
    autocmd User JetpackVimAbolishPost let s:loaded_abolish_vim = 1
  augroup END
  call s:assert.isdirectory(s:optdir . '/vim-abolish')
@@ -139,7 +121,7 @@ function s:suite.on_option_plug()
  call s:assert.filereadable(s:optdir . '/eskk.vim/plugin/eskk.vim')
  let s:loaded_eskk_vim = 0
  augroup JetpackTest
-   au!
+   autocmd!
    autocmd User JetpackEskkVimPost let s:loaded_eskk_vim = 1
  augroup END
  call s:assert.cmd_not_exists('EskkMap')
@@ -207,12 +189,22 @@ function s:suite.get()
  let data = jetpack#get('vim-test')
  call s:assert.equals(data.url, 'https://github.com/vim-test/vim-test')
  call s:assert.equals(data.opt, 0)
- call s:assert.equals(substitute(data.path, '\', '/', 'g'), s:srcdir . '/vim-test')
+ call s:assert.equals(substitute(data.path, '\', '/', 'g'), s:srcdir .. '/github.com/vim-test/vim-test')
+endfunction
+
+function s:suite.change_repo_url()
+ call s:setup(['sveltejs/template'])
+ call s:setup(['readthedocs/template'])
+ call s:assert.match(jetpack#get('template').path, 'readthedocs')
+endfunction
+
+function s:suite.frozen_option()
+ call s:assert.skip('')
 endfunction
 
 function s:suite.branch_option()
  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
- let branch = system(printf('git -C "%s" branch', s:srcdir . '/coc.nvim'))
+ let branch = system(printf('git -C %s branch', jetpack#get('coc.nvim').path))
  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(branch, 'release')
@@ -220,7 +212,7 @@ endfunction
 
 function s:suite.tag_option()
  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
- let tag = system(printf('git -C "%s" describe --tags --abbrev=0', s:srcdir . '/coc.nvim')) 
+ let tag = system(printf('git -C %s describe --tags --abbrev=0', jetpack#get('coc.nvim').path))
  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(tag, 'v0.0.80')
@@ -228,19 +220,8 @@ endfunction
 
 function s:suite.commit_option()
  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
- let commit = system(printf('git -C "%s" rev-parse HEAD', s:srcdir . '/coc.nvim')) 
+ let commit = system(printf('git -C %s rev-parse HEAD', jetpack#get('coc.nvim').path))
  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(commit, 'ce448a6')
-endfunction
-
-function s:suite.change_repo_url()
- call s:setup(['sveltejs/template'])
- call s:setup(['readthedocs/template'])
- let url = trim(system(printf('git -C %s ls-remote --get-url', shellescape(s:srcdir . '/template'))))
- call s:assert.match(url, 'readthedocs')
-endfunction
-
-function s:suite.frozen_option()
- call s:assert.skip('')
 endfunction
