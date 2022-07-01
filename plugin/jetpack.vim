@@ -544,7 +544,7 @@ endfunction
 if has('nvim')
 lua<<========================================
 local M = {}
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap'}) do
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
   M[name] = function(...) vim.fn['jetpack#' .. name](...) end
 end
 
