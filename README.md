@@ -51,7 +51,11 @@ directory for more detail
 
 ## Installation
 
-Download `jetpack.vim` and put it in the `plugin/` directory.
+Download `jetpack.vim` and put it in the `plugin/` directory. In this
+installation method, jetpack doesn't manage itself, so it is not upgraded by
+`JetpackSync`. If you want to upgrade it, run the installation command again.
+If you want jetpack to manage itself, see
+[How to bootstrap Jetpack](#how-to-bootstrap-jetpack).
 
 - Linux / macOS (shell)
   - Vim
@@ -288,6 +292,8 @@ endif
 ```
 
 ### How to bootstrap Jetpack
+
+In this installation method, jetpack is upgraded by `JetpackSync`.
 
 #### Step 1: Clone this repository and create a symbolic link
 
