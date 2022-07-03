@@ -51,29 +51,29 @@ directory for more detail
 
 ## Installation
 
-Download `jetpack.vim` and put it in the `plugin/` directory.
+Download `jetpack.vim` and put it in the `autoload/` directory.
 
 - Linux / macOS (shell)
   - Vim
     ```
-    curl -fLo ~/.vim/plugin/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo ~/.config/nvim/plugin/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo ~/.local/share/nvim/pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
     ```
 - Windows (cmd.exe)
   - Vim
     ```
-    curl -fLo %USERPROFILE%\vimfiles\plugin\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo %USERPROFILE%\AppData\Local\nvim\plugin\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo %USERPROFILE%\AppData\Local\nvim\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
     ```
 
 ## Usage
@@ -84,8 +84,9 @@ The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack#/g`
 and `:%s/Plug/Jetpack/g`.
 
 ```vim
-runtime */jetpack.vim
+packadd vim-jetpack
 call jetpack#begin()
+Jetpack 'tani/vim-jetpack', {'opt': 1} "bootstrap
 Jetpack 'https://github.com/dense-analysis/ale'
 Jetpack 'junegunn/fzf.vim'
 Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
@@ -100,8 +101,9 @@ call jetpack#end()
 ### dein/ minpac style
 
 ```vim
-runtime */jetpack.vim
+packadd vim-jetpack
 call jetpack#begin()
+call jetpack#add('tani/vim-jetpack', {'opt': 1}) "bootstrap
 call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
 call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
@@ -116,8 +118,9 @@ call jetpack#end()
 ### packer style
 
 ```lua
-vim.cmd('runtime */jetpack.vim')
+vim.cmd('packadd vim-jetpack')
 require('jetpack').startup(function(use)
+  use { 'tani/vim-jetpack', opt = 1 }-- bootstrap
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -132,8 +135,9 @@ end)
 ### paq style
 
 ```lua
-vim.cmd('runtime */jetpack.vim')
+vim.cmd('packadd vim-jetpack')
 require('jetpack').setup {
+  {'tani/vim-jetpack', opt = 1}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
   {'junegunn/fzf', run = 'call fzf#install()' },
@@ -263,68 +267,17 @@ vim-jetpack contains all optoins of vim-plug.
   - vim-jetpack's lazy loading system uses autocommands defined
     under the `Jetpack` autocmd-groups.
 
-## Q and A
-
-### Why is this plugin so fast?
-
-Because we bundle the all plugins as possible to reduce runtimepath, which takes
-a long time at startup. This is the same algorithm of the plugin manager
-dein.vim.
-
-### Is this plugin faster than dein?
-
-No if you are vim-wizard. Dein provides many option to tune the startup. Thus,
-dein takes milli-seconds to do many things. Our plugin does as the same as
-vim-plug, i.e., this plugin provides less options than dein.
+## Tips
 
 ### Install vim-jetpack if it is unavailable.
 
 ```vim
-let s:jetpackfile = expand('<sfile>:p:h') .. '/plugin/jetpack.vim'
-let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+let s:jetpackfile = expand('<sfile>:p:h') .. 'pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim'
+let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim"
 if !filereadable(s:jetpackfile)
   call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
 endif
 ```
-
-### How to bootstrap Jetpack
-
-#### Step 1: Clone this repository and create a symbolic link
-
-- Vim
-  ```
-  git clone https://github.com/tani/vim-jetpack \
-  ~/.vim/pack/jetpack/src/vim-jetpack \
-  && ln -s ~/.vim/pack/jetpack/{src,opt}/vim-jetpack
-  ```
-- Neovim
-  ```
-  git clone https://github.com/tani/vim-jetpack \
-  ~/.local/share/nvim/site/pack/jetpack/src/vim-jetpack \
-  && ln -s ~/.local/share/nvim/site/pack/jetpack/{src,opt}/vim-jetpack
-  ```
-
-#### Step 2: Add `tani/vim-jetpack` to your configuraiton file
-
-- VimL
-  ```vim
-  packadd vim-jetpack
-  call jetpack#begin()
-  Jetpack 'tani/vim-jetpack', { 'opt': 1 }
-  "call jetpack#add('tani/vim-jetpack', { 'opt': 1 })
-  call jetpack#end()
-  ```
-
-- Lua
-  ```lua
-  vim.cmd('packadd vim-jetpack')
-  vim.g.jetpack.startup(function (use)
-    use { 'tani/vim-jetpack', opt = 1 }
-  end)
-  -- vim.g.jetpack.setup({
-  --   { 'tani/vim-jetpack', opt = 1 }
-  -- })
-  ```
 
 ### Is it possible to install plugins if they are not installed?
 
