@@ -51,29 +51,29 @@ directory for more detail
 
 ## Installation
 
-Download `jetpack.vim` and put it in the `autoload/` directory.
+Download `jetpack.vim` and put it in the `plugin/` directory.
 
 - Linux / macOS (shell)
   - Vim
     ```
-    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo ~/.local/share/nvim/pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+    curl -fLo ~/.local/share/nvim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
 - Windows (cmd.exe)
   - Vim
     ```
-    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
+    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs \
+    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
 
 ## Usage
@@ -272,8 +272,8 @@ vim-jetpack contains all optoins of vim-plug.
 ### Install vim-jetpack if it is unavailable.
 
 ```vim
-let s:jetpackfile = expand('<sfile>:p:h') .. 'pack/jetpack/opt/vim-jetpack/autoload/jetpack.vim'
-let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim"
+let s:jetpackfile = expand('<sfile>:p:h') .. 'pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
 if !filereadable(s:jetpackfile)
   call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
 endif

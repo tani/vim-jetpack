@@ -1,5 +1,5 @@
 set packpath=
-call execute(printf('source %s/autoload/jetpack.vim', expand('<sfile>:p:h:h')))
+call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
 let g:jetpack_copy_method = 'system'
 let g:jetpack_download_method = 'curl'
