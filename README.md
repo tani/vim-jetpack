@@ -72,7 +72,7 @@ Download `jetpack.vim` and put it in the `autoload/` directory.
     ```
   - Neovim
     ```
-    curl -fLo %USERPROFILE%\AppData\Local\nvim\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
+    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\autoload\jetpack.vim --create-dirs \
     https://raw.githubusercontent.com/tani/vim-jetpack/master/autoload/jetpack.vim
     ```
 
