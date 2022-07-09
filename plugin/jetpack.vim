@@ -306,7 +306,8 @@ function! s:merge_plugins() abort
     call add(pkg.status, s:status.pending)
   endfor
 
-  "If opt/do/dir option is enabled, it should be placed isolated directory.
+  " If opt/do/dir option is enabled,
+  " it should be placed isolated directory.
   let bundle = {}
   let unbundle = {}
   for [pkg_name, pkg] in items(s:packages)
