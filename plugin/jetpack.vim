@@ -29,9 +29,9 @@ let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
 let g:jetpack_ignore_patterns =
   \ get(g:, 'jetpack_ignore_patterns', [
-  \   '/doc/tags*',
-  \   '/test/*',
-  \   '/[.ABCDEFGHIJKLMNOPQRSTUVWXYZ]*'
+  \   '[\/]doc[\/]tags*',
+  \   '[\/]test[\/]*',
+  \   '[\/][.ABCDEFGHIJKLMNOPQRSTUVWXYZ]*'
   \ ])
 
 let g:jetpack_download_method =
