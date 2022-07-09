@@ -225,3 +225,9 @@ function s:suite.commit_option()
  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
  call s:assert.match(commit, 'ce448a6')
 endfunction
+
+function s:suite.issue70()
+  call s:setup(['s1n7ax/nvim-window-picker'], ['p00f/nvim-ts-rainbow'])
+  call s:assert.filereadable(s:optdir . '/_/screenshots')
+  call s:assert.isdirectory(s:optdir. '/nvim-ts-rainbow/screenshots')
+endfunction

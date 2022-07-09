@@ -328,22 +328,32 @@ function! s:merge_plugins() abort
   endfor
 
   " Merge plugins if possible.
-  let merged_count = 0
-  let merged_files = {}
+  let merged_files = []
   for [pkg_name, pkg] in items(bundle)
     call s:show_progress('Merge Plugins')
     let srcdir = pkg.path .. '/' .. pkg.rtp
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
     let files = filter(files, { _, file -> !s:check_ignorable(file) })
-    if empty(filter(copy(files), {_, file -> has_key(merged_files, file)}))
-      for file in files
-        let merged_files[file] = v:true
+    let conflicted = v:false
+    for file in files
+      for merged_file in merged_files
+        let conflicted =
+          \ file =~# '\V' .. escape(merged_file, '\') ||
+          \ merged_file =~# '\V' .. escape(file, '\')
+        if conflicted
+          break
+        endif
       endfor
+      if conflicted 
+        break
+      endif
+    endfor
+    if conflicted
+      let unbundle[pkg_name] = pkg
+    else
+      call extend(merged_files, files)
       call s:copy_dir(srcdir, s:optdir .. '/_')
       call add(pkg.status, s:status.merged)
-      let merged_count += 1
-    else
-      let unbundle[pkg_name] = pkg
     endif
   endfor
 
