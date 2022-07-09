@@ -65,7 +65,7 @@ function! s:list_files(path) abort
 endfunction
 
 function! s:check_ignorable(filename) abort
-  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~? glob2regpat(val) }) != []
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
 endfunction
 
 function! s:make_progressbar(n) abort
