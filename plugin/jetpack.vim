@@ -61,7 +61,7 @@ let s:status = {
 \ }
 
 function! s:list_files(path) abort
-  return filter(glob(a:path .. '/**/*', '', 1), { _, val -> !isdirectory(val)})
+  return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
 endfunction
 
 function! s:check_ignorable(filename) abort
@@ -69,7 +69,7 @@ function! s:check_ignorable(filename) abort
 endfunction
 
 function! s:make_progressbar(n) abort
-  return '[' .. join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') .. ']'
+  return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
 
 function! s:jobstatus(job) abort
@@ -123,7 +123,7 @@ function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
   if g:jetpack_copy_method !=# 'system'
     for src in s:list_files(a:from)
-      let dest = substitute(src, '\V' .. escape(a:from, '\'), escape(a:to, '\'), '')
+      let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack_copy_method ==# 'copy'
         call writefile(readfile(src, 'b'), dest, 'b')
@@ -141,7 +141,7 @@ function! s:copy_dir(from, to) abort
 endfunction
 
 function! s:initialize_buffer() abort
-  execute 'silent! bdelete! ' .. bufnr('JetpackStatus')
+  execute 'silent! bdelete! ' . bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
@@ -236,18 +236,18 @@ function! s:make_download_cmd(pkg) abort
       let label = a:pkg.commit
     endif
     if g:jetpack_download_method ==# 'curl'
-      let download_cmd = 'curl -fsSL ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+      let download_cmd = 'curl -fsSL ' .  a:pkg.url . '/archive/' . label . '.tar.gz'
     elseif g:jetpack_download_method ==# 'wget'
-      let download_cmd = 'wget -O - ' ..  a:pkg.url .. '/archive/' .. label .. '.tar.gz'
+      let download_cmd = 'wget -O - ' .  a:pkg.url . '/archive/' . label . '.tar.gz'
     else
-      throw g:jetpack_download_method .. '%s is not a valid value of g:jetpack_download_method'
+      throw 'g:jetpack_download_method: ' . g:jetpack_download_method . ' is not a valid value'
     endif
-    let extract_cmd = 'tar -zxf - -C ' .. a:pkg.path .. ' --strip-components 1'
+    let extract_cmd = 'tar -zxf - -C ' . a:pkg.path . ' --strip-components 1'
     call delete(a:pkg.path, 'rf')
     if has('unix')
-      return ['sh', '-c', download_cmd .. ' | ' .. extract_cmd]
+      return ['sh', '-c', download_cmd . ' | ' . extract_cmd]
     elseif has('win32')
-      return ['cmd.exe', '/c' .. download_cmd .. ' | ' .. extract_cmd]
+      return ['cmd.exe', '/c' . download_cmd . ' | ' . extract_cmd]
     endif
   endif
 endfunction
@@ -319,7 +319,7 @@ function! s:merge_plugins() abort
   endfor
 
   " Delete old directories
-  for dir in glob(s:optdir .. '/*', '', 1)
+  for dir in glob(s:optdir . '/*', '', 1)
     let pkg_name = fnamemodify(dir, ':t')
     if !has_key(s:packages, pkg_name)
      \ || s:packages[pkg_name].output !~# 'Already up to date.'
@@ -331,20 +331,20 @@ function! s:merge_plugins() abort
   let merged_files = []
   for [pkg_name, pkg] in items(bundle)
     call s:show_progress('Merge Plugins')
-    let srcdir = pkg.path .. '/' .. pkg.rtp
+    let srcdir = pkg.path . '/' . pkg.rtp
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
     let files = filter(files, { _, file -> !s:check_ignorable(file) })
     let conflicted = v:false
     for file in files
       for merged_file in merged_files
         let conflicted =
-          \ file =~# '\V' .. escape(merged_file, '\') ||
-          \ merged_file =~# '\V' .. escape(file, '\')
+          \ file =~# '\V' . escape(merged_file, '\') ||
+          \ merged_file =~# '\V' . escape(file, '\')
         if conflicted
           break
         endif
       endfor
-      if conflicted 
+      if conflicted
         break
       endif
     endfor
@@ -352,7 +352,7 @@ function! s:merge_plugins() abort
       let unbundle[pkg_name] = pkg
     else
       call extend(merged_files, files)
-      call s:copy_dir(srcdir, s:optdir .. '/_')
+      call s:copy_dir(srcdir, s:optdir . '/_')
       call add(pkg.status, s:status.merged)
     endif
   endfor
@@ -363,8 +363,8 @@ function! s:merge_plugins() abort
     if !empty(pkg.dir)
       call add(pkg.status, s:status.skipped)
     else
-      let srcdir = pkg.path .. '/' .. pkg.rtp
-      let destdir = s:optdir .. '/' .. pkg_name
+      let srcdir = pkg.path . '/' . pkg.rtp
+      let destdir = s:optdir . '/' . pkg_name
       call s:copy_dir(srcdir, destdir)
       call add(pkg.status, s:status.copied)
     endif
@@ -381,8 +381,8 @@ function! s:postupdate_plugins() abort
     if pkg.dir !=# ''
       call chdir(pkg.path)
     else
-      execute 'silent! packadd ' .. pkg_name
-      call chdir(s:optdir .. '/' .. pkg_name)
+      execute 'silent! packadd ' . pkg_name
+      call chdir(s:optdir . '/' . pkg_name)
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
@@ -397,8 +397,8 @@ function! s:postupdate_plugins() abort
     endif
     call chdir(pwd)
   endfor
-  for dir in glob(s:optdir .. '/*/doc', '', 1)
-    execute 'silent! helptags ' .. dir
+  for dir in glob(s:optdir . '/*/doc', '', 1)
+    execute 'silent! helptags ' . dir
   endfor
 endfunction
 
@@ -414,7 +414,7 @@ endfunction
 
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
-  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') .. a:plugin
+  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
   let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
   let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
@@ -432,7 +432,7 @@ function! jetpack#add(plugin, ...) abort
   \   'dir': get(opts, 'dir', ''),
   \   'on': on,
   \   'opt': !empty(on) || get(opts, 'opt'),
-  \   'path': get(opts, 'dir', s:srcdir .. '/' ..  substitute(url, 'https\?://', '', '')),
+  \   'path': get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
   \ }
@@ -441,27 +441,26 @@ endfunction
 
 function! jetpack#begin(...) abort
   let s:packages = {}
-  if has('nvim')
-    let s:home = stdpath('data') .. '/' .. 'site'
+  if a:0 != 0
+    let s:home = expand(a:1)
+    execute 'set packpath^=' . s:home
+    execute 'set runtimepath^=' . s:home
+  elseif has('nvim')
+    let s:home = stdpath('data') . '/' . 'site'
   elseif has('win32')
     let s:home = expand('~/vimfiles')
   else
     let s:home = expand('~/.vim')
   endif
-  if a:0 != 0
-    let s:home = expand(a:1)
-    execute 'set packpath^=' .. s:home
-    execute 'set runtimepath^=' .. s:home
-  endif
-  let s:optdir = s:home .. '/pack/jetpack/opt'
-  let s:srcdir = s:home .. '/pack/jetpack/src'
+  let s:optdir = s:home . '/pack/jetpack/opt'
+  let s:srcdir = s:home . '/pack/jetpack/src'
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 function! s:load_map(map, name, with_prefix, prefix)
-  execute 'packadd ' .. a:name
+  execute 'packadd ' . a:name
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -473,13 +472,13 @@ function! s:load_map(map, name, with_prefix, prefix)
     let prefix .= '"'.v:register.a:prefix
     if mode(1) ==# 'no'
       if v:operator ==# 'c'
-        let prefix = "\<Esc>" .. prefix
+        let prefix = "\<Esc>" . prefix
       endif
       let prefix .= v:operator
     endif
     call feedkeys(prefix, 'n')
   endif
-  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') .. extra)
+  call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
 function! s:load_cmd(cmd, name, ...) abort
@@ -509,7 +508,7 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      execute 'silent! packadd! ' .. pkg_name
+      execute 'silent! packadd! ' . pkg_name
       continue
     endif
     for it in pkg.on
@@ -568,7 +567,7 @@ local function use(plugin)
     plugin[1] = nil
     if vim.fn.type(plugin) == vim.v.t_list then
       vim.fn['jetpack#add'](name)
-    else 
+    else
       vim.fn['jetpack#add'](name, plugin)
     end
   end
