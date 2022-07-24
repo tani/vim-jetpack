@@ -56,24 +56,20 @@ Download `jetpack.vim` and put it in the `plugin/` directory.
 - Linux / macOS (shell)
   - Vim
     ```
-    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo ~/.local/share/nvim/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo ~/.local/share/nvim/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
 - Windows (cmd.exe)
   - Vim
     ```
-    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
   - Neovim
     ```
-    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs \
-    https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
     ```
 
 ## Usage
