@@ -265,7 +265,7 @@ vim-jetpack contains all optoins of vim-plug.
 
 ## Tips
 
-### Install vim-jetpack if it is unavailable.
+### Install vim-jetpack if it is unavailable. (for Vim)
 
 ```vim
 let s:jetpackfile = expand('<sfile>:p:h') .. '/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
