@@ -284,7 +284,7 @@ endif
 ```
 
 ```lua
-"nvim + lua
+-- nvim + lua
 local fn = vim.fn
 local jetpackfile = fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
 local jetpackurl = 'https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim'
