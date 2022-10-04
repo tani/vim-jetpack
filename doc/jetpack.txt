@@ -51,24 +51,24 @@ Download `jetpack.vim` and put it in the `plugin/` directory.
 *   Linux / macOS (shell)
     *   Vim
 >
-            curl -fLo ~/.vim/plugin/jetpack.vim --create-dirs \
-            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+	curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim \
+	--create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
 <
     *   Neovim
 >
-            curl -fLo ~/.config/nvim/plugin/jetpack.vim --create-dirs \
-            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+	curl -fLo ~/.local/share/nvim/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim \
+	--create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
 <
 *   Windows (cmd.exe)
     *   Vim
 >
-            curl -fLo %USERPROFILE%\vimfiles\plugin\jetpack.vim --create-dirs \
-            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+	curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim \
+	--create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
 <
     *   Neovim
 >
-            curl -fLo %USERPROFILE%\AppData\Local\nvim\plugin\jetpack.vim --create-dirs \
-            https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+	curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim \
+	--create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
 <
 
 --------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ VIM-PLUG STYLE                                           *jetpack-vim-plug_style
 The most of vim-plug users can migrate to vim-jetpack by `:%s/plug#/jetpack#/g`
 and `:%s/Plug/Jetpack/g`.
 >
-    runtime */jetpack.vim
+    packadd vim-jetpack
     call jetpack#begin()
     Jetpack 'https://github.com/dense-analysis/ale'
     Jetpack 'junegunn/fzf.vim'
@@ -94,7 +94,7 @@ and `:%s/Plug/Jetpack/g`.
 
 DEIN/ MINPAC STYLE                                   *jetpack-dein/_minpac_style*
 >
-    runtime */jetpack.vim
+    packadd vim-jetpack
     call jetpack#begin()
     call jetpack#add('https://github.com/dense-analysis/ale')
     call jetpack#add('junegunn/fzf.vim')
@@ -109,7 +109,7 @@ DEIN/ MINPAC STYLE                                   *jetpack-dein/_minpac_style
 
 PACKER STYLE                                               *jetpack-packer_style*
 >
-    vim.cmd('runtime */jetpack.vim')
+    vim.cmd('packadd vim-jetpack')
     require('jetpack').startup(function(use)
       use 'https://github.com/dense-analysis/ale'
       use 'junegunn/fzf.vim'
@@ -124,7 +124,7 @@ PACKER STYLE                                               *jetpack-packer_style
 
 PAQ STYLE                                                     *jetpack-paq_style*
 >
-    vim.cmd('runtime */jetpack.vim')
+    vim.cmd('packadd vim-jetpack')
     require('jetpack').setup {
       'https://github.com/dense-analysis/ale',
       'junegunn/fzf.vim',
