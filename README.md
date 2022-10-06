@@ -313,7 +313,7 @@ Yes, it can. Please set the option `parser_install_dir` as follows.
 
 ```lua
 require'nvim-treesitter.configs'.setup {
-  parser_install_dir = vim.fn.expand('~/Local/data/vim/treesitter'),
+  parser_install_dir = vim.fn.stdpath('data') .. '/treesitter'
 }
 ```
 
