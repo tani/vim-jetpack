@@ -307,6 +307,16 @@ for name in jetpack#names()
 endfor
 ```
 
+### JetpackSync builds nvim-treesitter for every update. Can jetpack cache the previous build?
+
+Yes, it can. Please set the option `parser_install_dir` as follows.
+
+```lua
+require'nvim-treesitter.configs'.setup {
+  parser_install_dir = vim.fn.expand('~/Local/data/vim/treesitter'),
+}
+```
+
 ## Copyright and License
 
 Copyright (c) 2022 TANIGUCHI Masaya.
