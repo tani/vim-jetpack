@@ -312,8 +312,12 @@ endfor
 Yes, it can. Please set the option `parser_install_dir` as follows.
 
 ```lua
-require'nvim-treesitter.configs'.setup {
-  parser_install_dir = vim.fn.stdpath('data') .. '/treesitter'
+local parser_install_dir = vim.fn.stdpath "data" .. "/treesitter"
+vim.opt.runtimepath:append(parser_install_dir)
+
+require("nvim-treesitter.configs").setup {
+    parser_install_dir = parser_install_dir,
+    ...
 }
 ```
 
