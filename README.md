@@ -307,7 +307,7 @@ for name in jetpack#names()
 endfor
 ```
 
-### JetpackSync builds nvim-treesitter for every update. Can jetpack cache the previous build?
+### JetpackSync builds nvim-treesitter for every update. Can jetpack keep the previous build?
 
 Yes, it can. Please set the option `parser_install_dir` as follows.
 
