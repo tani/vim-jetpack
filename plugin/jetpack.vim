@@ -181,7 +181,9 @@ function! s:show_result() abort
     let output = substitute(pkg.output, '[\x0]', '', 'g')
     let output = substitute(output, '\r\n\|\r', '\n', 'g')
     let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
-    call appendbufline(buf, '$', output)
+    for line in split(output, '\n')
+      call appendbufline(buf, '$', printf('  %s', line))
+    endfor
   endfor
   redraw
 endfunction
