@@ -179,7 +179,8 @@ function! s:show_result() abort
       call appendbufline(buf, '$', printf('skipped %s', pkg_name))
     endif
     let output = substitute(pkg.output, '[\x0]', '', 'g')
-    let output = substitute(output, '^From.\{-}\zs\(\r\n\|\r\|\n\)\s*', '/compare/', '')
+    let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
     call appendbufline(buf, '$', output)
   endfor
   redraw
