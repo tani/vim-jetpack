@@ -25,8 +25,8 @@ the built-in plugin manager only.
 
 In the simple cases, vim-jetpack is the fastest plugin manager.
 
-We measured a startup time 10 times for each plugin managers. The following
-chart is the result.
+We measured a startup time 10 times for each plugin managers.
+The following chart is the result.
 
 Although jetpack is inferior to minpac in terms of minimum value, it has the
 lowest median and mean value of any plugin manager. More notably, the variance
