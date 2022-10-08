@@ -178,8 +178,7 @@ function! s:show_result() abort
     else
       call appendbufline(buf, '$', printf('skipped %s', pkg_name))
     endif
-    let output = substitute(pkg.output, '[\x0]', '', 'g')
-    let output = substitute(output, '\r\n\|\r', '\n', 'g')
+    let output = substitute(pkg.output, '\r\n\|\r', '\n', 'g')
     let output = substitute(output, '^From.\{-}\zs\n\s*', '/compare/', '')
     for line in split(output, '\n')
       call appendbufline(buf, '$', printf('  %s', line))
