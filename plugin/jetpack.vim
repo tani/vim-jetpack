@@ -572,8 +572,19 @@ local function use(plugin)
   end
 end
 
+M.packer = {}
+M.packer._config = {}
+
+M.packer.init = function(opt)
+  M.packer._config = opt
+end
+
 M.startup = function(config)
-  vim.fn['jetpack#begin']()
+  if M.packer._config.package_root then
+    vim.fn['jetpack#begin'](M.packer._config.package_root)
+  else
+    vim.fn['jetpack#begin']()
+  end
   config(use)
   vim.fn['jetpack#end']()
 end
