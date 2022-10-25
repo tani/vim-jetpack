@@ -207,3 +207,55 @@ function s:suite.issue70()
   call s:assert.filereadable(s:optdir . '/_/screenshots')
   call s:assert.isdirectory(s:optdir. '/nvim-ts-rainbow/screenshots')
 endfunction
+
+if !has('nvim')
+  finish
+endif
+
+let g:vimhome = s:vimhome
+
+lua <<EOL
+_G.packer_setup = function(...)
+  local plugins = { ... }
+  local jetpack = require("jetpack")
+
+  jetpack.packer.init({
+    package_root = vim.g.vimhome
+  })
+
+  jetpack.startup(function(use)
+    for _, plugin in ipairs(plugins) do
+      use(plugin)
+    end
+  end)
+
+  jetpack.sync()
+end
+EOL
+
+function s:suite.packer_style()
+  lua packer_setup("kyazdani42/nvim-web-devicons")
+  lua vim.g.zsh_icon = require('nvim-web-devicons').get_icon('foo.zsh')
+  call s:assert.equals(g:zsh_icon, '')
+endfunction
+
+function s:suite.pkg_config()
+  lua <<EOL
+  packer_setup({
+    'kyazdani42/nvim-web-devicons',
+    config = function()
+      require('nvim-web-devicons').set_icon({
+        zsh = {
+          icon = '',
+          color = '#428850',
+        },
+      })
+    end,
+  })
+  vim.cmd("packadd nvim-web-devicons")
+  local icon, color = require('nvim-web-devicons').get_icon_color('foo.zsh')
+  vim.g.nvim_web_devicons = { icon = icon, color = color }
+EOL
+  call s:assert.equals(g:nvim_web_devicons.icon, '')
+  call s:assert.equals(g:nvim_web_devicons.color, '#428850')
+endfunction
