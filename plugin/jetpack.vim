@@ -434,6 +434,7 @@ function! jetpack#add(plugin, ...) abort
   \   'path': get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
+  \   'config': get(opts, 'config', '')
   \ }
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
@@ -532,6 +533,12 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
+    if pkg.config !=# ''
+      if empty(pkg.on)
+        execute printf('autocmd Jetpack VimEnter * ++once ++nested silent! packadd %s', pkg_name)
+      endif
+      execute printf('autocmd User Jetpack%sPost %s', event, pkg.config)
+    endif
   endfor
   silent! packadd! _
   syntax enable
@@ -558,15 +565,28 @@ for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
   M[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 
+M.plugin = {}
+
 local function use(plugin)
   if (type(plugin) == 'string') then
     vim.fn['jetpack#add'](plugin)
   else
     local name = plugin[1]
     plugin[1] = nil
-    if vim.fn.type(plugin) == vim.v.t_list then
+    if next(plugin) == nil then
       vim.fn['jetpack#add'](name)
     else
+      if plugin.config then
+        local config_func = plugin.config
+        if type(config_func) == 'string' then
+          config_func = function()
+            loadstring(config_func)()
+          end
+        end
+        M.plugin[name] = { config = config_func }
+        plugin.config = 'lua require("jetpack").plugin["' .. name .. '"].config()'
+        plugin.opt = true
+      end
       vim.fn['jetpack#add'](name, plugin)
     end
   end
