@@ -1,4 +1,4 @@
-# vim-jetpack
+# vim-jetpack!
 
 The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
 a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
