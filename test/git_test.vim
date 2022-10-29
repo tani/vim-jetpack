@@ -47,6 +47,16 @@ function s:assert.isnotdirectory(dir)
   endif
 endfunction
 
+function s:assert.loaded(package)
+  let loaded = luaeval('package.loaded[_A]', a:package)
+  call s:assert.not_equals(loaded, v:null)
+endfunction
+
+function s:assert.notloaded(package)
+  let loaded = luaeval('package.loaded[_A]', a:package)
+  call s:assert.equals(loaded, v:null)
+endfunction
+
 function s:suite.no_option_github()
  call s:setup(['mbbill/undotree'])
  call s:assert.isnotdirectory(s:optdir . '/undotree')
@@ -236,31 +246,30 @@ if !has('nvim')
   finish
 endif
 
-let g:vimhome = s:vimhome
+let g:vimhome = s:vimhome . '/pack'
 
 lua <<EOL
+local packer = require('jetpack.packer')
+
+packer.init({
+  package_root = vim.g.vimhome
+})
+
 _G.packer_setup = function(...)
   local plugins = { ... }
-  local jetpack = require("jetpack")
-
-  jetpack.packer.init({
-    package_root = vim.g.vimhome
-  })
-
-  jetpack.startup(function(use)
+  packer.startup(function(use)
     for _, plugin in ipairs(plugins) do
       use(plugin)
     end
   end)
-
-  jetpack.sync()
+  require('jetpack').sync()
 end
 EOL
 
 function s:suite.packer_style()
-  lua packer_setup("kyazdani42/nvim-web-devicons")
-  lua vim.g.zsh_icon = require('nvim-web-devicons').get_icon('foo.zsh')
-  call s:assert.equals(g:zsh_icon, '')
+  lua packer_setup('EdenEast/nightfox.nvim')
+  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
 endfunction
 
 function s:suite.pkg_config()
@@ -271,15 +280,17 @@ function s:suite.pkg_config()
       require('nvim-web-devicons').set_icon({
         zsh = {
           icon = '',
-          color = '#428850',
         },
       })
     end,
   })
-  vim.cmd("packadd nvim-web-devicons")
-  local icon, color = require('nvim-web-devicons').get_icon_color('foo.zsh')
-  vim.g.nvim_web_devicons = { icon = icon, color = color }
 EOL
-  call s:assert.equals(g:nvim_web_devicons.icon, '')
-  call s:assert.equals(g:nvim_web_devicons.color, '#428850')
+  call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
+  call s:assert.notloaded('nvim-web-devicons')
+  packadd nvim-web-devicons
+  call s:assert.loaded('nvim-web-devicons') " means config is called
+  let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
+  call s:assert.equals(zsh_icon, '')
+endfunction
 endfunction

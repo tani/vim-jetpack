@@ -115,7 +115,7 @@ call jetpack#end()
 
 ```lua
 vim.cmd('packadd vim-jetpack')
-require('jetpack').startup(function(use)
+require('jetpack.packer').startup(function(use)
   use { 'tani/vim-jetpack', opt = 1 }-- bootstrap
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
@@ -132,7 +132,7 @@ end)
 
 ```lua
 vim.cmd('packadd vim-jetpack')
-require('jetpack').setup {
+require('jetpack.paq') {
   {'tani/vim-jetpack', opt = 1}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',

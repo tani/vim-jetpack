@@ -559,32 +559,49 @@ endfunction
 
 if !has('nvim') | finish | endif
 lua<<========================================
-local M = {}
+local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
-  M[name] = function(...) return vim.fn['jetpack#' .. name](...) end
+  Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 
-M.plugin = {}
+package.preload['jetpack'] = function()
+  return Jetpack
+end
+
+local Packer = {
+  option = {},
+  plugin = {},
+}
+
+Packer.init = function(opt)
+  if opt.package_root then
+    opt.package_root = string.gsub(vim.fn.fnamemodify(opt.package_root, ":h"), '\\', '/')
+  end
+  Packer.option = opt
+end
+
+local function cast_fun(v)
+  if type(v) == 'string' then
+    return assert(loadstring(v))
+  else
+    return v
+  end
+end
 
 local function use(plugin)
-  if (type(plugin) == 'string') then
+  if type(plugin) == 'string' then
     vim.fn['jetpack#add'](plugin)
   else
-    local name = plugin[1]
-    plugin[1] = nil
+    local name = table.remove(plugin, 1)
     if next(plugin) == nil then
       vim.fn['jetpack#add'](name)
     else
+      Packer.plugin[name] = {}
       if plugin.config then
-        local config_func = plugin.config
-        if type(config_func) == 'string' then
-          config_func = function()
-            loadstring(config_func)()
-          end
-        end
-        M.plugin[name] = { config = config_func }
-        plugin.config = 'lua require("jetpack").plugin["' .. name .. '"].config()'
+        local config_func = cast_fun(plugin.config)
+        Packer.plugin[name].config = config_func
+        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config()]]):format(name)
         plugin.opt = true
       end
       vim.fn['jetpack#add'](name, plugin)
@@ -592,16 +609,9 @@ local function use(plugin)
   end
 end
 
-M.packer = {}
-M.packer._config = {}
-
-M.packer.init = function(opt)
-  M.packer._config = opt
-end
-
-M.startup = function(config)
-  if M.packer._config.package_root then
-    vim.fn['jetpack#begin'](M.packer._config.package_root)
+Packer.startup = function(config)
+  if Packer.option.package_root then
+    vim.fn['jetpack#begin'](Packer.option.package_root)
   else
     vim.fn['jetpack#begin']()
   end
@@ -609,7 +619,11 @@ M.startup = function(config)
   vim.fn['jetpack#end']()
 end
 
-M.setup = function(config)
+package.preload['jetpack.packer'] = function()
+  return Packer
+end
+
+local Paq = function(config)
   vim.fn['jetpack#begin']()
   for _, plugin in pairs(config) do
     use(plugin)
@@ -617,7 +631,7 @@ M.setup = function(config)
   vim.fn['jetpack#end']()
 end
 
-package.preload['jetpack'] = function()
-  return M
+package.preload['jetpack.paq'] = function()
+  return Paq
 end
 ========================================

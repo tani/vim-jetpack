@@ -110,7 +110,7 @@ DEIN/ MINPAC STYLE                                   *jetpack-dein/_minpac_style
 PACKER STYLE                                               *jetpack-packer_style*
 >
     vim.cmd('packadd vim-jetpack')
-    require('jetpack').startup(function(use)
+    require('jetpack.packer').startup(function(use)
       use 'https://github.com/dense-analysis/ale'
       use 'junegunn/fzf.vim'
       use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -125,7 +125,7 @@ PACKER STYLE                                               *jetpack-packer_style
 PAQ STYLE                                                     *jetpack-paq_style*
 >
     vim.cmd('packadd vim-jetpack')
-    require('jetpack').setup {
+    require('jetpack.paq') {
       'https://github.com/dense-analysis/ale',
       'junegunn/fzf.vim',
       {'junegunn/fzf', run = 'call fzf#install()' },
