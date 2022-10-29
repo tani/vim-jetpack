@@ -457,10 +457,22 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
+function! jetpack#load(pkg_name) abort
+  if !has_key(s:packages, a:pkg_name)
+    return v:false
+  endif
+  let pkg = s:packages[a:pkg_name]
+  execute 'silent! packadd' a:pkg_name
+  if pkg.config !=# ''
+    execute pkg.config
+  endif
+  return v:true
+endfunction
+
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 function! s:load_map(map, name, with_prefix, prefix)
-  execute 'packadd ' . a:name
+  call jetpack#load(a:name)
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -483,7 +495,7 @@ endfunction
 
 function! s:load_cmd(cmd, name, ...) abort
   execute printf('delcommand %s', a:cmd)
-  execute printf('silent! packadd %s', a:name)
+  call jetpack#load(a:name)
   let args = a:0>0 ? join(a:000, ' ') : ''
   try
     execute printf('%s %s', a:cmd, args)
@@ -508,7 +520,7 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      execute 'silent! packadd! ' . pkg_name
+      call jetpack#load(pkg_name)
       continue
     endif
     for it in pkg.on
@@ -519,12 +531,12 @@ function! jetpack#end() abort
         execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let it .= (it =~? ' ' ? '' : ' *')
-        execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
+        execute printf('autocmd Jetpack %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
         let cmd = substitute(it, '^:', '', '')
         execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
       else
-        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
+        execute printf('autocmd Jetpack FileType %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       endif
     endfor
     let event = substitute(pkg_name, '\W\+', '_', 'g')
@@ -533,11 +545,8 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-    if pkg.config !=# ''
-      if empty(pkg.on)
-        execute printf('autocmd Jetpack VimEnter * ++once ++nested silent! packadd %s', pkg_name)
-      endif
-      execute printf('autocmd User Jetpack%sPost %s', event, pkg.config)
+    if pkg.config !=# '' && empty(pkg.on)
+      execute printf('autocmd Jetpack VimEnter * ++once ++nested call jetpack#load(%s)', string(pkg_name))
     endif
   endfor
   silent! packadd! _
@@ -561,7 +570,7 @@ if !has('nvim') | finish | endif
 lua<<========================================
 local Jetpack = {}
 
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
   Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 

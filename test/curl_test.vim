@@ -264,9 +264,33 @@ EOL
   call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
   call s:assert.notloaded('nvim-web-devicons')
-  packadd nvim-web-devicons
+  call s:assert.equals(v:true, jetpack#load('nvim-web-devicons'))
   call s:assert.loaded('nvim-web-devicons') " means config is called
   let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
   call s:assert.equals(zsh_icon, '')
 endfunction
+
+function s:suite.only_lua()
+  lua <<EOL
+  packer_setup({
+    'nathom/filetype.nvim',
+    config = function()
+      require("filetype").setup({
+        overrides = {
+          extensions = {
+            -- Set the filetype of *.pn files to potion
+            pn = "potion",
+          },
+        }
+      })
+    end
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/filetype.nvim')
+  call s:assert.notloaded('filetype')
+  call s:assert.equals(v:true, jetpack#load('filetype.nvim'))
+  call s:assert.loaded('filetype') " means config is called
+  e foo.pn
+  lua require('filetype').resolve()
+  call s:assert.equals(&ft, 'potion')
 endfunction

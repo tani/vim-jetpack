@@ -170,40 +170,47 @@ require('jetpack.paq') {
   - It returns the list of plugin names registered including unavailable
     plugins.
 - `jetpack#get(name)`
-  - It returns metadata of the plugin if possible, otherwise it returns `{}` .
+  - It returns metadata of the plugin if possible, otherwise it returns `{}`.
     This is the same as `dein#get` of `dein.vim`.
+- `jetpack#load(name)`
+  - This is a wrapper function for `packadd`; since it fires config options,
+    etc., it is recommended to use this instead of `packadd`.
 
 ### Lua Function
 
 All `jetpack#` functions are exported as `jetpack` module.
 You can call them using `require('jetpack')` as you want.
-Additionaly, `startup` and `setup` functions are available.
+Additionaly, functions compatible with packer.nvim and paq.nvim are available.
 
-- `setup(config)`
-  - This function loads plugins described in config like `pack.nvim`.
-- `startup(config)`
+- `require('jetpack.paq')(config)`
+  - This function loads plugins described in config like `paq.nvim`.
+- `require('jetpack.packer').startup(config)`
   - This function loads plugins described by `use` function like `packer.nvim`.
+- `require('jetpack.packer').init(option)`
+  - Now supported option is only `package_root`.
 
 ### Supported Option
 
 vim-jetpack contains all optoins of vim-plug.
 
-| name         | type               | description                           |
-| :----------: | :----------------: | :------------------------------------ |
-| `commit`     | `sring`            | Commit of the repository to use       |
-| `tag`        | `sring`            | Tag of the repository to use          |
-| `branch`     | `sring`            | Branch of the repository to use       |
-| `rtp`        | `string`           | Subdirectory that contains Vim plugin |
-| `dir`        | `string`           | Custom directory for the plugin       |
-| `as`         | `string`           | Use different name for plugin         |
-| `do` / `run` | `string` or `func` | Post-update hook                      |
-| `on`         | `string` or `list` | Commands, keymaps, events, file types |
-| `for` / `ft` | `string` or `list` | On-demand loading: File types         |
-| `cmd`        | `string` or `list` | On-demand loading: Commands           |
-| `event`      | `string` or `list` | On-demand loading: Events             |
-| `map`        | `string` or `list` | On-demand loading: keymaps `<Plug>`   |
-| `opt`        | `boolean`          | On-demand loading: `packadd {name}`   |
-| `frozen`     | `boolean`          | Do not update                         |
+| name         | type                   | description                           |
+| :----------: | :--------------------: | :------------------------------------ |
+| `commit`     | `sring`                | Commit of the repository to use       |
+| `tag`        | `sring`                | Tag of the repository to use          |
+| `branch`     | `sring`                | Branch of the repository to use       |
+| `rtp`        | `string`               | Subdirectory that contains Vim plugin |
+| `dir`        | `string`               | Custom directory for the plugin       |
+| `as`         | `string`               | Use different name for plugin         |
+| `do` / `run` | `string` or `func`     | Post-update hook                      |
+| `on`         | `string` or `list`     | Commands, keymaps, events, file types |
+| `for` / `ft` | `string` or `list`     | On-demand loading: File types         |
+| `cmd`        | `string` or `list`     | On-demand loading: Commands           |
+| `event`      | `string` or `list`     | On-demand loading: Events             |
+| `map`        | `string` or `list`     | On-demand loading: keymaps `<Plug>`   |
+| `opt`        | `boolean`              | On-demand loading: `packadd {name}`   |
+| `frozen`     | `boolean`              | Do not update                         |
+| `config`     | `string` or `function` | Specifies lua code to run after this  |
+|              |                        | plugin is loaded.                     |
 
 ### Command
 
