@@ -191,7 +191,7 @@ Additionaly, functions compatible with packer.nvim and paq.nvim are available.
 
 ### Supported Option
 
-vim-jetpack contains all optoins of vim-plug.
+vim-jetpack provides all optoins of vim-plug.
 
 | name         | type                   | description                           |
 | :----------: | :--------------------: | :------------------------------------ |
@@ -207,10 +207,14 @@ vim-jetpack contains all optoins of vim-plug.
 | `cmd`        | `string` or `list`     | On-demand loading: Commands           |
 | `event`      | `string` or `list`     | On-demand loading: Events             |
 | `map`        | `string` or `list`     | On-demand loading: keymaps `<Plug>`   |
-| `opt`        | `boolean`              | On-demand loading: `packadd {name}`   |
 | `frozen`     | `boolean`              | Do not update                         |
-| `config`     | `string` or `function` | Specifies lua code to run after this  |
-|              |                        | plugin is loaded.                     |
+
+vim-jetpack provides some options of packer.nvim .
+
+| name         | type                       | description                                                       |
+| :----------: | :------------------------: | :---------------------------------------------------------------- |
+| `opt`        | `boolean`                  | On-demand loading: `packadd {name}`                               |
+| `config`     | `string` or `lua function` |  (Neovim) Specifies lua code to run after this plugin is loaded.  |
 
 ### Command
 

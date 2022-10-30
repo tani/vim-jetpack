@@ -199,10 +199,14 @@ SUPPORTED OPTION                                       *jetpack-supported_option
 |  cmd         |  string  or  list   | On-demand loading: Commands           |
 |  event       |  string  or  list   | On-demand loading: Events             |
 |  map         |  string  or  list   | On-demand loading: keymaps  <Plug>    |
-|  opt         |  boolean            | On-demand loading:  packadd {name}    |
 |  frozen      |  boolean            | Do not update                         |
-|  config      |  string or function | Specifies lua code to run after this  |
-|              |                     | plugin is loaded.                     |
+
+vim-jetpack provides some options of packer.nvim .
+
+| name         | type                       | description                                                       |
+| :----------: | :------------------------: | :---------------------------------------------------------------- |
+| `opt`        | `boolean`                  | On-demand loading: `packadd {name}`                               |
+| `config`     | `string` or `lua function` |  (Neovim) Specifies lua code to run after this plugin is loaded.  |
 
 COMMAND                                                         *jetpack-command*
 
