@@ -13,7 +13,7 @@ the built-in plugin manager only.
 - Single file plugin
   - You need to just put the single file to use this software.
 - First-class Lua support
-  - This plugin is not written in Lua but we provide a lua interface.
+  - This plugin is not written in Lua but we provide a Lua interface.
 - Fancy UI (User Interface)
   - You can see a progress of installation with a graphical interface.
 - `pack/*/start`-free architecture
@@ -158,7 +158,7 @@ require('jetpack.paq') {
     `options` is a dictionary. See below.
 - `jetpack#sync()`
   - The function performs to install, update, and bundle all plugins.
-    The function is evenrything all you need to know.
+    The function is everything all you need to know.
     You must run this function after a change of your configuration.
 - `jetpack#end()`
   - The function loads declared plugins. All plugin declarations should be
@@ -180,7 +180,7 @@ require('jetpack.paq') {
 
 All `jetpack#` functions are exported as `jetpack` module.
 You can call them using `require('jetpack')` as you want.
-Additionaly, functions compatible with packer.nvim and paq.nvim are available.
+Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 - `require('jetpack.paq')(config)`
   - This function loads plugins described in config like `paq.nvim`.
@@ -191,7 +191,7 @@ Additionaly, functions compatible with packer.nvim and paq.nvim are available.
 
 ### Supported Option
 
-vim-jetpack provides all optoins of vim-plug.
+vim-jetpack provides all options of vim-plug.
 
 | name         | type                   | description                           |
 | :----------: | :--------------------: | :------------------------------------ |
@@ -214,14 +214,14 @@ vim-jetpack provides some options of packer.nvim .
 | name         | type                       | description                                                      |
 | :----------: | :------------------------: | :--------------------------------------------------------------- |
 | `opt`        | `boolean`                  | On-demand loading: `jetpack#load({name})`                        |
-| `setup`      | `string` or `lua function` | (Neovim) Specifies lua code to run before this plugin is loaded. |
-| `config`     | `string` or `lua function` | (Neovim) Specifies lua code to run after this plugin is loaded.  |
+| `setup`      | `string` or `Lua function` | (Neovim) Specifies Lua code to run before this plugin is loaded. |
+| `config`     | `string` or `Lua function` | (Neovim) Specifies Lua code to run after this plugin is loaded.  |
 
 ### Command
 
 - `:Jetpack repo [, options]`
     A command version of `jetpack#add()`.
-    It is useful for the vim-plug sytle declaration of plugins in vimrc.
+    It is useful for the vim-plug style declaration of plugins in vimrc.
 - `:JetpackSync`
   - Synchronize configuration and state.
     It performs to install, update, and bundle.
@@ -260,7 +260,7 @@ vim-jetpack provides some options of packer.nvim .
   - Let {PluginName} be a CamelCase of plugin name.
     Code to execute when the plugin is lazily loaded on demand with
     `User Jetpack{PluginName}Post` .
-    It is impossible to hook `packadd` for a lua plugin in Neovim,
+    It is impossible to hook `packadd` for a Lua plugin in Neovim,
     because Neovim does not load any files until the module is required.
     
     | plugin-name  | EventName  |
@@ -296,7 +296,7 @@ endif
 ```
 
 ```lua
--- nvim + lua
+-- nvim + Lua
 local fn = vim.fn
 local jetpackfile = fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
 local jetpackurl = 'https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim'
