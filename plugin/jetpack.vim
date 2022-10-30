@@ -432,11 +432,12 @@ function! jetpack#add(plugin, ...) abort
   \   'frozen': get(opts, 'frozen', v:false),
   \   'dir': get(opts, 'dir', ''),
   \   'on': on,
-  \   'opt': !empty(on) || get(opts, 'opt') || !empty(get(opts, 'config', '')),
+  \   'opt': !empty(on) || get(opts, 'opt') || !empty(get(opts, 'setup', '')) || !empty(get(opts, 'config', '')),
   \   'path': get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
-  \   'config': get(opts, 'config', '')
+  \   'setup': get(opts, 'setup', ''),
+  \   'config': get(opts, 'config', ''),
   \ }
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
@@ -464,6 +465,9 @@ function! jetpack#load(pkg_name) abort
     return v:false
   endif
   let pkg = s:packages[a:pkg_name]
+  if pkg.setup !=# ''
+    execute pkg.setup
+  endif
   execute 'silent! packadd' a:pkg_name
   if pkg.config !=# ''
     execute pkg.config
@@ -547,7 +551,7 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-    if pkg.config !=# '' && empty(pkg.on)
+    if (pkg.setup !=# '' || pkg.config !=# '') && empty(pkg.on)
       execute printf('autocmd Jetpack VimEnter * ++once ++nested call jetpack#load(%s)', string(pkg_name))
     endif
   endfor
@@ -609,6 +613,11 @@ local function use(plugin)
       vim.fn['jetpack#add'](name)
     else
       Packer.plugin[name] = {}
+      if plugin.setup then
+        local setup_func = cast_fun(plugin.setup)
+        Packer.plugin[name].setup = setup_func
+        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup()]]):format(name)
+      end
       if plugin.config then
         local config_func = cast_fun(plugin.config)
         Packer.plugin[name].config = config_func

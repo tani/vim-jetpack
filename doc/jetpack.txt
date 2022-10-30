@@ -203,10 +203,11 @@ SUPPORTED OPTION                                       *jetpack-supported_option
 
 vim-jetpack provides some options of packer.nvim .
 
-| name         | type                       | description                                                       |
-| :----------: | :------------------------: | :---------------------------------------------------------------- |
-| `opt`        | `boolean`                  | On-demand loading: `packadd {name}`                               |
-| `config`     | `string` or `lua function` |  (Neovim) Specifies lua code to run after this plugin is loaded.  |
+| name         | type                   | description                                                      |
+| :----------: | :--------------------: | :--------------------------------------------------------------- |
+| opt          | boolean                | On-demand loading: jetpack#load({name})                          |
+| setup        | string or lua function | (Neovim) Specifies lua code to run before this plugin is loaded. |
+| config       | string or lua function | (Neovim) Specifies lua code to run after this plugin is loaded.  |
 
 COMMAND                                                         *jetpack-command*
 

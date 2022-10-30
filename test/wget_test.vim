@@ -294,3 +294,20 @@ EOL
   lua require('filetype').resolve()
   call s:assert.equals(&ft, 'potion')
 endfunction
+
+function s:suite.pkg_setup()
+  lua <<EOL
+  packer_setup({
+    'hrsh7th/vim-searchx',
+    setup = function()
+      vim.g.searchx = {
+        auto_accept = true, -- default: false
+      }
+    end,
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/vim-searchx')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
+  call s:assert.equals(v:true, jetpack#load('vim-searchx'))
+  call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
+endfunction
