@@ -432,7 +432,7 @@ function! jetpack#add(plugin, ...) abort
   \   'frozen': get(opts, 'frozen', v:false),
   \   'dir': get(opts, 'dir', ''),
   \   'on': on,
-  \   'opt': !empty(on) || get(opts, 'opt'),
+  \   'opt': !empty(on) || get(opts, 'opt') || !empty(get(opts, 'config', '')),
   \   'path': get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
@@ -613,7 +613,6 @@ local function use(plugin)
         local config_func = cast_fun(plugin.config)
         Packer.plugin[name].config = config_func
         plugin.config = ([[lua require('jetpack.packer').plugin[%q].config()]]):format(name)
-        plugin.opt = true
       end
       vim.fn['jetpack#add'](name, plugin)
     end
