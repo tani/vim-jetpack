@@ -47,6 +47,16 @@ function s:assert.isnotdirectory(dir)
   endif
 endfunction
 
+function s:assert.loaded(package)
+  let loaded = luaeval('package.loaded[_A]', a:package)
+  call s:assert.not_equals(loaded, v:null)
+endfunction
+
+function s:assert.notloaded(package)
+  let loaded = luaeval('package.loaded[_A]', a:package)
+  call s:assert.equals(loaded, v:null)
+endfunction
+
 function s:suite.no_option_github()
  call s:setup(['mbbill/undotree'])
  call s:assert.isnotdirectory(s:optdir . '/undotree')
@@ -208,3 +218,79 @@ function s:suite.issue70()
   call s:assert.isdirectory(s:optdir. '/nvim-ts-rainbow/screenshots')
 endfunction
 
+if !has('nvim')
+  finish
+endif
+
+let g:vimhome = s:vimhome . '/pack'
+
+lua <<EOL
+local packer = require('jetpack.packer')
+
+packer.init({
+  package_root = vim.g.vimhome
+})
+
+_G.packer_setup = function(...)
+  local plugins = { ... }
+  packer.startup(function(use)
+    for _, plugin in ipairs(plugins) do
+      use(plugin)
+    end
+  end)
+  require('jetpack').sync()
+end
+EOL
+
+function s:suite.packer_style()
+  lua packer_setup('EdenEast/nightfox.nvim')
+  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
+endfunction
+
+function s:suite.pkg_config()
+  lua <<EOL
+  packer_setup({
+    'kyazdani42/nvim-web-devicons',
+    config = function()
+      require('nvim-web-devicons').set_icon({
+        zsh = {
+          icon = '',
+        },
+      })
+    end,
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
+  call s:assert.notloaded('nvim-web-devicons')
+  call s:assert.equals(v:true, jetpack#load('nvim-web-devicons'))
+  call s:assert.loaded('nvim-web-devicons') " means config is called
+  let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
+  call s:assert.equals(zsh_icon, '')
+endfunction
+
+function s:suite.only_lua()
+  lua <<EOL
+  packer_setup({
+    'nathom/filetype.nvim',
+    config = function()
+      require("filetype").setup({
+        overrides = {
+          extensions = {
+            -- Set the filetype of *.pn files to potion
+            pn = "potion",
+          },
+        }
+      })
+    end
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/filetype.nvim')
+  call s:assert.notloaded('filetype')
+  call s:assert.equals(v:true, jetpack#load('filetype.nvim'))
+  call s:assert.loaded('filetype') " means config is called
+  e foo.pn
+  lua require('filetype').resolve()
+  call s:assert.equals(&ft, 'potion')
+endfunction

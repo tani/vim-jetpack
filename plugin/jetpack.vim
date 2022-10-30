@@ -436,6 +436,7 @@ function! jetpack#add(plugin, ...) abort
   \   'path': get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', '')),
   \   'status': [s:status.pending],
   \   'output': '',
+  \   'config': get(opts, 'config', '')
   \ }
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
@@ -458,10 +459,22 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
+function! jetpack#load(pkg_name) abort
+  if !has_key(s:packages, a:pkg_name)
+    return v:false
+  endif
+  let pkg = s:packages[a:pkg_name]
+  execute 'silent! packadd' a:pkg_name
+  if pkg.config !=# ''
+    execute pkg.config
+  endif
+  return v:true
+endfunction
+
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 function! s:load_map(map, name, with_prefix, prefix)
-  execute 'packadd ' . a:name
+  call jetpack#load(a:name)
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -484,7 +497,7 @@ endfunction
 
 function! s:load_cmd(cmd, name, ...) abort
   execute printf('delcommand %s', a:cmd)
-  execute printf('silent! packadd %s', a:name)
+  call jetpack#load(a:name)
   let args = a:0>0 ? join(a:000, ' ') : ''
   try
     execute printf('%s %s', a:cmd, args)
@@ -509,7 +522,7 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      execute 'silent! packadd! ' . pkg_name
+      call jetpack#load(pkg_name)
       continue
     endif
     for it in pkg.on
@@ -520,12 +533,12 @@ function! jetpack#end() abort
         execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let it .= (it =~? ' ' ? '' : ' *')
-        execute printf('autocmd Jetpack %s ++once ++nested silent! packadd %s', it, pkg_name)
+        execute printf('autocmd Jetpack %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
         let cmd = substitute(it, '^:', '', '')
         execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
       else
-        execute printf('autocmd Jetpack FileType %s ++once ++nested silent! packadd %s', it, pkg_name)
+        execute printf('autocmd Jetpack FileType %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       endif
     endfor
     let event = substitute(pkg_name, '\W\+', '_', 'g')
@@ -534,6 +547,9 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
+    if pkg.config !=# '' && empty(pkg.on)
+      execute printf('autocmd Jetpack VimEnter * ++once ++nested call jetpack#load(%s)', string(pkg_name))
+    endif
   endfor
   silent! packadd! _
   syntax enable
@@ -554,33 +570,71 @@ endfunction
 
 if !has('nvim') | finish | endif
 lua<<========================================
-local M = {}
+local Jetpack = {}
 
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync'}) do
-  M[name] = function(...) return vim.fn['jetpack#' .. name](...) end
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
+  Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
+end
+
+package.preload['jetpack'] = function()
+  return Jetpack
+end
+
+local Packer = {
+  option = {},
+  plugin = {},
+}
+
+Packer.init = function(opt)
+  if opt.package_root then
+    opt.package_root = string.gsub(vim.fn.fnamemodify(opt.package_root, ":h"), '\\', '/')
+  end
+  Packer.option = opt
+end
+
+local function cast_fun(v)
+  if type(v) == 'string' then
+    return assert(loadstring(v))
+  else
+    return v
+  end
 end
 
 local function use(plugin)
-  if (type(plugin) == 'string') then
+  if type(plugin) == 'string' then
     vim.fn['jetpack#add'](plugin)
   else
-    local name = plugin[1]
-    plugin[1] = nil
-    if vim.fn.type(plugin) == vim.v.t_list then
+    local name = table.remove(plugin, 1)
+    if next(plugin) == nil then
       vim.fn['jetpack#add'](name)
     else
+      Packer.plugin[name] = {}
+      if plugin.config then
+        local config_func = cast_fun(plugin.config)
+        Packer.plugin[name].config = config_func
+        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config()]]):format(name)
+        plugin.opt = true
+      end
       vim.fn['jetpack#add'](name, plugin)
     end
   end
 end
 
-M.startup = function(config)
-  vim.fn['jetpack#begin']()
+Packer.startup = function(config)
+  if Packer.option.package_root then
+    vim.fn['jetpack#begin'](Packer.option.package_root)
+  else
+    vim.fn['jetpack#begin']()
+  end
   config(use)
   vim.fn['jetpack#end']()
 end
 
-M.setup = function(config)
+package.preload['jetpack.packer'] = function()
+  return Packer
+end
+
+local Paq = function(config)
   vim.fn['jetpack#begin']()
   for _, plugin in pairs(config) do
     use(plugin)
@@ -588,7 +642,7 @@ M.setup = function(config)
   vim.fn['jetpack#end']()
 end
 
-package.preload['jetpack'] = function()
-  return M
+package.preload['jetpack.paq'] = function()
+  return Paq
 end
 ========================================
