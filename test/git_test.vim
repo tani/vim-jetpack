@@ -335,3 +335,11 @@ EOL
   call s:assert.equals(v:true, jetpack#load('vim-searchx'))
   call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
 endfunction
+
+function s:suite.load_timing()
+  lua <<EOL
+  packer_setup({
+    'hrsh7th/cmp-buffer',
+  })
+EOL
+endfunction

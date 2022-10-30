@@ -460,18 +460,27 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-function! jetpack#load(pkg_name) abort
-  if !has_key(s:packages, a:pkg_name)
-    return v:false
-  endif
+function! jetpack#_setup(pkg_name) abort
   let pkg = s:packages[a:pkg_name]
   if pkg.setup !=# ''
     execute pkg.setup
   endif
-  execute 'silent! packadd' a:pkg_name
+endfunction
+
+function! jetpack#_config(pkg_name) abort
+  let pkg = s:packages[a:pkg_name]
   if pkg.config !=# ''
     execute pkg.config
   endif
+endfunction
+
+function! jetpack#load(pkg_name) abort
+  if !has_key(s:packages, a:pkg_name)
+    return v:false
+  endif
+  call jetpack#_setup(a:pkg_name)
+  execute 'silent! packadd' a:pkg_name
+  call jetpack#_config(a:pkg_name)
   return v:true
 endfunction
 
@@ -552,7 +561,9 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
     if (pkg.setup !=# '' || pkg.config !=# '') && empty(pkg.on)
-      execute printf('autocmd Jetpack VimEnter * ++once ++nested call jetpack#load(%s)', string(pkg_name))
+      execute printf('autocmd Jetpack VimEnter * ++once ++nested call jetpack#_config(%s)', string(pkg_name))
+      call jetpack#_setup(pkg_name)
+      execute 'silent! packadd' pkg_name
     endif
   endfor
   silent! packadd! _
