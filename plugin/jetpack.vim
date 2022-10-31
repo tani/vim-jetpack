@@ -574,26 +574,6 @@ endfunction
 
 if !has('nvim') | finish | endif
 lua<<========================================
-local Jetpack = {}
-
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
-  Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
-end
-
-Jetpack.startup = function(config)
-  vim.cmd[[echomsg 'require("jetpack").startup is deprecated. Please use require("jetpack.packer").startup .']]
-  Packer.startup(config)
-end
-
-Jetpack.setup = function(config)
-  vim.cmd[[echomsg 'require("jetpack").setup is deprecated. Please use require("jetpack.paq").setup .']]
-  Paq.setup(config)
-end
-
-package.preload['jetpack'] = function()
-  return Jetpack
-end
-
 local Packer = {
   option = {},
   plugin = {},
@@ -663,4 +643,25 @@ end
 package.preload['jetpack.paq'] = function()
   return Paq
 end
+
+local Jetpack = {}
+
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
+  Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
+end
+
+Jetpack.startup = function(config)
+  vim.cmd[[echoerr 'require("jetpack").startup is deprecated. Please use require("jetpack.packer").startup .']]
+  Packer.startup(config)
+end
+
+Jetpack.setup = function(config)
+  vim.cmd[[echoerr 'require("jetpack").setup is deprecated. Please use require("jetpack.paq").setup .']]
+  Paq.setup(config)
+end
+
+package.preload['jetpack'] = function()
+  return Jetpack
+end
+
 ========================================
