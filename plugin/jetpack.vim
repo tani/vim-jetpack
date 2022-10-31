@@ -651,12 +651,12 @@ for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'loa
 end
 
 Jetpack.startup = function(config)
-  vim.cmd[[echoerr 'require("jetpack").startup is deprecated. Please use require("jetpack.packer").startup .']]
+  vim.cmd[[echomsg 'require("jetpack").startup is deprecated. Please use require("jetpack.packer").startup .']]
   Packer.startup(config)
 end
 
 Jetpack.setup = function(config)
-  vim.cmd[[echoerr 'require("jetpack").setup is deprecated. Please use require("jetpack.paq").setup .']]
+  vim.cmd[[echomsg 'require("jetpack").setup is deprecated. Please use require("jetpack.paq").setup .']]
   Paq.setup(config)
 end
 
