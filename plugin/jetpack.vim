@@ -580,6 +580,16 @@ for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'loa
   Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 
+Jetpack.startup = function(config)
+  vim.cmd[[echoerr 'require("jetpack").startup is deprecated. Please use require("jetpack.packer").startup .']]
+  Packer.startup(config)
+end
+
+Jetpack.setup = function(config)
+  vim.cmd[[echoerr 'require("jetpack").setup is deprecated. Please use require("jetpack.paq").setup .']]
+  Paq.setup(config)
+end
+
 package.preload['jetpack'] = function()
   return Jetpack
 end
