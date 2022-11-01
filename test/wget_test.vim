@@ -218,6 +218,17 @@ function s:suite.issue70()
   call s:assert.isdirectory(s:optdir. '/nvim-ts-rainbow/screenshots')
 endfunction
 
+function s:suite.local_plugin()
+  let install_path = expand(s:vimhome . '/pack/linkformat.vim')
+  call system('git clone --depth 1 https://github.com/uga-rosa/linkformat.vim.git ' . install_path)
+  call s:setup([install_path])
+  call s:assert.isdirectory(s:optdir . '/linkformat.vim')
+  call s:assert.filereadable(s:optdir . '/linkformat.vim/plugin/linkformat.vim')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/linkformat.vim')
+  packadd linkformat.vim
+  call s:assert.cmd_exists('LinkFormatPaste')
+endfunction
+
 if !has('nvim')
   finish
 endif
