@@ -481,6 +481,7 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
+  \   'loaded': v:false,
   \ }
   let pkg.merged = s:is_merged(pkg)
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
@@ -510,9 +511,13 @@ function! jetpack#load(pkg_name) abort
     return v:false
   endif
   let pkg = s:packages[a:pkg_name]
+  if pkg.loaded
+    return v:false
+  endif
   execute pkg.setup
   execute 'silent! packadd' a:pkg_name
   execute pkg.config
+  let pkg.loaded = v:true
   return v:true
 endfunction
 
@@ -553,7 +558,12 @@ function! s:load_cmd(cmd, name, ...) abort
   endtry
 endfunction
 
-function! jetpack#end() abort
+function! jetpack#end(...) abort
+  " For testing;
+  " In the test, the plugins are not yet installed when jetpack#end is called.
+  " Calling packadd makes no sense.
+  " Therefore, Lua's require function in pkg.config always fail.
+  let is_test = !empty(a:000)
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
   syntax off
@@ -573,6 +583,7 @@ function! jetpack#end() abort
         call add(configs, pkg.config)
       endif
       execute 'silent! packadd!' pkg_name
+      let pkg.loaded = !is_test
       continue
     endif
     for it in pkg.on
@@ -599,7 +610,9 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
-  call map(configs, {_, config -> execute(config)})
+  if !is_test
+    call map(configs, {_, config -> execute(config)})
+  endif
   syntax enable
   filetype plugin indent on
 endfunction
@@ -662,14 +675,20 @@ local function use(plugin)
   end
 end
 
-Packer.startup = function(config)
+Packer.startup = function(config, is_test)
+  -- When passing nil to a vim function, v:null is passed, unlike the normal lua behavior.
+  -- Therefore, branching with if statements is required.
   if Packer.option.package_root then
     vim.fn['jetpack#begin'](Packer.option.package_root)
   else
     vim.fn['jetpack#begin']()
   end
   config(use)
-  vim.fn['jetpack#end']()
+  if is_test then
+    vim.fn['jetpack#end'](is_test)
+  else
+    vim.fn['jetpack#end']()
+  end
 end
 
 package.preload['jetpack.packer'] = function()
