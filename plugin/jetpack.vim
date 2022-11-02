@@ -561,6 +561,7 @@ function! jetpack#end() abort
   augroup Jetpack
     autocmd!
   augroup END
+  let configs = []
   for [pkg_name, pkg] in items(s:packages)
     if !empty(pkg.dir)
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
@@ -569,7 +570,7 @@ function! jetpack#end() abort
     if !pkg.opt
       execute pkg.setup
       if pkg.config !=# ''
-        execute printf('autocmd Jetpack VimEnter * ++once ++nested %s', pkg.config)
+        call add(configs, pkg.config)
       endif
       execute 'silent! packadd!' pkg_name
       continue
@@ -598,6 +599,7 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
+  call map(configs, {_, config -> execute(config)})
   syntax enable
   filetype plugin indent on
 endfunction
