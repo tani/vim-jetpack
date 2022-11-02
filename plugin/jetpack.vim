@@ -464,6 +464,9 @@ function! jetpack#add(plugin, ...) abort
   let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
   let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
   let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
+  let requires = get(opts, 'requires', [])
+  let requires = type(requires) == v:t_string ? [requires] : requires
+  let requires = map(requires, {_, req -> fnamemodify(req, ':t')})
   let pkg  = {
   \   'url': url,
   \   'local': local,
@@ -481,6 +484,7 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
+  \   'requires': requires,
   \   'loaded': v:false,
   \ }
   let pkg.merged = s:is_merged(pkg)
@@ -513,6 +517,11 @@ function! jetpack#load(pkg_name) abort
   let pkg = s:packages[a:pkg_name]
   if pkg.loaded
     return v:false
+  endif
+  if !empty(pkg.requires)
+    for req in pkg.requires
+      call jetpack#load(req)
+    endfor
   endif
   execute pkg.setup
   execute 'silent! packadd' a:pkg_name
@@ -558,6 +567,26 @@ function! s:load_cmd(cmd, name, ...) abort
   endtry
 endfunction
 
+function s:load_on_startup(pkg_name) abort
+  if !has_key(s:packages, a:pkg_name)
+    return []
+  endif
+  let pkg = s:packages[a:pkg_name]
+  if pkg.loaded
+    return []
+  endif
+  let config = []
+  if !empty(pkg.requires)
+    for req in pkg.requires
+      call extend(config, s:load_on_startup(req))
+    endfor
+  endif
+  execute pkg.setup
+  execute 'silent! packadd!' a:pkg_name
+  let pkg.loaded = v:true
+  return add(config, pkg.config)
+endfunction
+
 function! jetpack#end(...) abort
   " For testing;
   " In the test, the plugins are not yet installed when jetpack#end is called.
@@ -578,12 +607,7 @@ function! jetpack#end(...) abort
       continue
     endif
     if !pkg.opt
-      execute pkg.setup
-      if pkg.config !=# ''
-        call add(configs, pkg.config)
-      endif
-      execute 'silent! packadd!' pkg_name
-      let pkg.loaded = !is_test
+      call extend(configs, s:load_on_startup(pkg_name))
       continue
     endif
     for it in pkg.on
@@ -610,7 +634,12 @@ function! jetpack#end(...) abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
-  if !is_test
+  if is_test
+    for pkg_name in keys(s:packages)
+      let pkg = s:packages[pkg_name]
+      let pkg.loaded = v:false
+    endfor
+  else
     call map(configs, {_, config -> execute(config)})
   endif
   syntax enable

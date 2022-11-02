@@ -57,6 +57,14 @@ function s:assert.notloaded(package)
   call s:assert.equals(loaded, v:null)
 endfunction
 
+function s:assert.requirable(module)
+  call s:assert.true(luaeval('pcall(require, _A[1])', [a:module]))
+endfunction
+
+function s:assert.notrequirable(module) abort
+  call s:assert.false(luaeval('pcall(require, _A[1])', [a:module]))
+endfunction
+
 function s:suite.no_option_github()
   call s:setup(['mbbill/undotree'])
   call s:assert.isnotdirectory(s:optdir . '/undotree')
@@ -348,4 +356,22 @@ EOL
   " double call
   call s:assert.false(jetpack#load('vim-searchx'))
   call s:assert.true(has_key(g:searchx, 'convert')) " If the setup is called again, overwrites g:searchx and 'convert' key will miss.
+endfunction
+
+function s:suite.requires_option()
+  lua <<EOL
+  packer_setup({
+    'nvim-lua/plenary.nvim',
+    opt = true,
+  }, {
+    'uga-rosa/cmp-dictionary',
+    requires = 'plenary.nvim'
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/plenary.nvim')
+  call s:assert.isnotdirectory(s:optdir . '/cmp-dictionary')
+  call s:assert.filereadable(s:optdir . '/_/after/plugin/cmp_dictionary.vim')
+  call s:assert.notrequirable('plenary')
+  call s:assert.true(jetpack#load('cmp-dictionary'))
+  call s:assert.requirable('plenary')
 endfunction
