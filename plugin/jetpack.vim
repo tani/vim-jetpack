@@ -259,6 +259,9 @@ function! s:download_plugins() abort
     call add(pkg.status, s:status.pending)
   endfor
   for [pkg_name, pkg] in items(s:packages)
+    if pkg.local
+      continue
+    endif
     call s:show_progress('Install Plugins')
     if isdirectory(pkg.path)
       if pkg.frozen
@@ -365,7 +368,15 @@ function! s:merge_plugins() abort
     else
       let srcdir = pkg.path . '/' . pkg.rtp
       let destdir = s:optdir . '/' . pkg_name
-      call s:copy_dir(srcdir, destdir)
+      if pkg.local
+        if has('win32')
+          call system(join(['cmd', '/C', 'mklink', '/J', shellescape(destdir), shellescape(pkg.url)]))
+        else
+          call system(join(['ln', '-sfn', shellescape(pkg.url), shellescape(destdir)]))
+        endif
+      else
+        call s:copy_dir(srcdir, destdir)
+      endif
       call add(pkg.status, s:status.copied)
     endif
   endfor
@@ -412,6 +423,18 @@ function! jetpack#sync() abort
   call s:postupdate_plugins()
 endfunction
 
+" Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L479-L529
+"  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
+if has('win32')
+  function! s:is_local_plug(repo)
+    return a:repo =~? '^[a-z]:\|^[%~]'
+  endfunction
+else
+  function! s:is_local_plug(repo)
+    return a:repo[0] =~# '[/$~]'
+  endfunction
+endif
+
 " If opt/do/dir/setup/config option is enabled,
 " it should be placed isolated directory (not merged).
 function! s:is_merged(pkg) abort
@@ -425,13 +448,16 @@ function! s:is_merged(pkg) abort
     return v:false
   elseif a:pkg.config !=# ''
     return v:false
+  elseif a:pkg.local
+    return v:false
   endif
   return v:true
 endfunction
 
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
-  let url = (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
+  let local = s:is_local_plug(a:plugin)
+  let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
   let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
   let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
@@ -440,6 +466,7 @@ function! jetpack#add(plugin, ...) abort
   let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
   let pkg  = {
   \   'url': url,
+  \   'local': local,
   \   'branch': get(opts, 'branch', ''),
   \   'tag': get(opts, 'tag', ''),
   \   'commit': get(opts, 'commit', 'HEAD'),
@@ -455,7 +482,6 @@ function! jetpack#add(plugin, ...) abort
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
   \ }
-  " private flag: 'merged'
   let pkg.merged = s:is_merged(pkg)
   let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
@@ -679,5 +705,4 @@ end
 package.preload['jetpack'] = function()
   return Jetpack
 end
-
 ========================================
