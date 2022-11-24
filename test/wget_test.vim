@@ -253,6 +253,9 @@ _G.packer_setup = function(...)
 end
 EOL
 
+" Prevent calling config when not yet installed
+let g:jetpack_skip_config = 1
+
 function s:suite.packer_style()
   lua packer_setup('EdenEast/nightfox.nvim')
   call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
@@ -275,7 +278,7 @@ EOL
   call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
   call s:assert.notloaded('nvim-web-devicons')
-  call s:assert.equals(v:true, jetpack#load('nvim-web-devicons'))
+  call s:assert.true(jetpack#load('nvim-web-devicons'))
   call s:assert.loaded('nvim-web-devicons') " means config is called
   let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
   call s:assert.equals(zsh_icon, '')
@@ -299,7 +302,7 @@ function s:suite.only_lua()
 EOL
   call s:assert.isdirectory(s:optdir . '/filetype.nvim')
   call s:assert.notloaded('filetype')
-  call s:assert.equals(v:true, jetpack#load('filetype.nvim'))
+  call s:assert.true(jetpack#load('filetype.nvim'))
   call s:assert.loaded('filetype') " means config is called
   e foo.pn
   lua require('filetype').resolve()
@@ -319,6 +322,6 @@ function s:suite.pkg_setup()
 EOL
   call s:assert.isdirectory(s:optdir . '/vim-searchx')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
-  call s:assert.equals(v:true, jetpack#load('vim-searchx'))
+  call s:assert.true(jetpack#load('vim-searchx'))
   call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
 endfunction
