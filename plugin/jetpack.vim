@@ -488,7 +488,8 @@ endfunction
 
 function! jetpack#begin(...) abort
   let s:packages = {}
-  if a:0 != 0
+  " In lua, passing nil and no argument are synonymous, but in practice, v:null is passed.
+  if a:0 > 0 && a:1 != v:null
     let s:home = expand(a:1)
     execute 'set packpath^=' . s:home
     execute 'set runtimepath^=' . s:home
@@ -561,6 +562,7 @@ function! jetpack#end() abort
   augroup Jetpack
     autocmd!
   augroup END
+  let configs = []
   for [pkg_name, pkg] in items(s:packages)
     if !empty(pkg.dir)
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
@@ -569,7 +571,7 @@ function! jetpack#end() abort
     if !pkg.opt
       execute pkg.setup
       if pkg.config !=# ''
-        execute printf('autocmd Jetpack VimEnter * ++once ++nested %s', pkg.config)
+        call add(configs, pkg.config)
       endif
       execute 'silent! packadd!' pkg_name
       continue
@@ -598,6 +600,13 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
+  " For testing;
+  " In the test, the plugins are not yet installed when jetpack#end is called.
+  " Calling packadd makes no sense.
+  " Therefore, Lua's require function in pkg.config always fail.
+  if !exists('g:jetpack_skip_config')
+    call map(configs, {_, config -> execute(config)})
+  endif
   syntax enable
   filetype plugin indent on
 endfunction
@@ -661,11 +670,7 @@ local function use(plugin)
 end
 
 Packer.startup = function(config)
-  if Packer.option.package_root then
-    vim.fn['jetpack#begin'](Packer.option.package_root)
-  else
-    vim.fn['jetpack#begin']()
-  end
+  vim.fn['jetpack#begin'](Packer.option.package_root)
   config(use)
   vim.fn['jetpack#end']()
 end
