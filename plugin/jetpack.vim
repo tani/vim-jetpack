@@ -46,6 +46,9 @@ let g:jetpack_copy_method =
   " symlink  : fs_symlink (nvim only)
   " hardlink : fs_link (nvim only)
 
+let s:commands = {}
+let s:maps = {}
+
 let s:packages = get(s:, 'packages', {})
 
 let s:status = {
@@ -519,8 +522,10 @@ endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
-function! s:load_map(map, name, with_prefix, prefix)
-  call jetpack#load(a:name)
+function! s:load_map(map, names, with_prefix, prefix)
+  for name in a:names
+    call jetpack#load(name)
+  endfor
   let extra = ''
   let code = getchar(0)
   while (code != 0 && code != 27)
@@ -541,9 +546,11 @@ function! s:load_map(map, name, with_prefix, prefix)
   call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
-function! s:load_cmd(cmd, name, ...) abort
+function! s:load_cmd(cmd, names, ...) abort
   execute printf('delcommand %s', a:cmd)
-  call jetpack#load(a:name)
+  for name in a:names
+    call jetpack#load(name)
+  endfor
   let args = a:0>0 ? join(a:000, ' ') : ''
   try
     execute printf('%s %s', a:cmd, args)
@@ -578,16 +585,18 @@ function! jetpack#end() abort
     endif
     for it in pkg.on
       if it =~? '^<Plug>'
-        execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map(%s, %s, 0, "")<CR>', it, string(it), string(pkg_name))
-        execute printf('nnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
-        execute printf('vnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "gv")<CR>', it, string(it), string(pkg_name))
-        execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), string(pkg_name))
+        let names = add(get(s:maps, it, []), pkg_name)
+        execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map(%s, %s, 0, "")<CR>', it, string(it), names)
+        execute printf('nnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), names)
+        execute printf('vnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "gv")<CR>', it, string(it), names)
+        execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), names)
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let it .= (it =~? ' ' ? '' : ' *')
         execute printf('autocmd Jetpack %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
         let cmd = substitute(it, '^:', '', '')
-        execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), string(pkg_name))
+        let names = add(get(s:commands, cmd, []), pkg_name)
+        execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), names)
       else
         execute printf('autocmd Jetpack FileType %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       endif
