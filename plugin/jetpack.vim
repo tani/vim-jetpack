@@ -64,11 +64,11 @@ let s:status = {
 \ }
 
 function! s:list_files(path) abort
-  if has('unix')
-    return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
-  else " Windows
-    return filter(glob(a:path . '\**\*', '', 1), { _, val -> !isdirectory(val)})
-  endif
+  let files = readdir(a:path, { entry -> !isdirectory(a:path . '/' . entry) })
+  for dir in readdir(a:path, { entry -> isdirectory(a:path . '/' . entry) })
+    let files += s:list_files(a:path . '/' . dir)
+  endfor
+  return files
 endfunction
 
 function! s:check_ignorable(filename) abort
