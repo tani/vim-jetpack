@@ -9,6 +9,8 @@ jobs:
       matrix:
         os: [ubuntu-20.04, windows-2022, macos-11]
         vi: [neovim, vim]
+        cp: [system, copy]
+        dl: [git, curl, wget]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/checkout@v2
@@ -23,16 +25,7 @@ jobs:
       - name: Run tests with git
         timeout-minutes: 5
         env:
+          JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
+          JETPACK_COPY_METHOD: ${{ matrix.cp }}
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/git_test.vim
-      - name: Run tests with curl
-        timeout-minutes: 5
-        env:
-          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
-        run: ./vim-themis/bin/themis ./test/curl_test.vim
-      - name: Run tests with wget
-        timeout-minutes: 5
-        if: matrix.os != 'windows-2022'
-        env:
-          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
-        run: ./vim-themis/bin/themis ./test/wget_test.vim

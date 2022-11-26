@@ -1,8 +1,8 @@
 set packpath=
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
-let g:jetpack_copy_method = 'system'
-let g:jetpack_download_method = 'curl'
+let g:jetpack_copy_method = getenv('JETPACK_COPY_METHOD') ?? 'system'
+let g:jetpack_download_method = getenv('JETPACK_DOWNLOAD_METHOD') ?? 'git'
 
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
@@ -210,6 +210,39 @@ endfunction
 
 function s:suite.frozen_option()
   call s:assert.skip('')
+endfunction
+
+function s:suite.branch_option()
+  if g:jetpack_download_method !=# 'git'
+    call s:assert.skip('')
+  endif
+  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
+  let branch = system(printf('git -C %s branch', jetpack#get('coc.nvim').path))
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(branch, 'release')
+endfunction
+
+function s:suite.tag_option()
+  if g:jetpack_download_method !=# 'git'
+    call s:assert.skip('')
+  endif
+  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
+  let tag = system(printf('git -C %s describe --tags --abbrev=0', jetpack#get('coc.nvim').path))
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(tag, 'v0.0.80')
+endfunction
+
+function s:suite.commit_option()
+  if g:jetpack_download_method !=# 'git'
+    call s:assert.skip('')
+  endif
+  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
+  let commit = system(printf('git -C %s rev-parse HEAD', jetpack#get('coc.nvim').path))
+  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
+  call s:assert.match(commit, 'ce448a6')
 endfunction
 
 function s:suite.issue70()
