@@ -2,7 +2,7 @@ set packpath=
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
 function s:fallback(val, default)
-  return empty(val) ? default : val
+  return empty(a:val) ? a:default : a:val
 endfunction
 
 let g:jetpack_copy_method = s:fallback(getenv('JETPACK_COPY_METHOD'), 'system')
