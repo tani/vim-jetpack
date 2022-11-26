@@ -64,7 +64,11 @@ let s:status = {
 \ }
 
 function! s:list_files(path) abort
-  return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
+  if has('unix')
+    return filter(glob(a:path . '/**/*', '', 1), { _, val -> !isdirectory(val)})
+  else " Windows
+    return filter(glob(a:path . '\**\*', '', 1), { _, val -> !isdirectory(val)})
+  endif
 endfunction
 
 function! s:check_ignorable(filename) abort
