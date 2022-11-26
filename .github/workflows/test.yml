@@ -2,7 +2,7 @@ name: test
 on: [push, pull_request]
 jobs:
   test:
-    name: ${{ matrix.os }} / ${{ matrix.vi }}
+    name: ${{ matrix.os }} / ${{ matrix.vi }} / ${{ matrix.cp }}, ${{ matrix.dl }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
