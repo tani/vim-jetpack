@@ -10,12 +10,12 @@ let g:jetpack_download_method = s:fallback(getenv('JETPACK_DOWNLOAD_METHOD'), 'g
 
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
-let s:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
-let s:optdir =  s:vimhome . '/pack/jetpack/opt'
-let s:srcdir =  s:vimhome . '/pack/jetpack/src'
+let g:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
+let s:optdir =  g:vimhome . '/pack/jetpack/opt'
+let s:srcdir =  g:vimhome . '/pack/jetpack/src'
 
 function s:setup(...)
-  call jetpack#begin(s:vimhome)
+  call jetpack#begin(g:vimhome)
   for plugin in a:000
     if len(plugin) == 2
       call jetpack#add(plugin[0], plugin[1])
@@ -174,11 +174,11 @@ function s:suite.dir_do_option()
   if has('win32')
     call s:assert.skip('')
   endif
-  call s:setup(['lotabout/skim', { 'dir': s:vimhome . '/pack/skim', 'do': './install' }])
-  call s:assert.isnotdirectory(s:vimhome . '/pack/opt/skim')
-  call s:assert.isnotdirectory(s:vimhome . '/pack/src/skim')
-  call s:assert.isdirectory(s:vimhome . '/pack/skim')
-  call s:assert.filereadable(s:vimhome . '/pack/skim/bin/sk')
+  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': './install' }])
+  call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
+  call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
+  call s:assert.isdirectory(g:vimhome . '/pack/skim')
+  call s:assert.filereadable(g:vimhome . '/pack/skim/bin/sk')
 endfunction
 
 function s:suite.issue15()
@@ -256,7 +256,7 @@ function s:suite.issue70()
 endfunction
 
 function s:suite.local_plugin()
-  let install_path = expand(s:vimhome . '/pack/linkformat.vim')
+  let install_path = expand(g:vimhome . '/pack/linkformat.vim')
   call system('git clone --depth 1 https://github.com/uga-rosa/linkformat.vim.git ' . install_path)
   call s:setup([install_path])
   call s:assert.isdirectory(s:optdir . '/linkformat.vim')
@@ -270,13 +270,11 @@ if !has('nvim')
   finish
 endif
 
-let g:vimhome = s:vimhome . '/pack'
-
 lua <<EOL
 local packer = require('jetpack.packer')
 
 packer.init({
-  package_root = vim.g.vimhome
+  package_root = vim.g.vimhome .. '/pack',
 })
 
 _G.packer_setup = function(...)
@@ -290,9 +288,6 @@ _G.packer_setup = function(...)
 end
 EOL
 
-" Prevent calling config when not yet installed
-let g:jetpack_skip_config = 1
-
 function s:suite.packer_style()
   lua packer_setup('EdenEast/nightfox.nvim')
   call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
@@ -302,7 +297,7 @@ endfunction
 function s:suite.pkg_config()
   lua <<EOL
   packer_setup({
-    'kyazdani42/nvim-web-devicons',
+    'nvim-tree/nvim-web-devicons',
     config = function()
       require('nvim-web-devicons').set_icon({
         zsh = {

@@ -390,6 +390,8 @@ function! s:merge_plugins() abort
       call add(pkg.status, s:status.copied)
     endif
   endfor
+
+  call writefile([json_encode(s:packages)], s:optdir . '/packages.json')
 endfunction
 
 function! s:postupdate_plugins() abort
@@ -575,8 +577,8 @@ function! jetpack#end() abort
   filetype plugin indent off
   augroup Jetpack
     autocmd!
+    autocmd User JetpackEnd :
   augroup END
-  let configs = []
   for [pkg_name, pkg] in items(s:packages)
     if !empty(pkg.dir)
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
@@ -584,10 +586,8 @@ function! jetpack#end() abort
     endif
     if !pkg.opt
       execute pkg.setup
-      if pkg.config !=# ''
-        call add(configs, pkg.config)
-      endif
       execute 'silent! packadd!' pkg_name
+      execute printf('autocmd Jetpack User JetpackEnd %s', pkg.config)
       continue
     endif
     for it in pkg.on
@@ -616,19 +616,18 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
-  " For testing;
-  " In the test, the plugins are not yet installed when jetpack#end is called.
-  " Calling packadd makes no sense.
-  " Therefore, Lua's require function in pkg.config always fail.
-  if !exists('g:jetpack_skip_config')
-    call map(configs, {_, config -> execute(config)})
-  endif
+  doautocmd Jetpack User JetpackEnd
   syntax enable
   filetype plugin indent on
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:packages, a:name) && isdirectory(jetpack#get(a:name).path) ? v:true : v:false
+  try
+    let packages = json_decode(join(readfile(s:optdir . '/packages.json')))
+    return has_key(packages, a:name) ? v:true : v:false
+  catch
+    return v:false
+  endtry
 endfunction
 
 function! jetpack#names() abort
@@ -653,11 +652,11 @@ Packer.init = function(opt)
   Packer.option = opt
 end
 
-local function cast_fun(v)
-  if type(v) == 'string' then
-    return assert(loadstring(v))
+local function ensure_fun(fun)
+  if type(fun) == 'string' then
+    return assert(loadstring(fun))
   else
-    return v
+    return fun
   end
 end
 
@@ -665,22 +664,31 @@ local function use(plugin)
   if type(plugin) == 'string' then
     vim.fn['jetpack#add'](plugin)
   else
-    local name = table.remove(plugin, 1)
+    local repo = table.remove(plugin, 1)
     if next(plugin) == nil then
-      vim.fn['jetpack#add'](name)
+      vim.fn['jetpack#add'](repo)
     else
+      local name = plugin['as'] or string.gsub(repo, '.*/', '')
       Packer.plugin[name] = {}
       if plugin.setup then
-        local setup_func = cast_fun(plugin.setup)
-        Packer.plugin[name].setup = setup_func
-        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup()]]):format(name)
+        Packer.plugin[name].setup_inner = ensure_fun(plugin.setup)
+        Packer.plugin[name].setup_outer = function()
+          if vim.fn['jetpack#tap'](name) then
+            Packer.plugin[name].setup_inner()
+          end
+        end
+        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup_outer()]]):format(name)
       end
       if plugin.config then
-        local config_func = cast_fun(plugin.config)
-        Packer.plugin[name].config = config_func
-        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config()]]):format(name)
+        Packer.plugin[name].config_inner = ensure_fun(plugin.config)
+        Packer.plugin[name].config_outer = function()
+          if vim.fn['jetpack#tap'](name) then
+            Packer.plugin[name].config_inner()
+          end
+        end
+        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config_outer()]]):format(name)
       end
-      vim.fn['jetpack#add'](name, plugin)
+      vim.fn['jetpack#add'](repo, plugin)
     end
   end
 end
