@@ -64,7 +64,7 @@ let s:status = {
 \ }
 
 function! s:list_files(path) abort
-  let files = readdir(a:path, { entry -> !isdirectory(a:path . '/' . entry) })
+  let files = readdir(a:path, { entry -> filereadable(a:path . '/' . entry) })
   for dir in readdir(a:path, { entry -> isdirectory(a:path . '/' . entry) })
     let files += s:list_files(a:path . '/' . dir)
   endfor
