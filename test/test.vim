@@ -1,8 +1,12 @@
 set packpath=
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
-let g:jetpack_copy_method = getenv('JETPACK_COPY_METHOD') ?? 'system'
-let g:jetpack_download_method = getenv('JETPACK_DOWNLOAD_METHOD') ?? 'git'
+function s:fallback(val, default)
+  return empty(val) ? default : val
+endfunction
+
+let g:jetpack_copy_method = s:fallback(getenv('JETPACK_COPY_METHOD'), 'system')
+let g:jetpack_download_method = s:fallback(getenv('JETPACK_DOWNLOAD_METHOD'), 'git')
 
 let s:suite = themis#suite('Jetpack Tests')
 let s:assert = themis#helper('assert')
