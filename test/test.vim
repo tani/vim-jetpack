@@ -216,37 +216,27 @@ function s:suite.frozen_option()
   call s:assert.skip('')
 endfunction
 
-function s:suite.branch_option()
-  if g:jetpack_download_method !=# 'git'
-    call s:assert.skip('')
-  endif
-  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
-  let branch = system(printf('git -C %s branch', jetpack#get('coc.nvim').path))
+function s:suite.tag_option()
+  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
   call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
   call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(branch, 'release')
+  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
+  call s:assert.equals(data.version, '0.0.80')
 endfunction
 
-function s:suite.tag_option()
-  if g:jetpack_download_method !=# 'git'
-    call s:assert.skip('')
-  endif
-  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
-  let tag = system(printf('git -C %s describe --tags --abbrev=0', jetpack#get('coc.nvim').path))
+function s:suite.branch_option()
+  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
   call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
   call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(tag, 'v0.0.80')
+  call s:assert.filereadable(s:optdir . '/_/build/index.js')
 endfunction
 
 function s:suite.commit_option()
-  if g:jetpack_download_method !=# 'git'
-    call s:assert.skip('')
-  endif
   call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
-  let commit = system(printf('git -C %s rev-parse HEAD', jetpack#get('coc.nvim').path))
   call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
   call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.match(commit, 'ce448a6')
+  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
+  call s:assert.equals(data.version, '0.0.80')
 endfunction
 
 function s:suite.issue70()
