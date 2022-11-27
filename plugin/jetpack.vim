@@ -526,7 +526,7 @@ function! jetpack#load(pkg_name) abort
   endif
   let pkg = s:declared_packages[a:pkg_name]
   execute pkg.setup
-  execute 'packadd' a:pkg_name
+  execute 'silent! packadd' a:pkg_name
   for file in glob(pkg.path . '/after/plugin/*', '', 1)
     execute 'source' file
   endfor
@@ -598,7 +598,7 @@ function! jetpack#end() abort
     endif
     if !pkg.opt
       execute pkg.setup
-      execute 'silent! packadd' pkg_name
+      execute 'packadd!' pkg_name
       if pkg.config !=# ''
         execute 'autocmd Jetpack User JetpackEnd' pkg.config
       endif
@@ -629,7 +629,7 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
-  silent! packadd _
+  packadd! _
 
   autocmd Jetpack User JetpackEnd :
   doautocmd Jetpack User JetpackEnd
