@@ -1,5 +1,11 @@
 name: test
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 jobs:
   test:
     name: ${{ matrix.os }} / ${{ matrix.vi }} / ${{ matrix.cp }}, ${{ matrix.dl }}
@@ -23,7 +29,8 @@ jobs:
           version: 'stable'
           neovim: ${{ matrix.vi == 'neovim' }}
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
-        if: ${{ (matrix.os != 'windows-2022' || matrix.dl != 'wget') && (matrix.vi != 'vim' || (matrix.cp != 'hardlink' && matrix.cp != 'symlink')) }}
+        if: ${{ (matrix.os != 'windows-2022' || matrix.dl != 'wget') && 
+                (matrix.vi != 'vim' || (matrix.cp != 'hardlink' && matrix.cp != 'symlink')) }}
         timeout-minutes: 5
         env:
           JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}

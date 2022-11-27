@@ -49,7 +49,7 @@ let g:jetpack_copy_method =
 let s:cmds = {}
 let s:maps = {}
 
-let s:packages = get(s:, 'packages', {})
+let s:declared_packages = get(s:, 'packages', {})
 
 let s:status = {
 \   'pending': 'pending',
@@ -166,10 +166,10 @@ endfunction
 function! s:show_progress(title) abort
   let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
-  let processed = len(filter(copy(s:packages), { _, val -> val.status[-1] =~# 'ed' }))
-  call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:packages)))
-  call appendbufline(buf, '$', s:make_progressbar((0.0 + processed) / len(s:packages) * 100))
-  for [pkg_name, pkg] in items(s:packages)
+  let processed = len(filter(copy(s:declared_packages), { _, val -> val.status[-1] =~# 'ed' }))
+  call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:declared_packages)))
+  call appendbufline(buf, '$', s:make_progressbar((0.0 + processed) / len(s:declared_packages) * 100))
+  for [pkg_name, pkg] in items(s:declared_packages)
     call appendbufline(buf, '$', printf('%s %s', pkg.status[-1], pkg_name))
   endfor
   redraw
@@ -180,7 +180,7 @@ function! s:show_result() abort
   call deletebufline(buf, 1, '$')
   call setbufline(buf, 1, 'Result')
   call appendbufline(buf, '$', s:make_progressbar(100))
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     if index(pkg.status, s:status.installed) >= 0
       call appendbufline(buf, '$', printf('installed %s', pkg_name))
     elseif index(pkg.status, s:status.updated) >= 0
@@ -201,7 +201,7 @@ function! s:clean_plugins() abort
   if g:jetpack_download_method !=# 'git'
     return
   endif
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     if isdirectory(pkg.path)
       let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
       if v:shell_error
@@ -265,10 +265,10 @@ endfunction
 
 function! s:download_plugins() abort
   let jobs = []
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     call add(pkg.status, s:status.pending)
   endfor
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     if pkg.local
       continue
     endif
@@ -300,10 +300,10 @@ function! s:switch_plugins() abort
   if g:jetpack_download_method !=# 'git'
     return
   endif
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     call add(pkg.status, s:status.pending)
   endfor
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     call s:show_progress('Switch Plugins')
     if !isdirectory(pkg.path)
       call add(pkg.status, s:status.skipped)
@@ -316,13 +316,13 @@ function! s:switch_plugins() abort
 endfunction
 
 function! s:merge_plugins() abort
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     call add(pkg.status, s:status.pending)
   endfor
 
   let bundle = {}
   let unbundle = {}
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     if pkg.merged
       let bundle[pkg_name] = pkg
     else
@@ -333,8 +333,8 @@ function! s:merge_plugins() abort
   " Delete old directories
   for dir in glob(s:optdir . '/*', '', 1)
     let pkg_name = fnamemodify(dir, ':t')
-    if !has_key(s:packages, pkg_name)
-     \ || s:packages[pkg_name].output !~# 'Already up to date.'
+    if !has_key(s:declared_packages, pkg_name)
+     \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
       call delete(dir, 'rf')
     endif
   endfor
@@ -390,11 +390,14 @@ function! s:merge_plugins() abort
       call add(pkg.status, s:status.copied)
     endif
   endfor
+
+  call writefile([json_encode(s:declared_packages)], s:optdir . '/available_packages.json')
+  let s:available_packages = s:declared_packages
 endfunction
 
 function! s:postupdate_plugins() abort
   silent! packadd _
-  for [pkg_name, pkg] in items(s:packages)
+  for [pkg_name, pkg] in items(s:declared_packages)
     if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
     endif
@@ -493,11 +496,11 @@ function! jetpack#add(plugin, ...) abort
   \   'config': get(opts, 'config', ''),
   \ }
   let pkg.merged = s:is_merged(pkg)
-  let s:packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
+  let s:declared_packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
 endfunction
 
 function! jetpack#begin(...) abort
-  let s:packages = {}
+  let s:declared_packages = {}
   " In lua, passing nil and no argument are synonymous, but in practice, v:null is passed.
   if a:0 > 0 && a:1 != v:null
     let s:home = expand(a:1)
@@ -517,10 +520,10 @@ endfunction
 
 " Not called during startup
 function! jetpack#load(pkg_name) abort
-  if !has_key(s:packages, a:pkg_name)
+  if !has_key(s:declared_packages, a:pkg_name)
     return v:false
   endif
-  let pkg = s:packages[a:pkg_name]
+  let pkg = s:declared_packages[a:pkg_name]
   execute pkg.setup
   execute 'silent! packadd' a:pkg_name
   execute pkg.config
@@ -569,25 +572,30 @@ function! s:load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
+  let available_packages_file = s:optdir . '/available_packages.json'
+  silent! let available_packages_text = join(readfile(available_packages_file))
+  let s:available_packages = json_decode(available_packages_text)
+  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
+
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
+
   syntax off
   filetype plugin indent off
+
   augroup Jetpack
     autocmd!
   augroup END
-  let configs = []
-  for [pkg_name, pkg] in items(s:packages)
+
+  for [pkg_name, pkg] in items(s:declared_packages)
     if !empty(pkg.dir)
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
       continue
     endif
     if !pkg.opt
       execute pkg.setup
-      if pkg.config !=# ''
-        call add(configs, pkg.config)
-      endif
       execute 'silent! packadd!' pkg_name
+      execute printf('autocmd Jetpack User JetpackEnd %s', pkg.config)
       continue
     endif
     for it in pkg.on
@@ -616,27 +624,24 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
-  " For testing;
-  " In the test, the plugins are not yet installed when jetpack#end is called.
-  " Calling packadd makes no sense.
-  " Therefore, Lua's require function in pkg.config always fail.
-  if !exists('g:jetpack_skip_config')
-    call map(configs, {_, config -> execute(config)})
-  endif
+
+  autocmd Jetpack User JetpackEnd :
+  doautocmd Jetpack User JetpackEnd
+
   syntax enable
   filetype plugin indent on
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:packages, a:name) && isdirectory(jetpack#get(a:name).path) ? v:true : v:false
+  return has_key(s:available_packages, a:name) ? v:true : v:false
 endfunction
 
 function! jetpack#names() abort
-  return keys(s:packages)
+  return keys(s:declared_packages)
 endfunction
 
 function! jetpack#get(name) abort
-  return get(s:packages, a:name, {})
+  return get(s:declared_packages, a:name, {})
 endfunction
 
 if !has('nvim') | finish | endif
@@ -653,11 +658,11 @@ Packer.init = function(opt)
   Packer.option = opt
 end
 
-local function cast_fun(v)
-  if type(v) == 'string' then
-    return assert(loadstring(v))
+local function ensure_fun(fun)
+  if type(fun) == 'string' then
+    return assert(loadstring(fun))
   else
-    return v
+    return fun
   end
 end
 
@@ -665,22 +670,31 @@ local function use(plugin)
   if type(plugin) == 'string' then
     vim.fn['jetpack#add'](plugin)
   else
-    local name = table.remove(plugin, 1)
+    local repo = table.remove(plugin, 1)
     if next(plugin) == nil then
-      vim.fn['jetpack#add'](name)
+      vim.fn['jetpack#add'](repo)
     else
+      local name = plugin['as'] or string.gsub(repo, '.*/', '')
       Packer.plugin[name] = {}
       if plugin.setup then
-        local setup_func = cast_fun(plugin.setup)
-        Packer.plugin[name].setup = setup_func
-        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup()]]):format(name)
+        Packer.plugin[name].setup_inner = ensure_fun(plugin.setup)
+        Packer.plugin[name].setup_outer = function()
+          if vim.fn['jetpack#tap'](name) then
+            Packer.plugin[name].setup_inner()
+          end
+        end
+        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup_outer()]]):format(name)
       end
       if plugin.config then
-        local config_func = cast_fun(plugin.config)
-        Packer.plugin[name].config = config_func
-        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config()]]):format(name)
+        Packer.plugin[name].config_inner = ensure_fun(plugin.config)
+        Packer.plugin[name].config_outer = function()
+          if vim.fn['jetpack#tap'](name) then
+            Packer.plugin[name].config_inner()
+          end
+        end
+        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config_outer()]]):format(name)
       end
-      vim.fn['jetpack#add'](name, plugin)
+      vim.fn['jetpack#add'](repo, plugin)
     end
   end
 end
