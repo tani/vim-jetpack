@@ -596,7 +596,9 @@ function! jetpack#end() abort
     if !pkg.opt
       execute pkg.setup
       execute 'silent! packadd!' pkg_name
-      execute printf('autocmd Jetpack User JetpackEnd %s', pkg.config)
+      if pkg.config !=# ''
+        execute printf('autocmd Jetpack User JetpackEnd %s', pkg.config)
+      endif
       continue
     endif
     for it in pkg.on
