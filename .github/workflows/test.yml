@@ -18,19 +18,32 @@ jobs:
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/checkout@v2
+      - id: check
+        if: ${{ (matrix.os == 'windows-2022' && matrix.dl == 'wget') ||
+                (matrix.vi == 'vim' && contains(matrix.cp, 'link')) }}
+        run: echo 'Unsupported environment'
+
+      - name: Clone vim-jetpack
+        uses: actions/checkout@v2
+        if: ${{ steps.check.conclusion == 'skipped' }}
+
+      - name: Install vim-themis
+        uses: actions/checkout@v2
+        if: ${{ steps.check.conclusion == 'skipped' }}
         with:
           repository: thinca/vim-themis
           path: vim-themis
-      - uses: rhysd/action-setup-vim@v1
+
+      - name: Install ${{ matrix.vi }}
+        uses: rhysd/action-setup-vim@v1
+        if: ${{ steps.check.conclusion == 'skipped' }}
         id: vim
         with:
           version: 'stable'
           neovim: ${{ matrix.vi == 'neovim' }}
+
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
-        if: ${{ (matrix.os != 'windows-2022' || matrix.dl != 'wget') && 
-                (matrix.vi != 'vim' || (matrix.cp != 'hardlink' && matrix.cp != 'symlink')) }}
+        if: ${{ steps.check.conclusion == 'skipped' }}
         timeout-minutes: 5
         env:
           JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
