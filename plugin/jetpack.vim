@@ -151,7 +151,7 @@ function! s:copy_dir(from, to) abort
 endfunction
 
 function! s:initialize_buffer() abort
-  execute 'silent! bdelete! ' . bufnr('JetpackStatus')
+  execute 'silent! bdelete!' bufnr('JetpackStatus')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
@@ -422,7 +422,7 @@ function! s:postupdate_plugins() abort
     call chdir(pwd)
   endfor
   for dir in glob(s:optdir . '/*/doc', '', 1)
-    execute 'silent! helptags ' . dir
+    execute 'silent! helptags' dir
   endfor
 endfunction
 
@@ -526,7 +526,7 @@ function! jetpack#load(pkg_name) abort
   endif
   let pkg = s:declared_packages[a:pkg_name]
   execute pkg.setup
-  execute 'silent! packadd' a:pkg_name
+  execute 'packadd' a:pkg_name
   execute pkg.config
   return v:true
 endfunction
@@ -558,13 +558,13 @@ function! s:load_map(map, names, with_prefix, prefix)
 endfunction
 
 function! s:load_cmd(cmd, names, ...) abort
-  execute printf('delcommand %s', a:cmd)
+  execute 'delcommand' a:cmd
   for name in a:names
     call jetpack#load(name)
   endfor
   let args = a:0>0 ? join(a:000, ' ') : ''
   try
-    execute printf('%s %s', a:cmd, args)
+    execute a:cmd args
   catch /.*/
     echohl ErrorMsg
     echomsg v:exception
@@ -595,9 +595,9 @@ function! jetpack#end() abort
     endif
     if !pkg.opt
       execute pkg.setup
-      execute 'silent! packadd!' pkg_name
+      execute 'silent! packadd' pkg_name
       if pkg.config !=# ''
-        execute printf('autocmd Jetpack User JetpackEnd %s', pkg.config)
+        execute 'autocmd Jetpack User JetpackEnd' pkg.config
       endif
       continue
     endif
@@ -626,7 +626,7 @@ function! jetpack#end() abort
     execute printf('autocmd Jetpack User Jetpack%sPre :', event)
     execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
-  silent! packadd! _
+  silent! packadd _
 
   autocmd Jetpack User JetpackEnd :
   doautocmd Jetpack User JetpackEnd
