@@ -252,6 +252,7 @@ function s:suite.local_plugin()
   call s:assert.isdirectory(s:optdir . '/linkformat.vim')
   call s:assert.filereadable(s:optdir . '/linkformat.vim/plugin/linkformat.vim')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/linkformat.vim')
+  call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
   packadd linkformat.vim
   call s:assert.cmd_exists('LinkFormatPaste')
 endfunction
