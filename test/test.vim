@@ -61,6 +61,21 @@ function s:assert.notloaded(package)
   call s:assert.equals(loaded, v:null)
 endfunction
 
+
+function s:suite.multiple_plugins_with_the_same_ondemand_command()
+  call s:setup(
+  \ ['habamax/vim-select', { 'on': 'Select' }],
+  \ ['habamax/vim-select-more', { 'on': 'Select' }]
+  \ )
+  call s:assert.isdirectory(s:optdir . '/vim-select')
+  call s:assert.isdirectory(s:optdir . '/vim-select-more')
+  call s:assert.not_exists('g:loaded_select')
+  call s:assert.not_exists('g:loaded_select_more')
+  silent! Select 
+  call s:assert.exists('g:loaded_select')
+  call s:assert.exists('g:loaded_select_more')
+endfunction
+
 function s:suite.no_option_github()
   call s:setup(['mbbill/undotree'])
   call s:assert.isnotdirectory(s:optdir . '/undotree')
