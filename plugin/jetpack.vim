@@ -527,6 +527,7 @@ function! jetpack#load(pkg_name) abort
   let pkg = s:declared_packages[a:pkg_name]
   execute pkg.setup
   execute 'packadd' a:pkg_name
+  execute 'runtime' a:pkg_name . '/after/plugin/*.vim'
   execute pkg.config
   return v:true
 endfunction
