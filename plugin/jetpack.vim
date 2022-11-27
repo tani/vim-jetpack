@@ -527,7 +527,7 @@ function! jetpack#load(pkg_name) abort
   let pkg = s:declared_packages[a:pkg_name]
   execute pkg.setup
   execute 'packadd' a:pkg_name
-  for file in extend(glob(pkg.path . '/*.vim'), glob(pkg.path . '/*.lua'))
+  for file in glob(pkg.path . '/after/plugin/*', '', 1)
     execute 'source' file
   endfor
   execute pkg.config
