@@ -195,9 +195,9 @@ vim-jetpack provides all options of vim-plug.
 
 | name         | type                   | description                           |
 | :----------: | :--------------------: | :------------------------------------ |
-| `commit`     | `sring`                | Commit of the repository to use       |
-| `tag`        | `sring`                | Tag of the repository to use          |
-| `branch`     | `sring`                | Branch of the repository to use       |
+| `commit`     | `string`               | Commit of the repository to use       |
+| `tag`        | `string`               | Tag of the repository to use          |
+| `branch`     | `string`               | Branch of the repository to use       |
 | `rtp`        | `string`               | Subdirectory that contains Vim plugin |
 | `dir`        | `string`               | Custom directory for the plugin       |
 | `as`         | `string`               | Use different name for plugin         |
