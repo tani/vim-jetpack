@@ -109,7 +109,7 @@ function s:suite.opt_option()
   call s:assert.notfilereadable(s:optdir . '/_/plugin/goyo.vim')
   call s:assert.cmd_not_exists('Goyo')
   call s:assert.false(s:loaded_goyo_vim)
-  packadd goyo.vim
+  call jetpack#load('goyo.vim')
   call s:assert.cmd_exists('Goyo')
   call s:assert.true(s:loaded_goyo_vim)
 endfunction
@@ -278,7 +278,7 @@ function s:suite.local_plugin()
   call s:assert.filereadable(s:optdir . '/linkformat.vim/plugin/linkformat.vim')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/linkformat.vim')
   call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
-  packadd linkformat.vim
+  call jetpack#load('linkformat.vim')
   call s:assert.cmd_exists('LinkFormatPaste')
 endfunction
 
