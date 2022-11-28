@@ -520,6 +520,8 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
+  \   'requires': has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): [],
+  \   'loaded': v:false,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
@@ -550,6 +552,14 @@ function! jetpack#load(pkg_name) abort
     return v:false
   endif
   let pkg = s:declared_packages[a:pkg_name]
+  " Avoid circular references
+  if pkg.loaded
+    return v:false
+  endif
+  let pkg.loaded = v:true
+  for req_name in pkg.requires
+    call jetpack#load(req_name)
+  endfor
   execute pkg.setup
   execute 'silent! packadd' a:pkg_name
   for file in glob(pkg.path . '/after/plugin/*', '', 1)
@@ -617,10 +627,13 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      execute pkg.setup
-      execute 'silent! packadd!' pkg_name
-      if pkg.config !=# ''
-        execute 'autocmd Jetpack User JetpackEnd' pkg.config
+      if jetpack#tap(pkg_name)
+        let pkg.loaded = v:true
+        execute pkg.setup
+        execute 'silent! packadd!' pkg_name
+        if pkg.config !=# ''
+          execute 'autocmd Jetpack User JetpackEnd' pkg.config
+        endif
       endif
       continue
     endif

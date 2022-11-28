@@ -210,6 +210,7 @@ vim-jetpack provides some options of packer.nvim .
 | opt          | boolean                | On-demand loading: jetpack#load({name})                          |
 | setup        | string or Lua function | (Neovim) Specifies Lua code to run before this plugin is loaded. |
 | config       | string or Lua function | (Neovim) Specifies Lua code to run after this plugin is loaded.  |
+| requires     | string or list         | (Neovim) Specifies dependent plugins.                            |
 
 COMMAND                                                         *jetpack-command*
 
