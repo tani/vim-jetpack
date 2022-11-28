@@ -478,6 +478,8 @@ function! jetpack#add(plugin, ...) abort
   let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) == v:t_list ? opts.cmd : [opts.cmd]) : [])
   let on = extend(on, has_key(opts, 'map') ? (type(opts.map) == v:t_list ? opts.map : [opts.map]) : [])
   let on = extend(on, has_key(opts, 'event') ? (type(opts.event) == v:t_list ? opts.event : [opts.event]) : [])
+  let requires = has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): []
+  call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let pkg  = {
   \   'url': url,
   \   'local': local,
@@ -495,7 +497,7 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
-  \   'requires': has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): [],
+  \   'requires': requires,
   \   'loaded': v:false,
   \ }
   let pkg.merged = s:is_merged(pkg)
