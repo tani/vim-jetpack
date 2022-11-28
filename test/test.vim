@@ -52,13 +52,22 @@ function s:assert.isnotdirectory(dir)
 endfunction
 
 function s:assert.loaded(package)
-  let loaded = luaeval('package.loaded[_A]', a:package)
-  call s:assert.not_equals(loaded, v:null)
+  try
+    let loaded = luaeval('package.loaded[_A]', a:package)
+    call s:assert.not_equals(loaded, v:null, a:package . ' is not loaded')
+  catch /.*/
+    " Cannot convert given lua type. So, not v:null (it's loaded).
+  endtry
 endfunction
 
 function s:assert.notloaded(package)
-  let loaded = luaeval('package.loaded[_A]', a:package)
-  call s:assert.equals(loaded, v:null)
+  try
+    let loaded = luaeval('package.loaded[_A]', a:package)
+    call s:assert.equals(loaded, v:null)
+  catch /.*/
+    " Cannot convert given lua type. So, not v:null (it's loaded).
+    call s:assert.fail(a:package . ' is loaded')
+  endtry
 endfunction
 
 
@@ -362,4 +371,24 @@ EOL
   call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
   call s:assert.true(jetpack#load('vim-searchx'))
   call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
+endfunction
+
+function! s:suite.pkg_requires() abort
+  lua <<EOL
+  packer_setup({
+      'hrsh7th/nvim-cmp',
+      opt = true,
+    }, {
+      'hrsh7th/cmp-buffer',
+      requires = 'nvim-cmp',
+      opt = true,
+    }
+  )
+EOL
+  call s:assert.isdirectory(s:optdir . '/nvim-cmp')
+  call s:assert.isdirectory(s:optdir . '/cmp-buffer')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
+  call s:assert.true(jetpack#load('cmp-buffer'))
+  call s:assert.true(jetpack#tap('nvim-cmp')) " means nvim-cmp is also loaded
+  call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
 endfunction
