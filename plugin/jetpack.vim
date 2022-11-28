@@ -592,11 +592,6 @@ function! s:load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
-  let available_packages_file = s:optdir . '/available_packages.json'
-  silent! let available_packages_text = join(readfile(available_packages_file))
-  let s:available_packages = json_decode(available_packages_text)
-  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
-
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
 
@@ -655,6 +650,14 @@ function! jetpack#end() abort
 endfunction
 
 function! jetpack#tap(name) abort
+  if exists('s:available_packages')
+    return has_key(s:available_packages, a:name) ? v:true : v:false
+  endif
+
+  let available_packages_file = s:optdir . '/available_packages.json'
+  silent! let available_packages_text = join(readfile(available_packages_file))
+  let s:available_packages = json_decode(available_packages_text)
+  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   return has_key(s:available_packages, a:name) ? v:true : v:false
 endfunction
 
