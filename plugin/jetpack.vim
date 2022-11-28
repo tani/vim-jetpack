@@ -472,12 +472,12 @@ function! jetpack#add(plugin, ...) abort
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let path = local ? expand(a:plugin) : get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', ''))
-  let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
-  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
-  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
-  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
-  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
-  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
+  let on = has_key(opts, 'on') ? (type(opts.on) == v:t_list ? opts.on : [opts.on]) : []
+  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) == v:t_list ? opts.for : [opts.for]) : [])
+  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) == v:t_list ? opts.ft : [opts.ft]) : [])
+  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) == v:t_list ? opts.cmd : [opts.cmd]) : [])
+  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) == v:t_list ? opts.map : [opts.map]) : [])
+  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) == v:t_list ? opts.event : [opts.event]) : [])
   let pkg  = {
   \   'url': url,
   \   'local': local,
