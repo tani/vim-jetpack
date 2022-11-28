@@ -63,7 +63,7 @@ endfunction
 function s:assert.notloaded(package)
   try
     let loaded = luaeval('package.loaded[_A]', a:package)
-    call s:assert.equals(loaded, v:null)
+    call s:assert.equals(loaded, v:null, a:package . ' is loaded')
   catch /.*/
     " Cannot convert given lua type. So, not v:null (it's loaded).
     call s:assert.fail(a:package . ' is loaded')
@@ -325,10 +325,10 @@ EOL
   call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
   call s:assert.notloaded('nvim-web-devicons')
-  call s:assert.true(jetpack#load('nvim-web-devicons'))
+  call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
   call s:assert.loaded('nvim-web-devicons') " means config is called
   let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
-  call s:assert.equals(zsh_icon, '')
+  call s:assert.equals(zsh_icon, '', 'zsh_icon is expected ``, but got ' . zsh_icon)
 endfunction
 
 function s:suite.only_lua()
@@ -349,11 +349,11 @@ function s:suite.only_lua()
 EOL
   call s:assert.isdirectory(s:optdir . '/filetype.nvim')
   call s:assert.notloaded('filetype')
-  call s:assert.true(jetpack#load('filetype.nvim'))
+  call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
   call s:assert.loaded('filetype') " means config is called
   e foo.pn
   lua require('filetype').resolve()
-  call s:assert.equals(&ft, 'potion')
+  call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
 endfunction
 
 function s:suite.pkg_setup()
@@ -369,8 +369,8 @@ function s:suite.pkg_setup()
 EOL
   call s:assert.isdirectory(s:optdir . '/vim-searchx')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
-  call s:assert.true(jetpack#load('vim-searchx'))
-  call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
+  call s:assert.true(jetpack#load('vim-searchx'), 'vim-searchx cannot be loaded')
+  call s:assert.true(g:searchx.auto_accept) " Default is v:false, so if v:true, setup has been called.
 endfunction
 
 function! s:suite.pkg_requires() abort
@@ -388,7 +388,7 @@ EOL
   call s:assert.isdirectory(s:optdir . '/nvim-cmp')
   call s:assert.isdirectory(s:optdir . '/cmp-buffer')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
-  call s:assert.true(jetpack#load('cmp-buffer'))
-  call s:assert.true(jetpack#tap('nvim-cmp')) " means nvim-cmp is also loaded
+  call s:assert.true(jetpack#load('cmp-buffer'), 'cmp-buffer cannot be loaded')
+  call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
   call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
 endfunction
