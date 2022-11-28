@@ -241,26 +241,27 @@ function s:suite.frozen_option()
 endfunction
 
 function s:suite.tag_option()
-  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
-  call s:assert.equals(data.version, '0.0.80')
+  call s:setup(['uga-rosa/ccc.nvim', { 'tag': 'v1.0.0' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let indent = matchstr(readfile(s:optdir . '/_/stylua.toml')[3], '\d\+')
+  call s:assert.equals(indent, '4')
 endfunction
 
 function s:suite.branch_option()
-  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.filereadable(s:optdir . '/_/build/index.js')
+  call s:setup(['uga-rosa/ccc.nvim', { 'branch': '0.7.2' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let first_line_readme = readfile(s:optdir . '/_/README.md', '', 1)[0]
+  call s:assert.compare(first_line_readme, '=~#', 'Since 0.8.0 has been released')
 endfunction
 
 function s:suite.commit_option()
-  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
-  call s:assert.equals(data.version, '0.0.80')
+  call s:setup(['uga-rosa/ccc.nvim', { 'commit': 'db80a70' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let indent = matchstr(readfile(s:optdir . '/_/stylua.toml')[3], '\d\+')
+  call s:assert.equals(indent, '2')
 endfunction
 
 function s:suite.issue70()
