@@ -1,0 +1,115 @@
+= Jetpack.vim
+:icons:
+:sectlinks:
+:toc: left
+:source-highlighter: rouge
+
+Jetpack.vim is a plugin manager for https://vim.org[Vim], https://neovim.io[Neovim], and https://github.com/terrychou/iVim[iVim].
+
+== Features
+
+* Lightning-fast startup time
+** It optimizes the search path of plugins and runtime files.
+* Single file installation
+** You need to just download a single file and put it.
+* First-class Lua support
+** This plugin is not written in Lua but we provide a Lua API.
+* Fancy User Interface
+** You can see a progress of installation with a graphical progress bar.
+* `pack/*/start` -free installation
+** You can install plugins without `pack/*/start` directory.
+* Git-free installation
+** You can optionally install plugins without git.
+
+== Installation
+
+The installation is very simple.
+You just need to download a single file and put it on the runtimepath.
+
+[source]
+----
+https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+----
+
+The following is an example of installation with cURL command.
+
+.Vim for Linux and macOS
+[%collapsible]
+====
+[source]
+----
+curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+----
+====
+
+.Neovim for Linux and macOS
+[%collapsible]
+====
+[source]
+----
+curl -fLo ~/.local/share/nvim/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+----
+====
+
+.Vim for Windows
+[%collapsible]
+====
+[source]
+----
+curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+----
+====
+
+.Neovim for Windows
+[%collapsible]
+====
+[source]
+----
+curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+----
+====
+
+TIP: There exists an option for automatic installation on startup.
+Fore more details, see Configuration Snippets.
+
+== Usage
+
+=== Vim-plug style
+
+=== Dein/ minpac style
+
+=== Legacy packer style
+
+=== Modern packer/ paq style
+
+== Configuration
+
+=== Configuration Variables
+
+=== Configuration Prameters
+
+CAUTION: You might be able to use another configuration parameters,
+you can use `on_cmd` in vim-plug style for example,
+but it might be going to be removed in the future.
+Thus, we recommend you not to use unlisted configuration parameters.
+
+=== Configuration Snippets
+
+==== Automatic installation on startup
+
+==== Automatic plugin installation on startup
+
+== API
+
+CAUTION: You might be able to use other functions, commands, and events.
+but it might be going to be removed in the future.
+Thus, we recommend you not to use unlisted ones.
+
+=== VimL Functions
+
+=== Lua Functions
+
+=== Commands
+
+=== Events
+
