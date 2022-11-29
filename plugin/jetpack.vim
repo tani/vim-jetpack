@@ -472,12 +472,14 @@ function! jetpack#add(plugin, ...) abort
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let path = local ? expand(a:plugin) : get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', ''))
-  let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
-  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
-  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
-  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
-  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
-  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
+  let on = has_key(opts, 'on') ? (type(opts.on) == v:t_list ? opts.on : [opts.on]) : []
+  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) == v:t_list ? opts.for : [opts.for]) : [])
+  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) == v:t_list ? opts.ft : [opts.ft]) : [])
+  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) == v:t_list ? opts.cmd : [opts.cmd]) : [])
+  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) == v:t_list ? opts.map : [opts.map]) : [])
+  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) == v:t_list ? opts.event : [opts.event]) : [])
+  let requires = has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): []
+  call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let pkg  = {
   \   'url': url,
   \   'local': local,
@@ -495,6 +497,8 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
+  \   'requires': requires,
+  \   'loaded': v:false,
   \ }
   let pkg.merged = s:is_merged(pkg)
   let s:declared_packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
@@ -525,6 +529,14 @@ function! jetpack#load(pkg_name) abort
     return v:false
   endif
   let pkg = s:declared_packages[a:pkg_name]
+  " Avoid circular references
+  if pkg.loaded
+    return v:false
+  endif
+  let pkg.loaded = v:true
+  for req_name in pkg.requires
+    call jetpack#load(req_name)
+  endfor
   execute pkg.setup
   execute 'silent! packadd' a:pkg_name
   for file in glob(pkg.path . '/after/plugin/*', '', 1)
@@ -592,10 +604,13 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      execute pkg.setup
-      execute 'silent! packadd!' pkg_name
-      if pkg.config !=# ''
-        execute 'autocmd Jetpack User JetpackEnd' pkg.config
+      if jetpack#tap(pkg_name)
+        let pkg.loaded = v:true
+        execute pkg.setup
+        execute 'silent! packadd!' pkg_name
+        if pkg.config !=# ''
+          execute 'autocmd Jetpack User JetpackEnd' pkg.config
+        endif
       endif
       continue
     endif

@@ -52,13 +52,22 @@ function s:assert.isnotdirectory(dir)
 endfunction
 
 function s:assert.loaded(package)
-  let loaded = luaeval('package.loaded[_A]', a:package)
-  call s:assert.not_equals(loaded, v:null)
+  try
+    let loaded = luaeval('package.loaded[_A]', a:package)
+    call s:assert.not_equals(loaded, v:null, a:package . ' is not loaded')
+  catch /.*/
+    " Cannot convert given lua type. So, not v:null (it's loaded).
+  endtry
 endfunction
 
 function s:assert.notloaded(package)
-  let loaded = luaeval('package.loaded[_A]', a:package)
-  call s:assert.equals(loaded, v:null)
+  try
+    let loaded = luaeval('package.loaded[_A]', a:package)
+    call s:assert.equals(loaded, v:null, a:package . ' is loaded')
+  catch /.*/
+    " Cannot convert given lua type. So, not v:null (it's loaded).
+    call s:assert.fail(a:package . ' is loaded')
+  endtry
 endfunction
 
 
@@ -100,7 +109,7 @@ function s:suite.opt_option()
   call s:assert.notfilereadable(s:optdir . '/_/plugin/goyo.vim')
   call s:assert.cmd_not_exists('Goyo')
   call s:assert.false(s:loaded_goyo_vim)
-  packadd goyo.vim
+  call jetpack#load('goyo.vim')
   call s:assert.cmd_exists('Goyo')
   call s:assert.true(s:loaded_goyo_vim)
 endfunction
@@ -232,26 +241,27 @@ function s:suite.frozen_option()
 endfunction
 
 function s:suite.tag_option()
-  call s:setup(['neoclide/coc.nvim', { 'tag': 'v0.0.80' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
-  call s:assert.equals(data.version, '0.0.80')
+  call s:setup(['uga-rosa/ccc.nvim', { 'tag': 'v1.0.0' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let indent = matchstr(readfile(s:optdir . '/_/stylua.toml')[3], '\d\+')
+  call s:assert.equals(indent, '4')
 endfunction
 
 function s:suite.branch_option()
-  call s:setup(['neoclide/coc.nvim', { 'branch': 'release' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  call s:assert.filereadable(s:optdir . '/_/build/index.js')
+  call s:setup(['uga-rosa/ccc.nvim', { 'branch': '0.7.2' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let first_line_readme = readfile(s:optdir . '/_/README.md', '', 1)[0]
+  call s:assert.compare(first_line_readme, '=~#', 'Since 0.8.0 has been released')
 endfunction
 
 function s:suite.commit_option()
-  call s:setup(['neoclide/coc.nvim', { 'commit': 'ce448a6' }])
-  call s:assert.isnotdirectory(s:optdir . '/coc.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/coc.vim')
-  let data = json_decode(join(readfile(s:optdir . '/_/package.json')))
-  call s:assert.equals(data.version, '0.0.80')
+  call s:setup(['uga-rosa/ccc.nvim', { 'commit': 'db80a70' }])
+  call s:assert.isnotdirectory(s:optdir . '/ccc.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/ccc.lua')
+  let indent = matchstr(readfile(s:optdir . '/_/stylua.toml')[3], '\d\+')
+  call s:assert.equals(indent, '2')
 endfunction
 
 function s:suite.issue70()
@@ -268,7 +278,7 @@ function s:suite.local_plugin()
   call s:assert.filereadable(s:optdir . '/linkformat.vim/plugin/linkformat.vim')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/linkformat.vim')
   call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
-  packadd linkformat.vim
+  call jetpack#load('linkformat.vim')
   call s:assert.cmd_exists('LinkFormatPaste')
 endfunction
 
@@ -316,10 +326,10 @@ EOL
   call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
   call s:assert.notloaded('nvim-web-devicons')
-  call s:assert.true(jetpack#load('nvim-web-devicons'))
+  call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
   call s:assert.loaded('nvim-web-devicons') " means config is called
   let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
-  call s:assert.equals(zsh_icon, '')
+  call s:assert.equals(zsh_icon, '', 'zsh_icon is expected ``, but got ' . zsh_icon)
 endfunction
 
 function s:suite.only_lua()
@@ -340,11 +350,11 @@ function s:suite.only_lua()
 EOL
   call s:assert.isdirectory(s:optdir . '/filetype.nvim')
   call s:assert.notloaded('filetype')
-  call s:assert.true(jetpack#load('filetype.nvim'))
+  call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
   call s:assert.loaded('filetype') " means config is called
   e foo.pn
   lua require('filetype').resolve()
-  call s:assert.equals(&ft, 'potion')
+  call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
 endfunction
 
 function s:suite.pkg_setup()
@@ -360,6 +370,26 @@ function s:suite.pkg_setup()
 EOL
   call s:assert.isdirectory(s:optdir . '/vim-searchx')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
-  call s:assert.true(jetpack#load('vim-searchx'))
-  call s:assert.equals(g:searchx.auto_accept, v:true) " Default is v:false, so if v:true, setup has been called.
+  call s:assert.true(jetpack#load('vim-searchx'), 'vim-searchx cannot be loaded')
+  call s:assert.true(g:searchx.auto_accept) " Default is v:false, so if v:true, setup has been called.
+endfunction
+
+function! s:suite.pkg_requires() abort
+  lua <<EOL
+  packer_setup({
+      'hrsh7th/nvim-cmp',
+      opt = true,
+    }, {
+      'hrsh7th/cmp-buffer',
+      requires = 'nvim-cmp',
+      opt = true,
+    }
+  )
+EOL
+  call s:assert.isdirectory(s:optdir . '/nvim-cmp')
+  call s:assert.isdirectory(s:optdir . '/cmp-buffer')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
+  call s:assert.true(jetpack#load('cmp-buffer'), 'cmp-buffer cannot be loaded')
+  call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
+  call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
 endfunction

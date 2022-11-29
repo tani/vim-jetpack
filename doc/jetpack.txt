@@ -119,6 +119,8 @@ PACKER STYLE                                               *jetpack-packer_style
       use {'vlime/vlime', rtp = 'vim' }
       use {'dracula/vim', as = 'dracula' }
       use {'tpope/vim-fireplace', ft = 'clojure' }
+      use {'nvim-lua/plenary.nvim', opt = true}
+      use {'nvim-telescope/telescope.nvim', requires = 'plenary.nvim', cmd = 'Telescope'}
     end)
 <
 
@@ -210,6 +212,13 @@ vim-jetpack provides some options of packer.nvim .
 | opt          | boolean                | On-demand loading: jetpack#load({name})                          |
 | setup        | string or Lua function | (Neovim) Specifies Lua code to run before this plugin is loaded. |
 | config       | string or Lua function | (Neovim) Specifies Lua code to run after this plugin is loaded.  |
+| requires     | string or list         | (Neovim) Specifies dependent plugins.                            |
+
+NOTE: The requires option is for lazy loading to also call dependent plugins,
+equivalent to packer's `ensure_dependencies=false` behavior.
+It can be specified in the form owner/repo as well as packer.nvim, but
+specifying only repo is sufficient. Please see an example of telescope.nvim in
+|jetpack-packer_style|.
 
 COMMAND                                                         *jetpack-command*
 
