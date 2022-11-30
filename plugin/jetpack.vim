@@ -390,8 +390,11 @@ function! s:merge_plugins() abort
       call add(pkg.status, s:status.copied)
     endif
   endfor
-
-  call writefile([json_encode(s:declared_packages)], s:optdir . '/available_packages.json')
+  let s:available_packages = {}
+  for pkg_name in keys(s:declared_packages)
+    let s:available_packages[pkg_name] = v:true
+  endfor
+  call writefile([json_encode(s:available_packages)], s:optdir . '/available_packages.json')
   let s:available_packages = s:declared_packages
 endfunction
 
