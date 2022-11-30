@@ -74,17 +74,52 @@ Fore more details, see Configuration Snippets.
 
 == Usage
 
+Jetpack was initially implemented as a successor of vim-plug.
+Nowadays, we also provide compatibility layers for other plugin managers,
+dein.vim, packer.nvim.nvim, and paq.nvim.nvim.
+You can use Jetpack as a drop-in replacement of them.
+In personal opinion, vim-plug style is the most stable and easy to use.
+
 === Vim-plug style
 
-=== Dein/ minpac style
+=== Dein.vim style
 
-=== Legacy packer style
+=== Legacy packer.nvim style
 
-=== Modern packer/ paq style
+=== Modern packer.nvim/ paq.nvim style
 
 == Configuration
 
 === Configuration Variables
+
+We provides configuration variables to change the internal behaviors:
+copying files, downloading plugins.
+
+`g:jetpack_copy_method`::
+Jetpack copies files with the external command by default.
+Further, Jetpack can copy files with the external command,
+Vim's built-in functions, or Neovim's built-in functions.
+Note that the most cross-platform way is to use Vim's built-in functions.
+The fastest way is to use the Neovim's built-in functions.
+
+`g:jetpack_download_method`::
+Jetpack downloads plugins with git by default.
+Further, Jetpack can download plugins with git, cURL, and wget
+This is useful for environments without git.
+Non-git options are not recommended because they are slower than git
+as jeptack downloads the whole repository as a tar archive.
+
+[TIP]
+.iVim does not have git command.
+====
+We recommend the following configuration to avoid
+the external commands except cURL.
+[source, vim]
+----
+let g:jetpack_copy_method = 'copy'
+let g:jetpack_download_method = 'curl'
+----
+====
 
 === Configuration Prameters
 
@@ -92,6 +127,158 @@ CAUTION: You might be able to use another configuration parameters,
 you can use `on_cmd` in vim-plug style for example,
 but it might be going to be removed in the future.
 Thus, we recommend you not to use unlisted configuration parameters.
+
+==== Vim-plug style
+
+You can pass the configuration parameters to `Jetpack` command as follows.
+
+[source, vim]
+----
+Jetpack 'tani/vim-jetpack', { 'as': 'jetpack' }
+----
+
+The following is a list of configuration parameters for vim-plug style.
+
+[%autowidth]
+|===
+|Parameter|Type|Description
+
+|`on`
+|`string` or `array`
+| On-demand loading plugins by commands, keymaps.
+
+|`for`
+|`string` or `array`
+| On-demand loading plugins by filetypes.
+
+|`branch`
+|`string`
+| Install plugins from the specified branch.
+
+|`commit`
+|`string`
+| Install plugins from the specified commit.
+
+|`tag`
+|`string`
+| Install plugins from the specified tag.
+
+|`rtp`
+|`string`
+| Add the specified directory to the runtimepath.
+
+|`do`
+|`string` or `function`
+| Execute the specified command after installation.
+
+|`as`
+|`string`
+| Install plugins as the specified name.
+
+|`dir`
+|`string`
+| Install plugins to the specified directory.
+
+|`frozen`
+|`boolean`
+| Freeze plugins to the current version.
+|===
+
+NOTE: Jetpack mechanically distinguishes `:SomeCommand` and `<Plug>(some-command)`, and the external command, for `on` parameters and `do` parameters.
+
+==== Dein.vim style
+
+You can pass the configuration parameters to `jetpack#add` function as follows.
+
+[source, vim]
+----
+call jetpack#add('tani/vim-jetpack', { 'name': 'jetpack' })
+----
+
+The following is a list of configuration parameters for dein.vim style.
+Note that we do not support full features of dein.vim.
+We are welcome to your pull requests to improve the compatibility.
+
+[%autowidth]
+|===
+|Parameter|Type|Description
+
+|`on_cmd`
+|`string` or `array`
+| On-demand loading plugins by commands.
+
+|`on_ft`
+|`string` or `array`
+| On-demand loading plugins by filetypes.
+
+|`on_map`
+|`string` or `array`
+| On-demand loading plugins by keymaps.
+
+|`on_event`
+|`string` or `array`
+| On-demand loading plugins by events.
+
+|`branch`
+|`string`
+| Install plugins from the specified branch.
+
+|`commit`
+|`string`
+| Install plugins from the specified commit.
+
+|`tag`
+|`string`
+| Install plugins from the specified tag.
+
+|`path`
+|`string`
+| Install plugins to the specified directory.
+
+|`rtp`
+|`string`
+| Add the specified directory to the runtimepath.
+
+|`build`
+|`string`
+| Execute the specified external command after installation.
+
+|`name`
+|`string`
+| Install plugins as the specified name.
+
+|`merged`
+|`boolean`
+| Merge plugins to the current runtimepath.
+
+|`frozen`
+|`boolean`
+| Freeze plugins to the current version.
+|===
+
+==== Legacy packer.nvim style
+
+You can pass the configuration parameters to `use` function as follows.
+
+[source, lua]
+----
+use { 'tani/vim-jetpack', as = 'jetpack' }
+----
+
+Note that we do not support full features of packer.nvim.
+We are welcome to your pull requests to improve the compatibility.
+
+==== Modern packer.nvim/ paq.nvim style
+
+You can pass the configuration parameters to a table as follows.
+
+[source, lua]
+----
+{ 'tani/vim-jetpack', as = 'jetpack' }
+----
+
+Note that we do not support full features of packer.nvim.
+We are welcome to your pull requests to improve the compatibility.
 
 === Configuration Snippets
 
@@ -113,3 +300,11 @@ Thus, we recommend you not to use unlisted ones.
 
 === Events
 
+== Contributing
+
+== License
+
+Copyright (c) 2022 Masaya Taniguchi
+
+The software is released under the MIT License,
+see the header of the source code.
