@@ -194,6 +194,20 @@ function s:suite.rtp_option()
   call s:assert.filereadable(s:optdir . '/_/syntax/vlime_repl.vim')
 endfunction
 
+function s:suite.do_func_option()
+  if has('win32')
+    call s:assert.skip('')
+  endif
+  function! InstallSkim()
+    call system('./install')
+  endfunction
+  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': function('InstallSkim') }])
+  call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
+  call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
+  call s:assert.isdirectory(g:vimhome . '/pack/skim')
+  call s:assert.filereadable(g:vimhome . '/pack/skim/bin/sk')
+endfunction
+
 function s:suite.dir_do_option()
   if has('win32')
     call s:assert.skip('')
