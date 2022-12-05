@@ -467,17 +467,33 @@ function! s:is_merged(pkg) abort
   return v:true
 endfunction
 
+function! s:gets(pkg, keys, default) abort
+  let values = []
+  for key in a:keys
+    if has_key(a:pkg, key)
+      if a:pkg[key] == v:t_list
+        call extend(values, a:pkg[key])
+      else
+        call add(values, a:pkg[key])
+      endif
+    endif
+  endfor
+  return empty(values) ? a:default : values
+endfunction
+
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let path = local ? expand(a:plugin) : get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', ''))
-  let on = has_key(opts, 'on') ? (type(opts.on) ==# v:t_list ? opts.on : [opts.on]) : []
-  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) ==# v:t_list ? opts.for : [opts.for]) : [])
-  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) ==# v:t_list ? opts.ft : [opts.ft]) : [])
-  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) ==# v:t_list ? opts.cmd : [opts.cmd]) : [])
-  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) ==# v:t_list ? opts.map : [opts.map]) : [])
-  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) ==# v:t_list ? opts.event : [opts.event]) : [])
+  let on = s:gets(opts, ['on'], [])
+  let on = extend(on, s:gets(opts, ['for', 'ft', 'on_ft'], []))
+  let on = extend(on, s:gets(opts, ['keys', 'on_map'], []))
+  let on = extend(on, s:gets(opts, ['cmd', 'on_cmd'], []))
+  let on = extend(on, s:gets(opts, ['event', 'on_event'], []))
+  let do = s:gets(opts, ['do', 'run', 'build'], [''])[0]
+  let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
+  let frozen = s:gets(opts, ['frozen', 'lock'], [v:false])[0]
   let pkg  = {
   \   'url': url,
   \   'local': local,
@@ -485,8 +501,8 @@ function! jetpack#add(plugin, ...) abort
   \   'tag': get(opts, 'tag', ''),
   \   'commit': get(opts, 'commit', 'HEAD'),
   \   'rtp': get(opts, 'rtp', ''),
-  \   'do': get(opts, 'do', get(opts, 'run', '')),
-  \   'frozen': get(opts, 'frozen', v:false),
+  \   'do': do,
+  \   'frozen': frozen,
   \   'dir': get(opts, 'dir', ''),
   \   'on': on,
   \   'opt': !empty(on) || get(opts, 'opt'),
@@ -496,8 +512,8 @@ function! jetpack#add(plugin, ...) abort
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
   \ }
-  let pkg.merged = s:is_merged(pkg)
-  let s:declared_packages[get(opts, 'as', fnamemodify(a:plugin, ':t'))] = pkg
+  let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
+  let s:declared_packages[name] = pkg
 endfunction
 
 function! jetpack#begin(...) abort
