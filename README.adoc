@@ -1,5 +1,5 @@
 = Jetpack.vim
-:icons:
+:copycss:
 :sectlinks:
 :toc: left
 :source-highlighter: rouge
@@ -268,7 +268,75 @@ use { 'tani/vim-jetpack', as = 'jetpack' }
 Note that we do not support full features of packer.nvim.
 We are welcome to your pull requests to improve the compatibility.
 
+[%autowidth]
+|===
+|Parameter|Type|Description
+
+|`opt`
+|`boolean`
+| On-demand loading plugins by `packadd`
+
+|`cmd`
+|`string` or `array`
+| On-demand loading plugins by commands.
+
+|`keys`
+|`string` or `array`
+| On-demand loading plugins by keymaps.
+
+|`event`
+|`string` or `array`
+| On-demand loading plugins by event.
+
+|`ft`
+|`string` or `array`
+| On-demand loading plugins by filetypes.
+
+|`branch`
+|`string`
+| Install plugins from the specified branch.
+
+|`commit`
+|`string`
+| Install plugins from the specified commit.
+
+|`tag`
+|`string`
+| Install plugins from the specified tag.
+
+|`rtp`
+|`string`
+| Add the specified directory to the runtimepath.
+
+|`run`
+|`string` or `function`
+| Execute the specified command after installation.
+
+|`as`
+|`string`
+| Install plugins as the specified name.
+
+|`requires`
+|`string` or `array`
+| Install plugins after the specified plugins.
+
+|`lock`
+|`boolean`
+| Freeze plugins to the current version.
+
+|`config`
+|`function` or `string`
+| Execute the specified function after startup.
+
+|`setup`
+|`function` or `string`
+| Execute the specified function before startup.
+|===
+
 ==== Modern packer.nvim/ paq.nvim style
+
+WARNING: Mordern packer.nvim style is still experimental.
+The configuration parameters might be changed in the future.
 
 You can pass the configuration parameters to a table as follows.
 
@@ -280,11 +348,143 @@ You can pass the configuration parameters to a table as follows.
 Note that we do not support full features of packer.nvim.
 We are welcome to your pull requests to improve the compatibility.
 
+[%autowidth]
+|===
+|Parameter|Type|Description
+
+|`opt`
+|`boolean`
+| On-demand loading plugins by `packadd`
+
+|`cmd`
+|`string` or `array`
+| On-demand loading plugins by commands.
+
+|`keys`
+|`string` or `array`
+| On-demand loading plugins by keymaps.
+
+|`event`
+|`string` or `array`
+| On-demand loading plugins by event.
+
+|`ft`
+|`string` or `array`
+| On-demand loading plugins by filetypes.
+
+|`branch`
+|`string`
+| Install plugins from the specified branch.
+
+|`commit`
+|`string`
+| Install plugins from the specified commit.
+
+|`tag`
+|`string`
+| Install plugins from the specified tag.
+
+|`rtp`
+|`string`
+| Add the specified directory to the runtimepath.
+
+|`run`
+|`string` or `function`
+| Execute the specified command after installation.
+
+|`as`
+|`string`
+| Install plugins as the specified name.
+
+|`requires`
+|`string`
+| Install plugins after the specified plugins.
+
+|`lock`
+|`boolean`
+| Freeze plugins to the current version.
+
+|`config`
+|`function` or `string`
+| Execute the specified function after startup.
+
+|`setup`
+|`function` or `string`
+| Execute the specified function before startup.
+|===
+
 === Configuration Snippets
 
 ==== Automatic installation on startup
 
+.Vim
+[source, vim]
+----
+let s:jetpackfile = expand('<sfile>:p:h') .. '/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+if !filereadable(s:jetpackfile)
+  call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
+endif
+----
+
+.Neovim
+[source, vim]
+----
+"neovim + vim
+let s:jetpackfile = stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+if !filereadable(s:jetpackfile)
+  call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
+endif
+----
+
+.Neovim with Lua
+[source, lua]
+----
+local jetpackfile = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+local jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+if vim.fn.filereadable(jetpackfile) == 0 then
+  vim.fn.system(string.format('curl -fsSLo %s --create-dirs %s', jetpackfile, jetpackurl))
+end
+----
+
 ==== Automatic plugin installation on startup
+
+.Vim and Neovim
+[source, vim]
+----
+for name in jetpack#names()
+  if !jetpack#tap(name)
+    call jetpack#sync()
+    break
+  endif
+endfor
+----
+
+.Neovim with Lua
+[source, lua]
+----
+local jetpack = require('jetpack')
+for _, name in ipairs(jetpack.names()) do
+  if not jetpack.tap(name) then
+    jetpack.sync()
+    break
+  end
+end
+----
+
+==== Build cache of treesitter parsrs
+
+[source, lua]
+----
+local parser_install_dir = vim.fn.stdpath "data" .. "/treesitter"
+vim.opt.runtimepath:append(parser_install_dir)
+
+require("nvim-treesitter.configs").setup {
+    parser_install_dir = parser_install_dir,
+    ...
+}
+----
 
 == API
 
@@ -292,13 +492,84 @@ CAUTION: You might be able to use other functions, commands, and events.
 but it might be going to be removed in the future.
 Thus, we recommend you not to use unlisted ones.
 
-=== VimL Functions
+=== VimL Function
 
-=== Lua Functions
+* `jetpack#begin([path])`
+** The function setups jetpack plugins. All plugin declarations should be
+    placed after this function. You can give `path` if you want to use another
+    directory to manage plugins.
+* `jetpack#add(repo [, options])`
+** repo is a pair of string concatenated with `/` such as `tani/vim-jetpack`.
+    `options` is a dictionary. See below.
+* `jetpack#sync()`
+** The function performs to install, update, and bundle all plugins.
+    The function is everything all you need to know.
+    You must run this function after a change of your configuration.
+* `jetpack#end()`
+** The function loads declared plugins. All plugin declarations should be
+    placed before this function.
+* `jetpack#tap(name)`
+** It returns a truthy value if the plugin is available,
+    otherwise it returns a falsy value.
+* `jetpack#names()`
+** It returns the list of plugin names registered including unavailable
+    plugins.
+* `jetpack#get(name)`
+** It returns metadata of the plugin if possible, otherwise it returns `{}`.
+    This is the same as `dein#get` of `dein.vim`.
+* `jetpack#load(name)`
+** This is a wrapper function for `packadd`; since it fires config options,
+    etc., it is recommended to use this instead of `packadd`.
+
+=== Lua Function
+
+All `jetpack#` functions are exported as `jetpack` module.
+You can call them using `require('jetpack')` as you want.
+Additionally, functions compatible with packer.nvim and paq.nvim are available.
+
+* `require('jetpack.paq')(config)`
+** This function loads plugins described in config like `paq.nvim`.
+* `require('jetpack.packer').startup(config)`
+** This function loads plugins described by `use` function like `packer.nvim`.
+* `require('jetpack.packer').init(option)`
+** Now supported option is only `package_root`.
 
 === Commands
 
+* `:JetpackSync`
+** The function performs to install, update, and bundle all plugins.
+   The function is everything all you need to know.
+   You must run this function after a change of your configuration.
+
+* `:Jetpack repo [, options]`
+**  A command version of `jetpack#add()`.
+    It is useful for the vim-plug style declaration of plugins in vimrc.
+
 === Events
+
+* `User Jetpack{PluginName}Pre`/ `User Jetpack{PluginName}Post`
+**  Let {PluginName} be a CamelCase of plugin name.
+    Code to execute when the plugin is lazily loaded on demand with
+    `User Jetpack{PluginName}Post` .
+    It is impossible to hook `packadd` for a Lua plugin in Neovim,
+    because Neovim does not load any files until the module is required.
+
+[%autowidth]
+|===
+| plugin-name | EventName
+
+| vim-jetpack | VimJetpack
+
+| goyo.vim | GoyoVim
+
+| vim_foo | VimFoo
+|===
+
+=== Autocmd Groups
+
+* `Jetpack`
+**  vim-jetpack's lazy loading system uses autocommands
+    defined under `Jetpack` autocmd-group.
 
 == Contributing
 
