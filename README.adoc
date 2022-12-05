@@ -1,8 +1,4 @@
 = Jetpack.vim
-:copycss:
-:sectlinks:
-:toc: left
-:source-highlighter: rouge
 
 Jetpack.vim is a plugin manager for https://vim.org[Vim], https://neovim.io[Neovim], and https://github.com/terrychou/iVim[iVim].
 
