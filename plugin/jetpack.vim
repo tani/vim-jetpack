@@ -488,7 +488,8 @@ function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
-  let path = local ? expand(a:plugin) : get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', ''))
+  let path = s:srcdir . '/' .  substitute(url, 'https\?://', '', '')
+  let path = local ? expand(a:plugin) : s:gets(opts, ['dir', 'path'], [path])[0]
   let on = s:gets(opts, ['on'], [])
   let on = extend(on, s:gets(opts, ['for', 'ft', 'on_ft'], []))
   let on = extend(on, s:gets(opts, ['keys', 'on_map'], []))
@@ -506,7 +507,7 @@ function! jetpack#add(plugin, ...) abort
   \   'rtp': get(opts, 'rtp', ''),
   \   'do': s:gets(opts, ['do', 'run', 'build'], [''])[0],
   \   'frozen': s:gets(opts, ['frozen', 'lock'], [v:false])[0],
-  \   'dir': get(opts, 'dir', ''),
+  \   'dir': s:gets(opts, ['dir', 'path'], [''])[0],
   \   'on': on,
   \   'opt': !empty(on) || get(opts, 'opt'),
   \   'path': path,
