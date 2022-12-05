@@ -489,16 +489,13 @@ function! jetpack#add(plugin, ...) abort
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let path = local ? expand(a:plugin) : get(opts, 'dir', s:srcdir . '/' .  substitute(url, 'https\?://', '', ''))
-<<<<<<< HEAD
   let on = s:gets(opts, ['on'], [])
   let on = extend(on, s:gets(opts, ['for', 'ft', 'on_ft'], []))
   let on = extend(on, s:gets(opts, ['keys', 'on_map'], []))
   let on = extend(on, s:gets(opts, ['cmd', 'on_cmd'], []))
   let on = extend(on, s:gets(opts, ['event', 'on_event'], []))
-  let do = s:gets(opts, ['do', 'run', 'build'], [''])[0]
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
-  let frozen = s:gets(opts, ['frozen', 'lock'], [v:false])[0]
-  let requires = has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): []
+  let requires = s:gets(opts, ['requires', 'depends'], [])
   call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let pkg  = {
   \   'url': url,
@@ -507,8 +504,8 @@ function! jetpack#add(plugin, ...) abort
   \   'tag': get(opts, 'tag', ''),
   \   'commit': get(opts, 'commit', 'HEAD'),
   \   'rtp': get(opts, 'rtp', ''),
-  \   'do': do,
-  \   'frozen': frozen,
+  \   'do': s:gets(opts, ['do', 'run', 'build'], [''])[0],
+  \   'frozen': s:gets(opts, ['frozen', 'lock'], [v:false])[0],
   \   'dir': get(opts, 'dir', ''),
   \   'on': on,
   \   'opt': !empty(on) || get(opts, 'opt'),

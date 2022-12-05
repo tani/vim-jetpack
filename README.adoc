@@ -254,6 +254,10 @@ We are welcome to your pull requests to improve the compatibility.
 |`frozen`
 |`boolean`
 | Freeze plugins to the current version.
+
+|`depends`
+|`string` or `array`
+| Install plugins after the specified plugins.
 |===
 
 ==== Legacy packer.nvim style
@@ -332,6 +336,9 @@ We are welcome to your pull requests to improve the compatibility.
 |`function` or `string`
 | Execute the specified function before startup.
 |===
+
+CAUTION: Note that we do not install the specified plugins automatically.
+You have to declare the specified plugins by `use` function.
 
 ==== Modern packer.nvim/ paq.nvim style
 

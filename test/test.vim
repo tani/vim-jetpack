@@ -201,7 +201,7 @@ function s:suite.do_func_option()
   function! InstallSkim()
     call system('./install')
   endfunction
-  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': function('InstallSkim') }])
+  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': { -> InstallSkim() } }])
   call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
   call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
   call s:assert.isdirectory(g:vimhome . '/pack/skim')
