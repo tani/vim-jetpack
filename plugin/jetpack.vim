@@ -495,14 +495,8 @@ function! jetpack#add(plugin, ...) abort
   let do = s:gets(opts, ['do', 'run', 'build'], [''])[0]
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let frozen = s:gets(opts, ['frozen', 'lock'], [v:false])[0]
-=======
-  let on = has_key(opts, 'on') ? (type(opts.on) == v:t_list ? opts.on : [opts.on]) : []
-  let on = extend(on, has_key(opts, 'for') ? (type(opts.for) == v:t_list ? opts.for : [opts.for]) : [])
-  let on = extend(on, has_key(opts, 'ft') ? (type(opts.ft) == v:t_list ? opts.ft : [opts.ft]) : [])
-  let on = extend(on, has_key(opts, 'cmd') ? (type(opts.cmd) == v:t_list ? opts.cmd : [opts.cmd]) : [])
-  let on = extend(on, has_key(opts, 'map') ? (type(opts.map) == v:t_list ? opts.map : [opts.map]) : [])
-  let on = extend(on, has_key(opts, 'event') ? (type(opts.event) == v:t_list ? opts.event : [opts.event]) : [])
->>>>>>> 9e43caa (refactor: vim's type is number)
+  let requires = has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): []
+  call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let pkg  = {
   \   'url': url,
   \   'local': local,
@@ -520,7 +514,7 @@ function! jetpack#add(plugin, ...) abort
   \   'output': '',
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
-  \   'requires': has_key(opts, 'requires') ? (type(opts.requires) == v:t_list ? opts.requires : [opts.requires]): [],
+  \   'requires': requires,
   \   'loaded': v:false,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
