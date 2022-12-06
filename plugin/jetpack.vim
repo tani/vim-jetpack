@@ -549,10 +549,11 @@ function! jetpack#load(pkg_name) abort
     call jetpack#load(req_name)
   endfor
   if has_key(s:available_packages(), a:pkg_name)
-     \ && type(s:available_packages()[a:pkg_name]) == v:t_dict
-     \ && !s:available_packages()[a:pkg_name]['merged']
     execute pkg.setup
-    execute 'packadd' a:pkg_name
+    if type(s:available_packages()[a:pkg_name]) == v:t_dict
+      \ && !s:available_packages()[a:pkg_name]['merged']
+      execute 'packadd' a:pkg_name
+    endif
     for file in glob(pkg.path . '/after/plugin/*', '', 1)
       execute 'source' file
     endfor
@@ -626,11 +627,12 @@ function! jetpack#end() abort
     endif
     if !pkg.opt
       if has_key(s:available_packages(), pkg_name)
-         \ && type(s:available_packages()[pkg_name]) == v:t_dict
-         \ && !s:available_packages()[pkg_name]['merged']
         let pkg.loaded = v:true
         execute pkg.setup
-        execute 'packadd!' pkg_name
+        if type(s:available_packages()[pkg_name]) == v:t_dict
+          \ && !s:available_packages()[pkg_name]['merged']
+          execute 'packadd!' pkg_name
+        endif
         execute 'autocmd Jetpack User JetpackEnd :'..pkg.config
       endif
       continue

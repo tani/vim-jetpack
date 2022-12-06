@@ -199,10 +199,7 @@ function s:suite.do_func_option()
   if has('win32')
     call s:assert.skip('')
   endif
-  function! InstallSkim()
-    call system('./install')
-  endfunction
-  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': { -> InstallSkim() } }])
+  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': { -> system("./install") } }])
   call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
   call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
   call s:assert.isdirectory(g:vimhome . '/pack/skim')
@@ -290,7 +287,7 @@ function s:suite.local_plugin()
   call system('git clone --depth 1 https://github.com/uga-rosa/linkformat.vim.git ' . install_path)
   call s:setup([install_path])
   call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
-  call s:assert.match(&rtp, install_path)
+  call s:assert.match(&rtp, '\V'.escape(install_path, '\'))
 endfunction
 
 if !has('nvim')
