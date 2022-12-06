@@ -625,10 +625,10 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
-      let pkg.loaded = v:true
       if has_key(s:available_packages(), pkg_name)
          \ && type(s:available_packages()[pkg_name]) == v:t_dict
          \ && !s:available_packages()[pkg_name]['merged']
+        let pkg.loaded = v:true
         execute pkg.setup
         execute 'packadd!' pkg_name
         execute 'autocmd Jetpack User JetpackEnd :'..pkg.config
