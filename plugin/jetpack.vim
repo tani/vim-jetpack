@@ -549,6 +549,7 @@ function! jetpack#load(pkg_name) abort
     call jetpack#load(req_name)
   endfor
   if has_key(s:available_packages(), a:pkg_name)
+     \ && type(s:available_packages()[a:pkg_name]) == v:t_dict
      \ && !s:available_packages()[a:pkg_name]['merged']
     execute pkg.setup
     execute 'packadd' a:pkg_name
@@ -626,6 +627,7 @@ function! jetpack#end() abort
     if !pkg.opt
       let pkg.loaded = v:true
       if has_key(s:available_packages(), pkg_name)
+         \ && type(s:available_packages()[pkg_name]) == v:t_dict
          \ && !s:available_packages()[pkg_name]['merged']
         execute pkg.setup
         execute 'packadd!' pkg_name
