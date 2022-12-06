@@ -2,6 +2,12 @@
 
 Jetpack.vim is a plugin manager for https://vim.org[Vim], https://neovim.io[Neovim], and https://github.com/terrychou/iVim[iVim].
 
+The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
+a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
+the built-in plugin manager only.
+
+image::https://user-images.githubusercontent.com/5019902/154419764-d246c45c-8940-4e60-9658-9ed3424cbeaa.gif[]
+
 == Features
 
 * Lightning-fast startup time
@@ -78,11 +84,75 @@ In personal opinion, vim-plug style is the most stable and easy to use.
 
 === Vim-plug style
 
+[source, vim]
+----
+packadd vim-jetpack
+call jetpack#begin()
+Jetpack 'tani/vim-jetpack', {'opt': 1} "bootstrap
+Jetpack 'https://github.com/dense-analysis/ale'
+Jetpack 'junegunn/fzf.vim'
+Jetpack 'junegunn/fzf', { 'do': {-> fzf#install()} }
+Jetpack 'neoclide/coc.nvim', { 'branch': 'release' }
+Jetpack 'neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' }
+Jetpack 'vlime/vlime', { 'rtp': 'vim' }
+Jetpack 'dracula/vim', { 'as': 'dracula' }
+Jetpack 'tpope/vim-fireplace', { 'for': 'clojure' }
+call jetpack#end()
+----
+
 === Dein.vim style
+
+[source, vim]
+----
+packadd vim-jetpack
+call jetpack#begin()
+call jetpack#add('tani/vim-jetpack', {'opt': 1}) "bootstrap
+call jetpack#add('https://github.com/dense-analysis/ale')
+call jetpack#add('junegunn/fzf.vim')
+call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
+call jetpack#add('dracula/vim', { 'as': 'dracula' })
+call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call jetpack#end()
+----
 
 === Legacy packer.nvim style
 
+[source, lua]
+----
+vim.cmd('packadd vim-jetpack')
+require('jetpack.packer').startup(function(use)
+  use { 'tani/vim-jetpack', opt = 1 }-- bootstrap
+  use 'https://github.com/dense-analysis/ale'
+  use 'junegunn/fzf.vim'
+  use {'junegunn/fzf', run = 'call fzf#install()' }
+  use {'neoclide/coc.nvim', branch = 'release'}
+  use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
+  use {'vlime/vlime', rtp = 'vim' }
+  use {'dracula/vim', as = 'dracula' }
+  use {'tpope/vim-fireplace', ft = 'clojure' }
+end)
+----
+
 === Modern packer.nvim/ paq.nvim style
+
+[source, lua]
+----
+vim.cmd('packadd vim-jetpack')
+require('jetpack.paq') {
+  {'tani/vim-jetpack', opt = 1}, -- bootstrap
+  'https://github.com/dense-analysis/ale',
+  'junegunn/fzf.vim',
+  {'junegunn/fzf', run = 'call fzf#install()' },
+  {'neoclide/coc.nvim', branch = 'release'},
+  {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
+  {'vlime/vlime', rtp = 'vim' },
+  {'dracula/vim', as = 'dracula' },
+  {'tpope/vim-fireplace', ft = 'clojure' },
+}
+----
 
 == Configuration
 
