@@ -465,7 +465,7 @@ function! s:gets(pkg, keys, default) abort
   let values = []
   for key in a:keys
     if has_key(a:pkg, key)
-      if a:pkg[key] == v:t_list
+      if type(a:pkg[key]) == v:t_list
         call extend(values, a:pkg[key])
       else
         call add(values, a:pkg[key])
