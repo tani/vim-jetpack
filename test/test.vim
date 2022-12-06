@@ -13,9 +13,9 @@ let s:assert = themis#helper('assert')
 let g:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
 let s:optdir =  g:vimhome . '/pack/jetpack/opt'
 let s:srcdir =  g:vimhome . '/pack/jetpack/src'
-call delete(g:vimhome . '/pack', 'rf')
 
 function s:setup(...)
+  call delete(g:vimhome . '/pack', 'rf')
   call jetpack#begin(g:vimhome)
   for plugin in a:000
     if len(plugin) == 2
@@ -195,26 +195,16 @@ function s:suite.rtp_option()
   call s:assert.filereadable(s:optdir . '/_/syntax/vlime_repl.vim')
 endfunction
 
-function s:suite.do_func_option()
-  if has('win32')
-    call s:assert.skip('')
-  endif
-  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': { -> system("./install") } }])
-  call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
-  call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
-  call s:assert.isdirectory(g:vimhome . '/pack/skim')
-  call s:assert.filereadable(g:vimhome . '/pack/skim/bin/sk')
+function s:suite.do_str_option()
+  call s:setup(['lotabout/skim', { 'do': './install' }])
+  call s:assert.isdirectory(s:optdir . '/skim')
+  call s:assert.filereadable(s:optdir . '/skim/bin/sk')
 endfunction
 
-function s:suite.dir_do_option()
-  if has('win32')
-    call s:assert.skip('')
-  endif
-  call s:setup(['lotabout/skim', { 'dir': g:vimhome . '/pack/skim', 'do': './install' }])
-  call s:assert.isnotdirectory(g:vimhome . '/pack/opt/skim')
-  call s:assert.isnotdirectory(g:vimhome . '/pack/src/skim')
-  call s:assert.isdirectory(g:vimhome . '/pack/skim')
-  call s:assert.filereadable(g:vimhome . '/pack/skim/bin/sk')
+function s:suite.do_func_option()
+  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
 endfunction
 
 function s:suite.issue15()

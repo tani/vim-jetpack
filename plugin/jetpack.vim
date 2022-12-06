@@ -386,6 +386,7 @@ function! s:merge_plugins() abort
   endfor
   let s:available_packages = deepcopy(s:declared_packages)
   for pkg in values(s:available_packages) | unlet pkg.do | endfor
+  call mkdir(s:optdir, 'p')
   call writefile([json_encode(s:available_packages)], s:optdir . '/available_packages.json')
 endfunction
 
@@ -395,12 +396,11 @@ function! s:postupdate_plugins() abort
     if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
     endif
-    let pwd = getcwd()
     if pkg.dir !=# ''
-      call chdir(pkg.path)
+      let pwd = chdir(pkg.path)
     else
       call jetpack#load(pkg_name)
-      call chdir(s:optdir . '/' . pkg_name)
+      let pwd = chdir(s:optdir . '/' . pkg_name)
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
@@ -531,6 +531,7 @@ function! jetpack#begin(...) abort
   endif
   let s:optdir = s:home . '/pack/jetpack/opt'
   let s:srcdir = s:home . '/pack/jetpack/src'
+  let s:available_packages = {}
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
