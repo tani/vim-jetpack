@@ -13,6 +13,7 @@ let s:assert = themis#helper('assert')
 let g:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
 let s:optdir =  g:vimhome . '/pack/jetpack/opt'
 let s:srcdir =  g:vimhome . '/pack/jetpack/src'
+call delete(g:vimhome . '/pack', 'rf')
 
 function s:setup(...)
   call jetpack#begin(g:vimhome)
@@ -288,12 +289,8 @@ function s:suite.local_plugin()
   let install_path = expand(g:vimhome . '/pack/linkformat.vim')
   call system('git clone --depth 1 https://github.com/uga-rosa/linkformat.vim.git ' . install_path)
   call s:setup([install_path])
-  call s:assert.isdirectory(s:optdir . '/linkformat.vim')
-  call s:assert.filereadable(s:optdir . '/linkformat.vim/plugin/linkformat.vim')
-  call s:assert.notfilereadable(s:optdir . '/_/plugin/linkformat.vim')
   call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
-  call jetpack#load('linkformat.vim')
-  call s:assert.cmd_exists('LinkFormatPaste')
+  call s:assert.match(&rtp, install_path)
 endfunction
 
 if !has('nvim')

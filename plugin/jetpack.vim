@@ -378,24 +378,15 @@ function! s:merge_plugins() abort
     else
       let srcdir = pkg.path . '/' . pkg.rtp
       let destdir = s:optdir . '/' . pkg_name
-      if pkg.local
-        if has('win32')
-          call system(join(['cmd', '/C', 'mklink', '/J', shellescape(destdir), shellescape(pkg.url)]))
-        else
-          call system(join(['ln', '-sfn', shellescape(pkg.url), shellescape(destdir)]))
-        endif
-      else
+      if !pkg.local
         call s:copy_dir(srcdir, destdir)
       endif
       call add(pkg.status, s:status.copied)
     endif
   endfor
-  let s:available_packages = {}
-  for pkg_name in keys(s:declared_packages)
-    let s:available_packages[pkg_name] = v:true
-  endfor
+  let s:available_packages = deepcopy(s:declared_packages)
+  for pkg in values(s:available_packages) | unlet pkg.do | endfor
   call writefile([json_encode(s:available_packages)], s:optdir . '/available_packages.json')
-  let s:available_packages = s:declared_packages
 endfunction
 
 function! s:postupdate_plugins() abort
@@ -490,11 +481,13 @@ function! jetpack#add(plugin, ...) abort
   let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
   let path = s:srcdir . '/' .  substitute(url, 'https\?://', '', '')
   let path = local ? expand(a:plugin) : s:gets(opts, ['dir', 'path'], [path])[0]
-  let on = s:gets(opts, ['on'], [])
-  let on = extend(on, s:gets(opts, ['for', 'ft', 'on_ft'], []))
-  let on = extend(on, s:gets(opts, ['keys', 'on_map'], []))
-  let on = extend(on, s:gets(opts, ['cmd', 'on_cmd'], []))
-  let on = extend(on, s:gets(opts, ['event', 'on_event'], []))
+  let on = s:gets(opts, [
+  \ 'on',
+  \ 'for', 'ft', 'on_ft',
+  \ 'keys', 'on_map',
+  \ 'cmd', 'on_cmd',
+  \ 'event', 'on_event'
+  \ ], [])
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let requires = s:gets(opts, ['requires', 'depends'], [])
   call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
@@ -555,12 +548,15 @@ function! jetpack#load(pkg_name) abort
   for req_name in pkg.requires
     call jetpack#load(req_name)
   endfor
-  execute pkg.setup
-  execute 'silent! packadd' a:pkg_name
-  for file in glob(pkg.path . '/after/plugin/*', '', 1)
-    execute 'source' file
-  endfor
-  execute pkg.config
+  if has_key(s:available_packages(), a:pkg_name)
+     \ && !s:available_packages()[a:pkg_name]['merged']
+    execute pkg.setup
+    execute 'packadd' a:pkg_name
+    for file in glob(pkg.path . '/after/plugin/*', '', 1)
+      execute 'source' file
+    endfor
+    execute pkg.config
+  endif
   return v:true
 endfunction
 
@@ -618,17 +614,22 @@ function! jetpack#end() abort
 
   for [pkg_name, pkg] in items(s:declared_packages)
     if !empty(pkg.dir)
+      let pkg.loaded = v:true
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
       continue
     endif
+    if pkg.local
+      let pkg.loaded = v:true
+      let &runtimepath .= ',' . pkg.path
+      continue
+    endif
     if !pkg.opt
-      if jetpack#tap(pkg_name)
-        let pkg.loaded = v:true
+      let pkg.loaded = v:true
+      if has_key(s:available_packages(), pkg_name)
+         \ && !s:available_packages()[pkg_name]['merged']
         execute pkg.setup
-        execute 'silent! packadd!' pkg_name
-        if pkg.config !=# ''
-          execute 'autocmd Jetpack User JetpackEnd' pkg.config
-        endif
+        execute 'packadd!' pkg_name
+        execute 'autocmd Jetpack User JetpackEnd :'..pkg.config
       endif
       continue
     endif
@@ -666,16 +667,19 @@ function! jetpack#end() abort
   filetype plugin indent on
 endfunction
 
-function! jetpack#tap(name) abort
+function! s:available_packages() abort
   if exists('s:available_packages')
-    return has_key(s:available_packages, a:name) ? v:true : v:false
+    return s:available_packages
   endif
-
   let available_packages_file = s:optdir . '/available_packages.json'
   silent! let available_packages_text = join(readfile(available_packages_file))
   let s:available_packages = json_decode(available_packages_text)
   let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
-  return has_key(s:available_packages, a:name) ? v:true : v:false
+  return s:available_packages
+endfunction
+
+function! jetpack#tap(name) abort
+  return has_key(s:available_packages(), a:name) ? v:true : v:false
 endfunction
 
 function! jetpack#names() abort
