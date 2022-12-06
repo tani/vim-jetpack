@@ -196,9 +196,9 @@ function s:suite.rtp_option()
 endfunction
 
 function s:suite.do_str_option()
-  call s:setup(['lotabout/skim', { 'do': './install' }])
-  call s:assert.isdirectory(s:optdir . '/skim')
-  call s:assert.filereadable(s:optdir . '/skim/bin/sk')
+  call s:setup(['junegunn/fzf', { 'do': './install' }])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
 endfunction
 
 function s:suite.do_func_option()
