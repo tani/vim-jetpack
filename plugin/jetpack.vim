@@ -136,7 +136,9 @@ function! s:copy_dir(from, to) abort
       let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack_copy_method ==# 'copy'
+        let perm = getfperm(src)
         call writefile(readfile(src, 'b'), dest, 'b')
+        call setfperm(dest, perm)
       elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
       elseif g:jetpack_copy_method ==# 'symlink'
