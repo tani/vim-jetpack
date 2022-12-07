@@ -116,15 +116,18 @@ function s:suite.opt_option()
 endfunction
 
 function s:suite.do_str_option()
-  call s:setup(['junegunn/fzf', { 'do': './install' }])
+  let cmd = './install' . (has('win32') ? '.ps1' : '')
+  let bin = 'fzf' . (has('win32') ? '.exe' : '')
+  call s:setup(['junegunn/fzf', { 'do': cmd }])
   call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/' . bin)
 endfunction
 
 function s:suite.do_func_option()
+  let bin = 'fzf' . (has('win32') ? '.exe' : '')
   call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
   call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/' . bin)
 endfunction
 
 function s:suite.for_option()
