@@ -404,14 +404,12 @@ function! s:postupdate_plugins() abort
     endif
     if type(pkg.do) == v:t_func
       call pkg.do()
-    endif
-    if type(pkg.do) != v:t_string
-      continue
-    endif
-    if pkg.do =~# '^:'
-      execute pkg.do
-    else
-      call system(pkg.do)
+    elseif type(pkg.do) == v:t_string
+      if pkg.do =~# '^:'
+        execute pkg.do
+      else
+        call system(pkg.do)
+      endif
     endif
     call chdir(pwd)
   endfor

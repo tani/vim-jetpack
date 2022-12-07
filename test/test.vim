@@ -115,6 +115,18 @@ function s:suite.opt_option()
   call s:assert.true(s:loaded_goyo_vim)
 endfunction
 
+function s:suite.do_str_option()
+  call s:setup(['junegunn/fzf', { 'do': './install' }])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
+endfunction
+
+function s:suite.do_func_option()
+  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
+endfunction
+
 function s:suite.for_option()
   call s:setup(['junegunn/vader.vim', { 'for': 'vader' }])
   let s:loaded_vader_vim = 0
@@ -195,18 +207,6 @@ function s:suite.rtp_option()
   call s:assert.filereadable(s:optdir . '/_/syntax/vlime_repl.vim')
 endfunction
 
-function s:suite.do_str_option()
-  call s:setup(['junegunn/fzf', { 'do': './install' }])
-  call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
-endfunction
-
-function s:suite.do_func_option()
-  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
-  call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/fzf')
-endfunction
-
 function s:suite.issue15()
   call s:setup(['vim-test/vim-test'])
   call s:assert.isdirectory(s:optdir . '/_/autoload/test')
@@ -279,6 +279,7 @@ function s:suite.local_plugin()
   call s:assert.equals(jetpack#get('linkformat.vim').path, install_path)
   call s:assert.match(&rtp, '\V'.escape(install_path, '\'))
 endfunction
+
 
 if !has('nvim')
   finish
@@ -391,3 +392,4 @@ EOL
   call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
   call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
 endfunction
+
