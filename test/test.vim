@@ -116,7 +116,10 @@ function s:suite.opt_option()
 endfunction
 
 function s:suite.do_str_option()
-  let cmd = './install' . (has('win32') ? '.ps1' : '')
+  let cmd = './install'
+  if has('win32')
+    let cmd = 'powershell -ExecutionPolicy Bypass -file ' . cmd . '.ps1'
+  endif
   let bin = 'fzf' . (has('win32') ? '.exe' : '')
   call s:setup(['junegunn/fzf', { 'do': cmd }])
   call s:assert.isdirectory(s:optdir . '/fzf')
