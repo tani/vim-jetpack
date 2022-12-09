@@ -337,7 +337,11 @@ function! s:merge_plugins() abort
     let pkg_name = fnamemodify(dir, ':t')
     if !has_key(s:declared_packages, pkg_name)
      \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
-      call delete(dir, 'rf')
+      if pkg_name == 'vim-jetpack' && !s:ask('Delete "' . pkg_name . ' (y/N) ')
+        call s:ask("Add a \"Jetpack 'tani/vim-jetpack', {'opt': 1}\" line to your vimrc (Enter)")
+      else
+        call delete(dir, 'rf')
+      endif
     endif
   endfor
 
@@ -681,6 +685,16 @@ function! s:available_packages() abort
   let s:available_packages = json_decode(available_packages_text)
   let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   return s:available_packages
+endfunction
+
+function! s:ask(message)
+  call inputsave()
+  echohl WarningMsg
+  let answer = input(a:message)
+  echohl None
+  call inputrestore()
+  echo "\r"
+  return answer =~? '^y'
 endfunction
 
 function! jetpack#tap(name) abort
