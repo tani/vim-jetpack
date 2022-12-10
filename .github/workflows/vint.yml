@@ -1,9 +1,9 @@
-name: reviewdog
-on: [pull_request]
+name: Reviewdog
+on: [push, pull_request]
 jobs:
-  vint:
-    name: runner / vint
-    runs-on: ubuntu-latest
+  lint:
+    name: Lint
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: vint
