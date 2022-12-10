@@ -528,7 +528,6 @@ function! jetpack#add(plugin, ...) abort
 endfunction
 
 function! jetpack#begin(...) abort
-  let s:declared_packages = {}
   " In lua, passing nil and no argument are synonymous, but in practice, v:null is passed.
   if a:0 > 0 && a:1 != v:null
     let s:home = expand(a:1)
@@ -543,7 +542,11 @@ function! jetpack#begin(...) abort
   endif
   let s:optdir = s:home . '/pack/jetpack/opt'
   let s:srcdir = s:home . '/pack/jetpack/src'
+  let s:declared_packages = {}
   let s:available_packages = {}
+  augroup Jetpack
+    autocmd!
+  augroup END
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
@@ -562,15 +565,16 @@ function! jetpack#load(pkg_name) abort
     call jetpack#load(req_name)
   endfor
   if has_key(s:available_packages(), a:pkg_name)
-    execute pkg.setup
-    if type(s:available_packages()[a:pkg_name]) == v:t_dict
-      \ && !s:available_packages()[a:pkg_name]['merged']
-      execute 'packadd' a:pkg_name
-    endif
+    let event = substitute(a:pkg_name, '\W\+', '_', 'g')
+    let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
+    execute printf('autocmd Jetpack User Jetpack%sPre :', event)
+    execute 'doautocmd <nomodeline> User' printf('Jetpack%sPre', event)
+    execute 'packadd' a:pkg_name
     for file in glob(pkg.path . '/after/plugin/*', '', 1)
       execute 'source' file
     endfor
-    execute pkg.config
+    execute printf('autocmd Jetpack User Jetpack%sPost :', event)
+    execute 'doautocmd <nomodeline> User' printf('Jetpack%sPost', event)
   endif
   return v:true
 endfunction
@@ -623,10 +627,6 @@ function! jetpack#end() abort
   syntax off
   filetype plugin indent off
 
-  augroup Jetpack
-    autocmd!
-  augroup END
-
   for [pkg_name, pkg] in items(s:declared_packages)
     if !empty(pkg.dir)
       let pkg.loaded = v:true
@@ -639,14 +639,22 @@ function! jetpack#end() abort
       continue
     endif
     if !pkg.opt
+      " In this case, vim-jetpack is not well-tested,
+      " because the test is always fresh, i.e., no cache.
+      " So, the test will skip the following cases.
       if has_key(s:available_packages(), pkg_name)
+        let event = substitute(a:pkg_name, '\W\+', '_', 'g')
+        let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
+        execute printf('autocmd Jetpack User Jetpack%sPre :', event)
+        execute 'doautocmd <nomodeline> User' printf('Jetpack%sPre', event)
         let pkg.loaded = v:true
-        execute pkg.setup
         if type(s:available_packages()[pkg_name]) == v:t_dict
           \ && !s:available_packages()[pkg_name]['merged']
           execute 'packadd!' pkg_name
         endif
-        execute 'autocmd Jetpack User JetpackEnd :'..pkg.config
+        execute printf('autocmd Jetpack User Jetpack%sPost :', event)
+        execute 'autocmd Jetpack User JetpackEnd'
+              \ 'doautocmd <nomodeline> User' printf('Jetpack%sPost', event)
       endif
       continue
     endif
@@ -668,17 +676,11 @@ function! jetpack#end() abort
         execute printf('autocmd Jetpack FileType %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       endif
     endfor
-    let event = substitute(pkg_name, '\W\+', '_', 'g')
-    let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-    execute printf('autocmd Jetpack SourcePre **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPre', pkg_name, event)
-    execute printf('autocmd Jetpack SourcePost **/pack/jetpack/opt/%s/* ++once ++nested doautocmd User Jetpack%sPost', pkg_name, event)
-    execute printf('autocmd Jetpack User Jetpack%sPre :', event)
-    execute printf('autocmd Jetpack User Jetpack%sPost :', event)
   endfor
   silent! packadd! _
 
   autocmd Jetpack User JetpackEnd :
-  doautocmd Jetpack User JetpackEnd
+  autocmd Jetpack VimEnter * doautocmd <nomodeline> Jetpack User JetpackEnd
 
   syntax enable
   filetype plugin indent on
@@ -753,6 +755,8 @@ local function use(plugin)
       vim.fn['jetpack#add'](repo)
     else
       local name = plugin['as'] or string.gsub(repo, '.*/', '')
+      local event = vim.fn.substitute(name, '\\W\\+', '_', 'g')
+      event = vim.fn.substitute(event, '\\(^\\|_\\)\\(.\\)', '\\u\\2', 'g')
       Packer.plugin[name] = {}
       if plugin.setup then
         Packer.plugin[name].setup_inner = ensure_fun(plugin.setup)
@@ -761,7 +765,10 @@ local function use(plugin)
             Packer.plugin[name].setup_inner()
           end
         end
-        plugin.setup = ([[lua require('jetpack.packer').plugin[%q].setup_outer()]]):format(name)
+        local hook = string.format('lua require("jetpack.packer").plugin[%q].setup_outer()', name)
+        vim.cmd(string.format('autocmd Jetpack User Jetpack%sPre %s', event, hook))
+        plugin.setup = ''
+        plugin.merged = false
       end
       if plugin.config then
         Packer.plugin[name].config_inner = ensure_fun(plugin.config)
@@ -770,7 +777,10 @@ local function use(plugin)
             Packer.plugin[name].config_inner()
           end
         end
-        plugin.config = ([[lua require('jetpack.packer').plugin[%q].config_outer()]]):format(name)
+        local hook = string.format('lua require("jetpack.packer").plugin[%q].config_outer()', name)
+        vim.cmd(string.format('autocmd Jetpack User Jetpack%sPost %s', event, hook))
+        plugin.config = ''
+        plugin.merged = false
       end
       vim.fn['jetpack#add'](repo, plugin)
     end

@@ -394,7 +394,7 @@ EOL
   call s:assert.notloaded('filetype')
   call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
   call s:assert.loaded('filetype') " means config is called
-  e foo.pn
+  edit foo.pn
   lua require('filetype').resolve()
   call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
 endfunction
