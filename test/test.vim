@@ -115,6 +115,13 @@ function s:suite.opt_option()
   call s:assert.true(s:loaded_goyo_vim)
 endfunction
 
+function s:suite.do_func_option()
+  let bin = 'fzf' . (has('win32') ? '.exe' : '')
+  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
+  call s:assert.isdirectory(s:optdir . '/fzf')
+  call s:assert.filereadable(s:optdir . '/fzf/bin/' . bin)
+endfunction
+
 function s:suite.do_str_option()
   let cmd = './install'
   if has('win32')
@@ -122,13 +129,6 @@ function s:suite.do_str_option()
   endif
   let bin = 'fzf' . (has('win32') ? '.exe' : '')
   call s:setup(['junegunn/fzf', { 'do': cmd }])
-  call s:assert.isdirectory(s:optdir . '/fzf')
-  call s:assert.filereadable(s:optdir . '/fzf/bin/' . bin)
-endfunction
-
-function s:suite.do_func_option()
-  let bin = 'fzf' . (has('win32') ? '.exe' : '')
-  call s:setup(['junegunn/fzf', { 'do': { -> fzf#install() } }])
   call s:assert.isdirectory(s:optdir . '/fzf')
   call s:assert.filereadable(s:optdir . '/fzf/bin/' . bin)
 endfunction

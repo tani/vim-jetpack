@@ -673,7 +673,7 @@ function! jetpack#end() abort
 endfunction
 
 function! s:available_packages() abort
-  if exists('s:available_packages')
+  if exists('s:available_packages') && !empty(s:available_packages)
     return s:available_packages
   endif
   let available_packages_file = s:optdir . '/available_packages.json'
