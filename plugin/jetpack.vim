@@ -550,6 +550,14 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
+function! s:doautocmd_User_Jetpack(pkg_name, ord)
+  let event = 'jetpack_' . a:pkg_name . '_' . a:ord
+  let event = substitute(event, '\W\+', '_', 'g')
+  let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
+  execute 'autocmd Jetpack User' event ':'
+  execute 'doautocmd <nomodeline> User' event
+endfunction
+
 " Not called during startup
 function! jetpack#load(pkg_name) abort
   if !has_key(s:declared_packages, a:pkg_name)
@@ -565,16 +573,12 @@ function! jetpack#load(pkg_name) abort
     call jetpack#load(req_name)
   endfor
   if has_key(s:available_packages(), a:pkg_name)
-    let event = substitute(a:pkg_name, '\W\+', '_', 'g')
-    let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-    execute printf('autocmd Jetpack User Jetpack%sPre :', event)
-    execute 'doautocmd <nomodeline> User' printf('Jetpack%sPre', event)
+    call s:doautocmd_User_Jetpack(a:pkg_name, 'pre')
     execute 'packadd' a:pkg_name
     for file in glob(pkg.path . '/after/plugin/*', '', 1)
       execute 'source' file
     endfor
-    execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-    execute 'doautocmd <nomodeline> User' printf('Jetpack%sPost', event)
+    call s:doautocmd_User_Jetpack(a:pkg_name, 'post')
   endif
   return v:true
 endfunction
@@ -643,18 +647,14 @@ function! jetpack#end() abort
       " because the test is always fresh, i.e., no cache.
       " So, the test will skip the following cases.
       if has_key(s:available_packages(), pkg_name)
-        let event = substitute(a:pkg_name, '\W\+', '_', 'g')
-        let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-        execute printf('autocmd Jetpack User Jetpack%sPre :', event)
-        execute 'doautocmd <nomodeline> User' printf('Jetpack%sPre', event)
+        call s:doautocmd_User_Jetpack(a:pkg_name, 'pre')
         let pkg.loaded = v:true
         if type(s:available_packages()[pkg_name]) == v:t_dict
           \ && !s:available_packages()[pkg_name]['merged']
           execute 'packadd!' pkg_name
         endif
-        execute printf('autocmd Jetpack User Jetpack%sPost :', event)
-        execute 'autocmd Jetpack User JetpackEnd'
-              \ 'doautocmd <nomodeline> User' printf('Jetpack%sPost', event)
+        execute 'autocmd Jetpack User JetpackEnd' 
+              \ 'call s:doautocmd_User_Jetpack('.string(pkg_name).', "post")'
       endif
       continue
     endif
