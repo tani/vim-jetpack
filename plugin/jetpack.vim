@@ -632,8 +632,13 @@ function! jetpack#end() abort
     execute 'autocmd Jetpack User' jetpack#event(pkg_name,'pre') ':' . pkg.setup
     execute 'autocmd Jetpack User' jetpack#event(pkg_name,'post') ':' . pkg.config
     if !empty(pkg.dir) || pkg.local
-      let pkg.loaded = v:true
-      let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
+      if isdirectory(pkg.path)
+        let pkg.loaded = v:true
+        execute 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'pre')
+        let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
+        execute 'autocmd Jetpack User JetpackEnd'
+              \ 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'post')
+      endif
       continue
     endif
     if !pkg.opt
