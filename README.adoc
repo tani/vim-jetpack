@@ -657,10 +657,7 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 * `User Jetpack{PluginName}Pre`/ `User Jetpack{PluginName}Post`
 **  Let {PluginName} be a CamelCase of plugin name.
-    Code to execute when the plugin is lazily loaded on demand with
-    `User Jetpack{PluginName}Post` .
-    It is impossible to hook `packadd` for a Lua plugin in Neovim,
-    because Neovim does not load any files until the module is required.
+    The specified event is fired before/after the plugin is loaded.
 +
 [%autowidth]
 |===
