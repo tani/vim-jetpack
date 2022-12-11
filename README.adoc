@@ -655,6 +655,10 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 === Events
 
+* `User JetpackPre:{plugin-name}`/ `User JetpackPost:{plugin-name}`
+**  Let {plugin-name} be the name of the plugin.
+    The specified event is fired before/after the plugin is loaded.
+
 * `User Jetpack{PluginName}Pre`/ `User Jetpack{PluginName}Post`
 **  Let {PluginName} be a CamelCase of plugin name.
     The specified event is fired before/after the plugin is loaded.

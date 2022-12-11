@@ -550,11 +550,12 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-function! jetpack#event(pkg_name, ord) abort
+function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
   let event = 'jetpack_' . a:pkg_name . '_' . a:ord
   let event = substitute(event, '\W\+', '_', 'g')
   let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-  return event
+  execute 'doautocmd <nomodeline> User ' . event
+  execute 'doautocmd <nomodeline> User Jetpack' . a:ord . ':' . a:pkg_name
 endfunction
 
 " Not called during startup
@@ -571,12 +572,12 @@ function! jetpack#load(pkg_name) abort
     call jetpack#load(req_name)
   endfor
   " Load package
-  execute 'doautocmd <nomodeline> User' jetpack#event(a:pkg_name,'pre')
+  call s:doautocmd_User_Jetpack('Pre', a:pkg_name)
   execute 'packadd' a:pkg_name
   for file in glob(pkg.path . '/after/plugin/*', '', 1)
     execute 'source' file
   endfor
-  execute 'doautocmd <nomodeline> User' jetpack#event(a:pkg_name,'post')
+  call s:doautocmd_User_Jetpack('Post', a:pkg_name)
   return v:true
 endfunction
 
@@ -629,15 +630,15 @@ function! jetpack#end() abort
   filetype plugin indent off
 
   for [pkg_name, pkg] in items(s:declared_packages)
-    execute 'autocmd Jetpack User' jetpack#event(pkg_name,'pre') ':' . pkg.setup
-    execute 'autocmd Jetpack User' jetpack#event(pkg_name,'post') ':' . pkg.config
+    execute 'autocmd Jetpack User JetpackPre:' . pkg_name . ' :' . pkg.setup
+    execute 'autocmd Jetpack User JetpackPost:' . pkg_name . ' :' . pkg.config
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
         let pkg.loaded = v:true
-        execute 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'pre')
+        call s:doautocmd_User_Jetpack('Pre', pkg_name)
         let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
         execute 'autocmd Jetpack User JetpackEnd'
-              \ 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'post')
+              \ 'call s:doautocmd_User_Jetpack("Post", '.string(pkg_name).')'
       endif
       continue
     endif
@@ -647,10 +648,10 @@ function! jetpack#end() abort
       " So, the test will skip the following cases.
       if has_key(s:available_packages(), pkg_name)
         let pkg.loaded = v:true
-        execute 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'pre')
+        call s:doautocmd_User_Jetpack('Pre', pkg_name)
         execute 'silent! packadd!' pkg_name
-        execute 'autocmd Jetpack User JetpackEnd' 
-              \ 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'post')
+        execute 'autocmd Jetpack User JetpackEnd'
+              \ 'call s:doautocmd_User_Jetpack("Post", '.string(pkg_name).')'
       endif
       continue
     endif
