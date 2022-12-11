@@ -63,6 +63,10 @@ let s:status = {
 \   'copied': 'copied'
 \ }
 
+function! s:check_ignorable(filename) abort
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
+endfunction
+
 function! s:list_files(path) abort
   let files = readdir(a:path, { entry -> filereadable(a:path . '/' . entry) })
   let files = map(files, { _, entry -> a:path . '/' . entry })
@@ -72,10 +76,6 @@ function! s:list_files(path) abort
     let files += s:list_files(dir)
   endfor
   return files
-endfunction
-
-function! s:check_ignorable(filename) abort
-  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
 endfunction
 
 function! s:make_progressbar(n) abort
@@ -136,9 +136,11 @@ function! s:copy_dir(from, to) abort
       let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack_copy_method ==# 'copy'
-        let perm = getfperm(src)
         call writefile(readfile(src, 'b'), dest, 'b')
-        call setfperm(dest, perm)
+        let perm = split(getfperm(src), '\zs')
+        let perm[0] = 'r' | let perm[3] = 'r' | let perm[6] = 'r'
+        let perm[1] = 'w' | let perm[4] = 'w' | let perm[7] = 'w'
+        call setfperm(dest, join(perm, ''))
       elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
       elseif g:jetpack_copy_method ==# 'symlink'
@@ -357,7 +359,7 @@ function! s:merge_plugins() abort
     call s:show_progress('Merge Plugins')
     let srcdir = pkg.path . '/' . pkg.rtp
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
-    let files = filter(files, { _, file -> !s:check_ignorable(file) })
+    let files = filter(files, {_, file -> !s:check_ignorable(file)})
     let conflicted = v:false
     for file in files
       for merged_file in merged_files
