@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-print('nvim -u NONE --headless --cmd "source ./jetpack.vim" +JetpackSync +qa')
-os.system('nvim -u NONE --headless --cmd "source ./jetpack.vim" +JetpackSync +qa')
-print('nvim -u NONE --headless --cmd "source ./plug.vim" +PlugInstall +qa')
-os.system('nvim -u NONE --headless --cmd "source ./plug.vim" +PlugInstall +qa')
+print('nvim -u ./jetpack.vim --headless +JetpackSync +qa')
+os.system('nvim -u ./jetpack.vim --headless +JetpackSync +qa')
+print('nvim -u ./plug.vim --headless +PlugInstall +qa')
+os.system('nvim -u ./plug.vim --headless +PlugInstall +qa')

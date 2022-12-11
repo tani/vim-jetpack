@@ -1,3 +1,5 @@
+set packpath=
+execute 'set runtimepath-=' . stdpath('config')
 call execute(printf('source %s/plugin/plug.vim', expand('<sfile>:p:h')))
 
 let g:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')

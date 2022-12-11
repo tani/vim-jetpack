@@ -1,4 +1,5 @@
 set packpath=
+execute 'set runtimepath-=' . stdpath('config')
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h')))
 
 function s:fallback(val, default)

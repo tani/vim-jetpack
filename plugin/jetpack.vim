@@ -551,12 +551,16 @@ function! jetpack#begin(...) abort
 endfunction
 
 function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
+  let pkg = s:declared_packages[a:pkg_name]
+  let cmd = pkg[{ 'Pre': 'setup', 'Post': 'config' }[a:ord]]
+
   let event = 'jetpack_' . a:pkg_name . '_' . a:ord
   let event = substitute(event, '\W\+', '_', 'g')
   let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
   execute 'autocmd Jetpack User ' . event . ' :'
-  execute 'autocmd Jetpack User Jetpack' . a:ord .':' . a:pkg_name  . ' :'
   execute 'doautocmd <nomodeline> User ' . event
+
+  execute 'autocmd Jetpack User Jetpack' . a:ord .':' . a:pkg_name  . ' :' . cmd
   execute 'doautocmd <nomodeline> User Jetpack' . a:ord . ':' . a:pkg_name
 endfunction
 
@@ -632,8 +636,6 @@ function! jetpack#end() abort
   filetype plugin indent off
 
   for [pkg_name, pkg] in items(s:declared_packages)
-    execute 'autocmd Jetpack User JetpackPre:' . pkg_name . ' :' . pkg.setup
-    execute 'autocmd Jetpack User JetpackPost:' . pkg_name . ' :' . pkg.config
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
         let pkg.loaded = v:true
@@ -651,7 +653,9 @@ function! jetpack#end() abort
       if has_key(s:available_packages(), pkg_name)
         let pkg.loaded = v:true
         call s:doautocmd_User_Jetpack('Pre', pkg_name)
-        execute 'silent! packadd!' pkg_name
+        if !s:available_packages()[pkg_name].merged
+          execute 'packadd!' pkg_name
+        end
         execute 'autocmd Jetpack User JetpackEnd'
               \ 'call s:doautocmd_User_Jetpack("Post", '.string(pkg_name).')'
       endif
