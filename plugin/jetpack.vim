@@ -790,6 +790,14 @@ Packer.startup = function(config)
   Jetpack.epilogue()
 end
 
+Packer.add = function(config)
+  Jetpack.prologue()
+  for _, plugin in pairs(config) do
+    use(plugin)
+  end
+  Jetpack.epilogue()
+end
+
 package.preload['jetpack.packer'] = function()
   return Packer
 end
