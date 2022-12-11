@@ -561,13 +561,11 @@ endfunction
 function! jetpack#load(pkg_name) abort
   if !has_key(s:declared_packages, a:pkg_name)
    \ || !has_key(s:available_packages(), a:pkg_name)
+   \ || s:declared_packages[a:pkg_name].loaded
     return v:false
   endif
   let pkg = s:declared_packages[a:pkg_name]
   " Load dependencies
-  if pkg.loaded
-    return v:true
-  endif
   let pkg.loaded = v:true
   for req_name in pkg.requires
     call jetpack#load(req_name)
@@ -633,14 +631,9 @@ function! jetpack#end() abort
   for [pkg_name, pkg] in items(s:declared_packages)
     execute 'autocmd Jetpack User' jetpack#event(pkg_name,'pre') ':' . pkg.setup
     execute 'autocmd Jetpack User' jetpack#event(pkg_name,'post') ':' . pkg.config
-    if !empty(pkg.dir)
+    if !empty(pkg.dir) || pkg.local
       let pkg.loaded = v:true
-      let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
-      continue
-    endif
-    if pkg.local
-      let pkg.loaded = v:true
-      let &runtimepath .= ',' . pkg.path
+      let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
       continue
     endif
     if !pkg.opt
