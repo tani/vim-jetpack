@@ -109,12 +109,12 @@ call jetpack#begin()
 call jetpack#add('tani/vim-jetpack', {'opt': 1}) "bootstrap
 call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
-call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call jetpack#add('junegunn/fzf', { 'build': './install' })
 call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
-call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'build': 'yarn install --frozen-lockfile' })
 call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
-call jetpack#add('dracula/vim', { 'as': 'dracula' })
-call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call jetpack#add('dracula/vim', { 'name': 'dracula' })
+call jetpack#add('tpope/vim-fireplace', { 'on_ft': 'clojure' })
 call jetpack#end()
 ----
 
@@ -122,9 +122,10 @@ call jetpack#end()
 
 [source, lua]
 ----
+-- Packer.nvim v1
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').startup(function(use)
-  use { 'tani/vim-jetpack', opt = 1 }-- bootstrap
+  use { 'tani/vim-jetpack', opt = 1 } -- bootstrap
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -132,7 +133,16 @@ require('jetpack.packer').startup(function(use)
   use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
-  use {'tpope/vim-fireplace', ft = 'clojure' }
+  use {'tpope/vim-fireplace', ft = 'clojure' },
+  use {'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate',
+    config = function()
+      require'nvim-treesitter.configs'.setup {
+        ensure_installed = 'maintained',
+        highlight = { enable = true }
+      }
+    end
+  }
 end)
 ----
 
@@ -140,8 +150,9 @@ end)
 
 [source, lua]
 ----
+-- Packer.nvim v2
 vim.cmd('packadd vim-jetpack')
-require('jetpack.paq') {
+require('jetpack.packer').add {
   {'tani/vim-jetpack', opt = 1}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
@@ -151,6 +162,30 @@ require('jetpack.paq') {
   {'vlime/vlime', rtp = 'vim' },
   {'dracula/vim', as = 'dracula' },
   {'tpope/vim-fireplace', ft = 'clojure' },
+  {'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate',
+    config = function()
+      require'nvim-treesitter.configs'.setup {
+        ensure_installed = 'maintained',
+        highlight = { enable = true }
+      }
+    end
+  }
+}
+----
+
+[source, lua]
+----
+-- Paq.nvim
+vim.cmd('packadd vim-jetpack')
+require('jetpack.paq') {
+  {'tani/vim-jetpack', opt = 1}, -- bootstrap
+  'https://github.com/dense-analysis/ale',
+  'junegunn/fzf.vim',
+  {'junegunn/fzf', run = './install' },
+  {'neoclide/coc.nvim', branch = 'release'},
+  {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
+  {'dracula/vim', as = 'dracula' },
 }
 ----
 
