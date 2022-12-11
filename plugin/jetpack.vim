@@ -554,6 +554,8 @@ function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
   let event = 'jetpack_' . a:pkg_name . '_' . a:ord
   let event = substitute(event, '\W\+', '_', 'g')
   let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
+  execute 'autocmd Jetpack User ' . event . ' :'
+  execute 'autocmd Jetpack User Jetpack' . a:ord .':' . a:pkg_name  . ' :'
   execute 'doautocmd <nomodeline> User ' . event
   execute 'doautocmd <nomodeline> User Jetpack' . a:ord . ':' . a:pkg_name
 endfunction
