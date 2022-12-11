@@ -459,13 +459,13 @@ endif
 function! s:is_merged(pkg) abort
   if a:pkg.opt
     return v:false
-  elseif a:pkg.do !=# ''
+  elseif !empty(a:pkg.do)
     return v:false
-  elseif a:pkg.dir !=# ''
+  elseif !empty(a:pkg.dir)
     return v:false
-  elseif a:pkg.setup !=# ''
+  elseif !empty(a:pkg.setup)
     return v:false
-  elseif a:pkg.config !=# ''
+  elseif !empty(a:pkg.config)
     return v:false
   elseif a:pkg.local
     return v:false
@@ -550,36 +550,35 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-function! s:doautocmd_User_Jetpack(pkg_name, ord)
+function! jetpack#event(pkg_name, ord) abort
   let event = 'jetpack_' . a:pkg_name . '_' . a:ord
   let event = substitute(event, '\W\+', '_', 'g')
   let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-  execute 'autocmd Jetpack User' event ':'
-  execute 'doautocmd <nomodeline> User' event
+  return event
 endfunction
 
 " Not called during startup
 function! jetpack#load(pkg_name) abort
   if !has_key(s:declared_packages, a:pkg_name)
+   \ || !has_key(s:available_packages(), a:pkg_name)
     return v:false
   endif
   let pkg = s:declared_packages[a:pkg_name]
-  " Avoid circular references
+  " Load dependencies
   if pkg.loaded
-    return v:false
+    return v:true
   endif
   let pkg.loaded = v:true
   for req_name in pkg.requires
     call jetpack#load(req_name)
   endfor
-  if has_key(s:available_packages(), a:pkg_name)
-    call s:doautocmd_User_Jetpack(a:pkg_name, 'pre')
-    execute 'packadd' a:pkg_name
-    for file in glob(pkg.path . '/after/plugin/*', '', 1)
-      execute 'source' file
-    endfor
-    call s:doautocmd_User_Jetpack(a:pkg_name, 'post')
-  endif
+  " Load package
+  execute 'doautocmd <nomodeline> User' jetpack#event(a:pkg_name,'pre')
+  execute 'packadd' a:pkg_name
+  for file in glob(pkg.path . '/after/plugin/*', '', 1)
+    execute 'source' file
+  endfor
+  execute 'doautocmd <nomodeline> User' jetpack#event(a:pkg_name,'post')
   return v:true
 endfunction
 
@@ -632,6 +631,8 @@ function! jetpack#end() abort
   filetype plugin indent off
 
   for [pkg_name, pkg] in items(s:declared_packages)
+    execute 'autocmd Jetpack User' jetpack#event(pkg_name,'pre') ':' . pkg.setup
+    execute 'autocmd Jetpack User' jetpack#event(pkg_name,'post') ':' . pkg.config
     if !empty(pkg.dir)
       let pkg.loaded = v:true
       let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
@@ -647,14 +648,11 @@ function! jetpack#end() abort
       " because the test is always fresh, i.e., no cache.
       " So, the test will skip the following cases.
       if has_key(s:available_packages(), pkg_name)
-        call s:doautocmd_User_Jetpack(a:pkg_name, 'pre')
         let pkg.loaded = v:true
-        if type(s:available_packages()[pkg_name]) == v:t_dict
-          \ && !s:available_packages()[pkg_name]['merged']
-          execute 'packadd!' pkg_name
-        endif
+        execute 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'pre')
+        execute 'silent! packadd!' pkg_name
         execute 'autocmd Jetpack User JetpackEnd' 
-              \ 'call s:doautocmd_User_Jetpack('.string(pkg_name).', "post")'
+              \ 'doautocmd <nomodeline> User' jetpack#event(pkg_name,'post')
       endif
       continue
     endif
@@ -726,94 +724,13 @@ endfunction
 
 if !has('nvim') | finish | endif
 lua<<========================================
-local Packer = {
-  option = {},
-  plugin = {},
-}
-
-Packer.init = function(opt)
-  if opt.package_root then
-    opt.package_root = string.gsub(vim.fn.fnamemodify(opt.package_root, ":h"), '\\', '/')
-  end
-  Packer.option = opt
-end
-
-local function ensure_fun(fun)
-  if type(fun) == 'string' then
-    return assert(loadstring(fun))
-  else
-    return fun
-  end
-end
-
-local function use(plugin)
-  if type(plugin) == 'string' then
-    vim.fn['jetpack#add'](plugin)
-  else
-    local repo = table.remove(plugin, 1)
-    if next(plugin) == nil then
-      vim.fn['jetpack#add'](repo)
-    else
-      local name = plugin['as'] or string.gsub(repo, '.*/', '')
-      local event = vim.fn.substitute(name, '\\W\\+', '_', 'g')
-      event = vim.fn.substitute(event, '\\(^\\|_\\)\\(.\\)', '\\u\\2', 'g')
-      Packer.plugin[name] = {}
-      if plugin.setup then
-        Packer.plugin[name].setup_inner = ensure_fun(plugin.setup)
-        Packer.plugin[name].setup_outer = function()
-          if vim.fn['jetpack#tap'](name) then
-            Packer.plugin[name].setup_inner()
-          end
-        end
-        local hook = string.format('lua require("jetpack.packer").plugin[%q].setup_outer()', name)
-        vim.cmd(string.format('autocmd Jetpack User Jetpack%sPre %s', event, hook))
-        plugin.setup = ''
-        plugin.merged = false
-      end
-      if plugin.config then
-        Packer.plugin[name].config_inner = ensure_fun(plugin.config)
-        Packer.plugin[name].config_outer = function()
-          if vim.fn['jetpack#tap'](name) then
-            Packer.plugin[name].config_inner()
-          end
-        end
-        local hook = string.format('lua require("jetpack.packer").plugin[%q].config_outer()', name)
-        vim.cmd(string.format('autocmd Jetpack User Jetpack%sPost %s', event, hook))
-        plugin.config = ''
-        plugin.merged = false
-      end
-      vim.fn['jetpack#add'](repo, plugin)
-    end
-  end
-end
-
-Packer.startup = function(config)
-  vim.fn['jetpack#begin'](Packer.option.package_root)
-  config(use)
-  vim.fn['jetpack#end']()
-end
-
-package.preload['jetpack.packer'] = function()
-  return Packer
-end
-
-local Paq = function(config)
-  vim.fn['jetpack#begin']()
-  for _, plugin in pairs(config) do
-    use(plugin)
-  end
-  vim.fn['jetpack#end']()
-end
-
-package.preload['jetpack.paq'] = function()
-  return Paq
-end
-
 local Jetpack = {}
 
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load', 'event'}) do
   Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
+Jetpack.prologue = Jetpack['begin']
+Jetpack.epilogue = Jetpack['end']
 
 Jetpack.startup = function(config)
   vim.cmd[[echomsg 'require("jetpack").startup() is deprecated. Please use require("jetpack.packer").startup() .']]
@@ -828,4 +745,67 @@ end
 package.preload['jetpack'] = function()
   return Jetpack
 end
+
+local Packer = {
+  option = {},
+}
+
+Packer.init = function(opt)
+  if opt.package_root then
+    opt.package_root = string.gsub(vim.fn.fnamemodify(opt.package_root, ":h"), '\\', '/')
+  end
+  Packer.option = opt
+end
+
+local function create_hook(name, value)
+  local fun = type(value) == 'function' and value or assert(loadstring(value))
+  local dump = vim.fn.string(string.dump(fun))
+  return
+    "lua if require('jetpack').tap('"..name.."') then "..
+    "  assert(loadstring(vim.api.nvim_eval('"..dump.."')))() "..
+    "end"
+end
+
+local function use(plugin)
+  if type(plugin) == 'string' then
+    Jetpack.add(plugin)
+  else
+    local repo = table.remove(plugin, 1)
+    if next(plugin) == nil then
+      Jetpack.add(repo)
+    else
+      local name = plugin['as'] or string.gsub(repo, '.*/', '')
+      if plugin.setup then
+        plugin.setup = create_hook(name, plugin.setup)
+      end
+      if plugin.config then
+        plugin.config = create_hook(name, plugin.config)
+      end
+      Jetpack.add(repo, plugin)
+    end
+  end
+end
+
+Packer.startup = function(config)
+  Jetpack.prologue(Packer.option.package_root)
+  config(use)
+  Jetpack.epilogue()
+end
+
+package.preload['jetpack.packer'] = function()
+  return Packer
+end
+
+local Paq = function(config)
+  Jetpack.prologue()
+  for _, plugin in pairs(config) do
+    use(plugin)
+  end
+  Jetpack.epilogue()
+end
+
+package.preload['jetpack.paq'] = function()
+  return Paq
+end
+
 ========================================
