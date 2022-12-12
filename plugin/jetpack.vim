@@ -67,6 +67,19 @@ if !exists('?autocmd_add')
   endfunction
 endif
 
+function! s:autocmd_add(autocmds) abort
+  call autocmd_add(a:autocmds)
+endfunction
+
+if !exists('?autocmd_add')
+  function! s:autocmd_add(autocmds) abort
+    for a in a:autocmds
+      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':'}, 'keep')
+      execute 'autocmd' a.group a.event a.pattern a.cmd
+    endfor
+  endfunction
+endif
+
 let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
 let g:jetpack_ignore_patterns =
@@ -786,7 +799,6 @@ function! jetpack#end() abort
   filetype plugin indent on
 endfunction
 
-
 " s:ask() from junegunn/plug.vim
 " https://github.com/junegunn/vim-plug/blob/ddce935b16fbaaf02ac96f9f238deb04d4d33a31/plug.vim#L316-L324
 " MIT License: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
@@ -869,8 +881,8 @@ Jetpack.startup = function(config)
 end
 
 Jetpack.setup = function(config)
-  vim.command([[echomsg 'require("jetpack").setup() is deprecated.]] ..
-              [[Please use require("jetpack.paq")() .']])
+  Util.command([[echomsg 'require("jetpack").setup() is deprecated.]] ..
+               [[Please use require("jetpack.paq")() .']])
   Paq(config)
 end
 
