@@ -575,14 +575,17 @@ function! jetpack#begin(...) abort
 endfunction
 
 function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
-  let pkg = s:declared_packages[a:pkg_name]
   let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
   let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
   let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
   let pattern_b = 'Jetpack' . substitute(a:ord, '.*', '\u\0', '') . ':'. a:pkg_name
-  execute 'silent! doautocmd <nomodeline> User' pattern_a
-  execute 'silent! doautocmd <nomodeline> User' pattern_b
-  execute pkg[{ 'pre': 'setup', 'post': 'config' }[a:ord]]
+  for pattern in [pattern_a, pattern_b]
+    if exists('#User#' . pattern)
+      execute 'doautocmd <nomodeline> User' pattern
+    endif
+  endfor
+  let hook = { 'pre': 'setup', 'post': 'config' }[a:ord]
+  execute s:declared_packages[a:pkg_name][hook]
 endfunction
 
 " Not called during startup
