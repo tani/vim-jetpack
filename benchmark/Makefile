@@ -1,6 +1,6 @@
 all: run
 
-setup: pack/ plug/
+setup:
 	./setup.py
 
 run: setup

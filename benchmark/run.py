@@ -2,7 +2,7 @@
 import os
 
 cmd = 'nvim -u "{}" --headless --startuptime "{}" +qa!'
-for m in ['plug', 'jetpack']:
+for m in ['jetpack', 'plug']:
     if os.path.exists(m + '.log'):
         os.unlink(m + '.log')
     for i in range(100):

@@ -25,6 +25,19 @@ if exists('g:loaded_jetpack')
 endif
 let g:loaded_jetpack = 1
 
+function! s:autocmd_add(autocmds) abort
+  call autocmd_add(a:autocmds)
+endfunction
+
+if !exists('?autocmd_add')
+  function! s:autocmd_add(autocmds) abort
+    for a in a:autocmds
+      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':'}, 'keep')
+      execute 'autocmd' a.group a.event a.pattern a.cmd
+    endfor
+  endfunction
+endif
+
 let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
 let g:jetpack_ignore_patterns =
@@ -521,7 +534,6 @@ function! jetpack#add(plugin, ...) abort
   \   'setup': get(opts, 'setup', ''),
   \   'config': get(opts, 'config', ''),
   \   'requires': requires,
-  \   'loaded': v:false,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
@@ -543,7 +555,10 @@ function! jetpack#begin(...) abort
   let s:optdir = s:home . '/pack/jetpack/opt'
   let s:srcdir = s:home . '/pack/jetpack/src'
   let s:declared_packages = {}
-  let s:available_packages = {}
+  let available_packages_file = s:optdir . '/available_packages.json'
+  silent! let available_packages_text = join(readfile(available_packages_file))
+  let s:available_packages = json_decode(available_packages_text)
+  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   augroup Jetpack
     autocmd!
   augroup END
@@ -552,38 +567,32 @@ endfunction
 
 function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
   let pkg = s:declared_packages[a:pkg_name]
-  let cmd = pkg[{ 'Pre': 'setup', 'Post': 'config' }[a:ord]]
-
-  let event = 'jetpack_' . a:pkg_name . '_' . a:ord
-  let event = substitute(event, '\W\+', '_', 'g')
-  let event = substitute(event, '\(^\|_\)\(.\)', '\u\2', 'g')
-  execute 'autocmd Jetpack User ' . event . ' :'
-  execute 'doautocmd <nomodeline> User ' . event
-
-  execute 'autocmd Jetpack User Jetpack' . a:ord .':' . a:pkg_name  . ' :' . cmd
-  execute 'doautocmd <nomodeline> User Jetpack' . a:ord . ':' . a:pkg_name
+  let cmd = ':'.pkg[{ 'pre': 'setup', 'post': 'config' }[a:ord]]
+  let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
+  let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
+  let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
+  let pattern_b = 'Jetpack' . substitute(a:ord, '.*', '\u\0', '') . ':'. a:pkg_name
+  call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern_a, 'cmd': ':' },
+                    \ { 'group': 'Jetpack', 'event': 'User', 'pattern': pattern_b, 'cmd': cmd }])
+  execute 'doautocmd <nomodeline> User' pattern_a
+  execute 'doautocmd <nomodeline> User' pattern_b
 endfunction
 
 " Not called during startup
 function! jetpack#load(pkg_name) abort
-  if !has_key(s:declared_packages, a:pkg_name)
-   \ || !has_key(s:available_packages(), a:pkg_name)
-   \ || s:declared_packages[a:pkg_name].loaded
+  if !jetpack#tap(a:pkg_name)
     return v:false
   endif
-  let pkg = s:declared_packages[a:pkg_name]
-  " Load dependencies
-  let pkg.loaded = v:true
-  for req_name in pkg.requires
-    call jetpack#load(req_name)
-  endfor
+  let pkg = s:available_packages[a:pkg_name]
   " Load package
-  call s:doautocmd_User_Jetpack('Pre', a:pkg_name)
-  execute 'packadd' a:pkg_name
-  for file in glob(pkg.path . '/after/plugin/*', '', 1)
-    execute 'source' file
-  endfor
-  call s:doautocmd_User_Jetpack('Post', a:pkg_name)
+  call s:doautocmd_User_Jetpack('pre', a:pkg_name)
+  if !pkg.merged
+    execute 'packadd' a:pkg_name
+    for file in glob(pkg.path . '/after/plugin/*', '', 1)
+      execute 'source' file
+    endfor
+  endif
+  call s:doautocmd_User_Jetpack('post', a:pkg_name)
   return v:true
 endfunction
 
@@ -635,14 +644,22 @@ function! jetpack#end() abort
   syntax off
   filetype plugin indent off
 
+  if sort(keys(s:declared_packages)) != sort(keys(s:available_packages))
+    echomsg 'Some packages are not synchronized. Run :JetpackSync'
+  endif
+
   for [pkg_name, pkg] in items(s:declared_packages)
+    for dep_name in pkg.requires
+      let cmd = 'call jetpack#load('.string(dep_name).')'
+      let pattern = 'JetpackPre:'.pkg_name
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd }])
+    endfor
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
-        let pkg.loaded = v:true
-        call s:doautocmd_User_Jetpack('Pre', pkg_name)
+        call s:doautocmd_User_Jetpack('pre', pkg_name)
         let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
-        execute 'autocmd Jetpack User JetpackEnd'
-              \ 'call s:doautocmd_User_Jetpack("Post", '.string(pkg_name).')'
+        let cmd = 'call s:doautocmd_User_Jetpack("post", '.string(pkg_name).')'
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
       endif
       continue
     endif
@@ -650,14 +667,13 @@ function! jetpack#end() abort
       " In this case, vim-jetpack is not well-tested,
       " because the test is always fresh, i.e., no cache.
       " So, the test will skip the following cases.
-      if has_key(s:available_packages(), pkg_name)
-        let pkg.loaded = v:true
-        call s:doautocmd_User_Jetpack('Pre', pkg_name)
-        if !s:available_packages()[pkg_name].merged
+      if jetpack#tap(pkg_name)
+        call s:doautocmd_User_Jetpack('pre', pkg_name)
+        if !s:available_packages[pkg_name].merged
           execute 'packadd!' pkg_name
         end
-        execute 'autocmd Jetpack User JetpackEnd'
-              \ 'call s:doautocmd_User_Jetpack("Post", '.string(pkg_name).')'
+        let cmd = 'call s:doautocmd_User_Jetpack("post", '.string(pkg_name).')'
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
       endif
       continue
     endif
@@ -689,17 +705,6 @@ function! jetpack#end() abort
   filetype plugin indent on
 endfunction
 
-function! s:available_packages() abort
-  if exists('s:available_packages') && !empty(s:available_packages)
-    return s:available_packages
-  endif
-  let available_packages_file = s:optdir . '/available_packages.json'
-  silent! let available_packages_text = join(readfile(available_packages_file))
-  let s:available_packages = json_decode(available_packages_text)
-  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
-  return s:available_packages
-endfunction
-
 
 " s:ask() from junegunn/plug.vim
 " https://github.com/junegunn/vim-plug/blob/ddce935b16fbaaf02ac96f9f238deb04d4d33a31/plug.vim#L316-L324
@@ -716,7 +721,7 @@ function! s:ask(message, ...)
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:available_packages(), a:name) ? v:true : v:false
+  return has_key(s:available_packages, a:name) && has_key(s:declared_packages, a:name) ? v:true : v:false
 endfunction
 
 function! jetpack#names() abort
@@ -731,19 +736,21 @@ if !has('nvim') | finish | endif
 lua<<========================================
 local Jetpack = {}
 
-for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load', 'event'}) do
+for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
   Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
 end
 Jetpack.prologue = Jetpack['begin']
 Jetpack.epilogue = Jetpack['end']
 
 Jetpack.startup = function(config)
-  vim.cmd[[echomsg 'require("jetpack").startup() is deprecated. Please use require("jetpack.packer").startup() .']]
+  vim.cmd([[echomsg 'require("jetpack").startup() is deprecated.]] ..
+          [[Please use require("jetpack.packer").startup() .']])
   Packer.startup(config)
 end
 
 Jetpack.setup = function(config)
-  vim.cmd[[echomsg 'require("jetpack").setup() is deprecated. Please use require("jetpack.paq")() .']]
+  vim.cmd([[echomsg 'require("jetpack").setup() is deprecated.]] ..
+          [[Please use require("jetpack.paq")() .']])
   Paq(config)
 end
 
@@ -755,11 +762,12 @@ local Packer = {
   option = {},
 }
 
-Packer.init = function(opt)
-  if opt.package_root then
-    opt.package_root = string.gsub(vim.fn.fnamemodify(opt.package_root, ":h"), '\\', '/')
+Packer.init = function(option)
+  if option.package_root then
+    option.package_root = vim.fn.fnamemodify(option.package_root, ":h")
+    option.package_root = string.gsub(option.package_root, '\\', '/')
   end
-  Packer.option = opt
+  Packer.option = option
 end
 
 local function create_hook(name, value)
