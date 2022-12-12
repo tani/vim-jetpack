@@ -476,20 +476,11 @@ endif
 " If opt/do/dir/setup/config option is enabled,
 " it should be placed isolated directory (not merged).
 function! s:is_merged(pkg) abort
-  if a:pkg.opt
-    return v:false
-  elseif !empty(a:pkg.do)
-    return v:false
-  elseif !empty(a:pkg.dir)
-    return v:false
-  elseif !empty(a:pkg.setup)
-    return v:false
-  elseif !empty(a:pkg.config)
-    return v:false
-  elseif a:pkg.local
-    return v:false
-  endif
-  return v:true
+  return !a:pkg.opt 
+        \ && empty(a:pkg.do) 
+        \ && empty(a:pkg.dir) 
+        \ && empty(a:pkg.setup) 
+        \ && empty(a:pkg.config)
 endfunction
 
 function! s:gets(pkg, keys, default) abort
