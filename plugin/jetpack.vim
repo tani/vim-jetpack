@@ -514,11 +514,12 @@ function! jetpack#add(plugin, ...) abort
   let path = local ? expand(a:plugin) : s:gets(opts, ['dir', 'path'], [path])[0]
   let on = s:gets(opts, [
   \ 'on',
-  \ 'for', 'ft', 'on_ft',
   \ 'keys', 'on_map',
   \ 'cmd', 'on_cmd',
   \ 'event', 'on_event'
   \ ], [])
+  let filetypes = s:gets(opts, ['for', 'ft', 'on_ft'], [])
+  call extend(on, map(filetypes, {_, ft -> 'FileType ' . ft}))
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let requires = s:gets(opts, ['requires', 'depends'], [])
   call map(requires, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
@@ -685,14 +686,13 @@ function! jetpack#end() abort
         execute printf('vnoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "gv")<CR>', it, string(it), s:maps[it])
         execute printf('onoremap <silent> %s :<C-U>call <SID>load_map(%s, %s, 1, "")<CR>', it, string(it), s:maps[it])
       elseif exists('##'.substitute(it, ' .*', '', ''))
-        let it .= (it =~? ' ' ? '' : ' *')
-        execute printf('autocmd Jetpack %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
-      elseif substitute(it, '^:', '', '') =~# '^[A-Z]'
+        let cmd = 'call jetpack#load('.string(pkg_name).')'
+        let [event, pattern] = split(it . (it =~# ' ' ? '' : ' *'), ' ')
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': event, 'pattern': pattern, 'cmd': cmd }])
+      else
         let cmd = substitute(it, '^:', '', '')
         let s:cmds[cmd] = add(get(s:cmds, cmd, []), pkg_name)
         execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), s:cmds[cmd])
-      else
-        execute printf('autocmd Jetpack FileType %s ++once ++nested call jetpack#load(%s)', it, string(pkg_name))
       endif
     endfor
   endfor
