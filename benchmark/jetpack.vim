@@ -114,3 +114,5 @@ Jetpack 'kristijanhusak/vim-dadbod-completion'
 Jetpack 'whiteinge/diffconflicts'
 Jetpack 'AndrewRadev/tagalong.vim'
 call jetpack#end()
+
+execute 'autocmd SourcePost' expand('<sfile>:p:h') 'echomsg "loaded"'

@@ -556,9 +556,8 @@ function! jetpack#begin(...) abort
   let available_packages_file = s:optdir . '/available_packages.json'
   let available_packages_text =
         \ filereadable(available_packages_file) 
-        \ ? join(readfile(available_packages_file)) : ""
+        \ ? join(readfile(available_packages_file)) : "{}"
   let s:available_packages = json_decode(available_packages_text)
-  let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   augroup Jetpack
     autocmd!
   augroup END
@@ -655,19 +654,21 @@ function! jetpack#end() abort
     endfor
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
-        call s:doautocmd('pre', pkg_name)
+        let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
         let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
         let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
       endif
       continue
     endif
     if !pkg.opt
       if jetpack#tap(pkg_name)
-        call s:doautocmd('pre', pkg_name)
+        let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
         call s:packadd(pkg_name, '!')
         let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
       endif
       continue
     endif
@@ -691,8 +692,8 @@ function! jetpack#end() abort
   endfor
   call s:packadd('_', '!')
 
-  autocmd Jetpack User JetpackEnd :
-  autocmd Jetpack VimEnter * doautocmd <nomodeline> Jetpack User JetpackEnd
+  autocmd Jetpack SourcePost $MYVIMRC doautocmd <nomodeline> Jetpack User JetpackSetup
+  autocmd Jetpack VimEnter * doautocmd <nomodeline> Jetpack User JetpackConfig
 
   syntax enable
   filetype plugin indent on
