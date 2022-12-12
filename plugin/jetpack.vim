@@ -32,8 +32,9 @@ endfunction
 if !exists('?autocmd_add')
   function! s:autocmd_add(autocmds) abort
     for a in a:autocmds
-      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':'}, 'keep')
-      execute 'autocmd' a.group a.event a.pattern a.cmd
+      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':', 'once': v:false}, 'keep')
+      let once = a.once ? '++once' : ''
+      execute 'autocmd' a.group a.event a.pattern once a.cmd
     endfor
   endfunction
 endif
@@ -650,7 +651,7 @@ function! jetpack#end() abort
     for dep_name in pkg.requires
       let cmd = 'call jetpack#load('.string(dep_name).')'
       let pattern = 'JetpackPre:'.pkg_name
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endfor
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
