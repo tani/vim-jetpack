@@ -74,8 +74,9 @@ endfunction
 if !exists('?autocmd_add')
   function! s:autocmd_add(autocmds) abort
     for a in a:autocmds
-      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':'}, 'keep')
-      execute 'autocmd' a.group a.event a.pattern a.cmd
+      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':', 'once': v:false}, 'keep')
+      let once = a.once ? '++once' : ''
+      execute 'autocmd' a.group a.event a.pattern once a.cmd
     endfor
   endfunction
 endif
