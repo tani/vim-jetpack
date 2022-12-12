@@ -76,6 +76,12 @@ let s:status = {
 \   'copied': 'copied'
 \ }
 
+function s:packadd(name, bang='') abort
+  if isdirectory(s:optdir . '/' . a:name)
+    execute 'packadd'.a:bang a:name
+  endif
+endfunction
+
 function! s:check_ignorable(filename) abort
   return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
 endfunction
@@ -418,7 +424,7 @@ function! s:merge_plugins() abort
 endfunction
 
 function! s:postupdate_plugins() abort
-  silent! packadd _
+  call s:packadd('_')
   for [pkg_name, pkg] in items(s:declared_packages)
     if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
@@ -584,12 +590,10 @@ function! jetpack#load(pkg_name) abort
   let pkg = s:available_packages[a:pkg_name]
   " Load package
   call s:doautocmd_User_Jetpack('pre', a:pkg_name)
-  if !pkg.merged
-    execute 'packadd' a:pkg_name
-    for file in glob(pkg.path . '/after/plugin/*', '', 1)
-      execute 'source' file
-    endfor
-  endif
+  call s:packadd(a:pkg_name)
+  for file in glob(pkg.path . '/after/plugin/*', '', 1)
+    execute 'source' file
+  endfor
   call s:doautocmd_User_Jetpack('post', a:pkg_name)
   return v:true
 endfunction
@@ -667,9 +671,7 @@ function! jetpack#end() abort
       " So, the test will skip the following cases.
       if jetpack#tap(pkg_name)
         call s:doautocmd_User_Jetpack('pre', pkg_name)
-        if !s:available_packages[pkg_name].merged
-          execute 'packadd!' pkg_name
-        end
+        call s:packadd(pkg_name, '!')
         let cmd = 'call s:doautocmd_User_Jetpack("post", '.string(pkg_name).')'
         call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
       endif
@@ -694,7 +696,7 @@ function! jetpack#end() abort
       endif
     endfor
   endfor
-  silent! packadd! _
+  call s:packadd('_', '!')
 
   autocmd Jetpack User JetpackEnd :
   autocmd Jetpack VimEnter * doautocmd <nomodeline> Jetpack User JetpackEnd
