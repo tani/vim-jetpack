@@ -286,6 +286,31 @@ function s:suite.local_plugin()
   call s:assert.match(&rtp, '\V'.escape(install_path, '\'))
 endfunction
 
+function s:suite.self_delete()
+  " When jetpack is added, it does not delete itself.
+  call s:setup(['tani/vim-jetpack', { 'opt': 1 }])
+  call s:assert.isdirectory(s:optdir . '/vim-jetpack')
+
+  " When jetpack is not added, it ask me to delete itself.
+  call jetpack#begin(g:vimhome)
+  call jetpack#end()
+
+  " If you press "no", nothing will happen.
+  augroup SelfDeletePressKey
+    au!
+    au CmdlineEnter * call feedkeys("no\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isdirectory(s:optdir . '/vim-jetpack')
+
+  " If you press "yes", it will delete the directory
+  augroup SelfDeletePressKey
+    au!
+    autocmd CmdlineEnter * call feedkeys("yes\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isnotdirectory(s:optdir . '/vim-jetpack')
+endfunction
 
 if !has('nvim')
   finish

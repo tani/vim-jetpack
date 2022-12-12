@@ -337,8 +337,8 @@ function! s:merge_plugins() abort
     let pkg_name = fnamemodify(dir, ':t')
     if !has_key(s:declared_packages, pkg_name)
      \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
-      if pkg_name == 'vim-jetpack' && !s:ask('Delete "' . pkg_name . ' (y/N) ')
-        call s:ask("Add a \"Jetpack 'tani/vim-jetpack', {'opt': 1}\" line to your vimrc (Enter)")
+      if pkg_name == 'vim-jetpack' && !s:ask('Delete "' . pkg_name . '"?')
+        call s:ask("Add a \"Jetpack 'tani/vim-jetpack', {'opt': 1}\" line to your vimrc. Are you okay?")
       else
         call delete(dir, 'rf')
       endif
@@ -687,14 +687,19 @@ function! s:available_packages() abort
   return s:available_packages
 endfunction
 
-function! s:ask(message)
+
+" s:ask() from junegunn/plug.vim
+" https://github.com/junegunn/vim-plug/blob/ddce935b16fbaaf02ac96f9f238deb04d4d33a31/plug.vim#L316-L324
+" MIT License: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
+function! s:ask(message, ...)
   call inputsave()
   echohl WarningMsg
-  let answer = input(a:message)
+
+  let answer = input(a:message.(a:0 ? ' (y/N/a) ' : ' (y/N) '))
   echohl None
   call inputrestore()
   echo "\r"
-  return answer =~? '^y'
+  return (a:0 && answer =~? '^a') ? 2 : (answer =~? '^y') ? 1 : 0
 endfunction
 
 function! jetpack#tap(name) abort
