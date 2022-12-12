@@ -1,13 +1,18 @@
-all: setup run stat 
+all: run
 
-setup:
+setup: pack/ plug/
 	./setup.py
 
-run:
+run: setup
 	./run.py
 
-stat:
+stat: run
 	./stat.py
+
+.PHONY: clean
 
 clean:
 	rm -rf ./*.log ./*.png pack plugged
+
+profile:
+	nvim -u jetpack.vim --startuptime startup.log --cmd 'profile start profile.log' --cmd 'profile func *' --cmd 'profile file *' --cmd 'profile! func *' --cmd 'profile! file *' -c 'prorfile pause' -c 'noautocmd qall'
