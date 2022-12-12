@@ -563,7 +563,9 @@ function! jetpack#begin(...) abort
   let s:srcdir = s:home . '/pack/jetpack/src'
   let s:declared_packages = {}
   let available_packages_file = s:optdir . '/available_packages.json'
-  silent! let available_packages_text = join(readfile(available_packages_file))
+  let available_packages_text =
+        \ filereadable(available_packages_file) 
+        \ ? join(readfile(available_packages_file)) : ""
   let s:available_packages = json_decode(available_packages_text)
   let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   augroup Jetpack
