@@ -565,7 +565,7 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-function! s:doautocmd_User_Jetpack(ord, pkg_name) abort
+function! s:doautocmd(ord, pkg_name) abort
   let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
   let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
   let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
@@ -586,12 +586,12 @@ function! jetpack#load(pkg_name) abort
   endif
   let pkg = s:available_packages[a:pkg_name]
   " Load package
-  call s:doautocmd_User_Jetpack('pre', a:pkg_name)
+  call s:doautocmd('pre', a:pkg_name)
   call s:packadd(a:pkg_name)
   for file in glob(pkg.path . '/after/plugin/*', '', 1)
     execute 'source' file
   endfor
-  call s:doautocmd_User_Jetpack('post', a:pkg_name)
+  call s:doautocmd('post', a:pkg_name)
   return v:true
 endfunction
 
@@ -655,21 +655,18 @@ function! jetpack#end() abort
     endfor
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
-        call s:doautocmd_User_Jetpack('pre', pkg_name)
+        call s:doautocmd('pre', pkg_name)
         let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
-        let cmd = 'call s:doautocmd_User_Jetpack("post", '.string(pkg_name).')'
+        let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
         call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
       endif
       continue
     endif
     if !pkg.opt
-      " In this case, vim-jetpack is not well-tested,
-      " because the test is always fresh, i.e., no cache.
-      " So, the test will skip the following cases.
       if jetpack#tap(pkg_name)
-        call s:doautocmd_User_Jetpack('pre', pkg_name)
+        call s:doautocmd('pre', pkg_name)
         call s:packadd(pkg_name, '!')
-        let cmd = 'call s:doautocmd_User_Jetpack("post", '.string(pkg_name).')'
+        let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
         call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'VimEnter', 'cmd': cmd }])
       endif
       continue
