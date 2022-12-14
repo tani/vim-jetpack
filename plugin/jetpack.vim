@@ -153,6 +153,9 @@ function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
   if g:jetpack_copy_method !=# 'system'
     for src in s:list_files(a:from)
+      if src =~# '[\/]tags.*$' " ignore tags
+        continue
+      endif
       let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack_copy_method ==# 'copy'
