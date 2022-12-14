@@ -338,7 +338,7 @@ function! s:merge_plugins() abort
     if !has_key(s:declared_packages, pkg_name)
      \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
       if pkg_name == 'vim-jetpack' && !s:ask('Delete "' . pkg_name . '"?')
-        call s:ask("Add a \"Jetpack 'tani/vim-jetpack', {'opt': 1}\" line to your vimrc. Are you okay?")
+        call s:ask("Please add the following snippet: \"Jetpack 'tani/vim-jetpack', {'opt': 1}\"")
       else
         call delete(dir, 'rf')
       endif
