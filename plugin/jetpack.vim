@@ -667,19 +667,19 @@ function! jetpack#end() abort
     endif
     if !empty(pkg.dir) || pkg.local
       let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd, 'once': v:true }])
       execute 'set runtimepath^=' . pkg.path . '/' . pkg.rtp
       execute 'set runtimepath+=' . pkg.path . '/' . pkg.rtp . '/after'
       let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd, 'once': v:true }])
       continue
     endif
     if !pkg.opt
       let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd, 'once': v:true }])
       call s:packadd(pkg_name, '!')
       let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd, 'once': v:true }])
       continue
     endif
     for it in pkg.on
@@ -692,7 +692,7 @@ function! jetpack#end() abort
       elseif exists('##'.substitute(it, ' .*', '', ''))
         let cmd = 'call jetpack#load('.string(pkg_name).')'
         let [event, pattern] = split(it . (it =~# ' ' ? '' : ' *'), ' ')
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': event, 'pattern': pattern, 'cmd': cmd }])
+        call s:autocmd_add([{ 'group': 'Jetpack', 'event': event, 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
       else
         let cmd = substitute(it, '^:', '', '')
         let s:cmds[cmd] = add(get(s:cmds, cmd, []), pkg_name)
