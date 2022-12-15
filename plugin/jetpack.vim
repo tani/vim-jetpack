@@ -572,7 +572,7 @@ function! s:doautocmd(ord, pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
   if jetpack#tap(a:pkg_name) || (pkg.local && isdirectory(pkg.path.'/'.pkg.rtp))
     let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
-    let pattern_a = substitute(pattern_a, '\W\+', '_', 'g'))
+    let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
     let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
     let pattern_b = 'Jetpack' . substitute(a:ord, '.*', '\u\0', '') . ':'. a:pkg_name
     for pattern in [pattern_a, pattern_b]
