@@ -25,6 +25,12 @@ if exists('g:loaded_jetpack')
 endif
 let g:loaded_jetpack = 1
 
+function! s:packadd(pkg_name, bang='') abort
+  if isdirectory(s:optdir . '/'. a:pkg_name)
+    execute 'packadd'.a:bang a:pkg_name
+  endif
+endfunction
+
 function! s:autocmd_add(autocmds) abort
   call autocmd_add(a:autocmds)
 endfunction
@@ -76,12 +82,6 @@ let s:status = {
 \   'merged': 'merged',
 \   'copied': 'copied'
 \ }
-
-function s:packadd(name, bang='') abort
-  if isdirectory(s:optdir . '/' . a:name)
-    execute 'packadd'.a:bang a:name
-  endif
-endfunction
 
 function! s:check_ignorable(filename) abort
   return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
@@ -412,14 +412,12 @@ function! s:merge_plugins() abort
   " Copy plugins.
   for [pkg_name, pkg] in items(unbundle)
     call s:show_progress('Copy Plugins')
-    if !empty(pkg.dir)
+    if !empty(pkg.dir) || pkg.local
       call add(pkg.status, s:status.skipped)
     else
       let srcdir = pkg.path . '/' . pkg.rtp
       let destdir = s:optdir . '/' . pkg_name
-      if !pkg.local
-        call s:copy_dir(srcdir, destdir)
-      endif
+      call s:copy_dir(srcdir, destdir)
       call add(pkg.status, s:status.copied)
     endif
   endfor
@@ -470,11 +468,11 @@ endfunction
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L479-L529
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 if has('win32')
-  function! s:is_local_plug(repo)
+  function! s:is_local_plug(repo) abort
     return a:repo =~? '^[a-z]:\|^[%~]'
   endfunction
 else
-  function! s:is_local_plug(repo)
+  function! s:is_local_plug(repo) abort
     return a:repo[0] =~# '[/$~]'
   endfunction
 endif
@@ -547,8 +545,8 @@ function! jetpack#begin(...) abort
   " In lua, passing nil and no argument are synonymous, but in practice, v:null is passed.
   if a:0 > 0 && a:1 != v:null
     let s:home = expand(a:1)
-    let &packpath .= ',' . s:home
-    let &runtimepath .=  ',' . s:home
+    execute 'set runtimepath^=' . expand(s:home)
+    execute 'set packpath^=' . expand(s:home)
   elseif has('nvim')
     let s:home = stdpath('data') . '/' . 'site'
   elseif has('win32')
@@ -571,23 +569,26 @@ function! jetpack#begin(...) abort
 endfunction
 
 function! s:doautocmd(ord, pkg_name) abort
-  let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
-  let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
-  let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
-  let pattern_b = 'Jetpack' . substitute(a:ord, '.*', '\u\0', '') . ':'. a:pkg_name
-  for pattern in [pattern_a, pattern_b]
-    if exists('#User#' . pattern)
-      execute 'doautocmd <nomodeline> User' pattern
-    endif
-  endfor
+  let pkg = jetpack#get(a:pkg_name)
+  if jetpack#tap(a:pkg_name) || (pkg.local && isdirectory(pkg.path.'/'.pkg.rtp))
+    let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
+    let pattern_a = substitute(pattern_a, '\W\+', '_', 'g'))
+    let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
+    let pattern_b = 'Jetpack' . substitute(a:ord, '.*', '\u\0', '') . ':'. a:pkg_name
+    for pattern in [pattern_a, pattern_b]
+      if exists('#User#' . pattern)
+        execute 'doautocmd <nomodeline> User' pattern
+      endif
+    endfor
+  endif
 endfunction
 
 " Not called during startup
 function! jetpack#load(pkg_name) abort
-  if !jetpack#tap(a:pkg_name)
+  let pkg = get(s:available_packages, a:pkg_name, {})
+  if !jetpack#tap(a:pkg_name) || pkg.merged
     return v:false
   endif
-  let pkg = s:available_packages[a:pkg_name]
   " Load package
   call s:doautocmd('pre', a:pkg_name)
   call s:packadd(a:pkg_name)
@@ -665,23 +666,20 @@ function! jetpack#end() abort
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': pkg.config, 'once': v:true }])
     endif
     if !empty(pkg.dir) || pkg.local
-      if isdirectory(pkg.path)
-        let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
-        let &runtimepath .= printf(',%s/%s', pkg.path, pkg.rtp)
-        let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
-      endif
+      let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
+      execute 'set runtimepath^=' . pkg.path . '/' . pkg.rtp
+      execute 'set runtimepath+=' . pkg.path . '/' . pkg.rtp . '/after'
+      let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
       continue
     endif
     if !pkg.opt
-      if jetpack#tap(pkg_name)
-        let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
-        call s:packadd(pkg_name, '!')
-        let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-        call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
-      endif
+      let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd }])
+      call s:packadd(pkg_name, '!')
+      let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd }])
       continue
     endif
     for it in pkg.on
@@ -704,7 +702,7 @@ function! jetpack#end() abort
   endfor
   call s:packadd('_', '!')
 
-  autocmd Jetpack SourcePre */jetpack/opt/*/plugin/* ++once doautocmd <nomodeline> Jetpack User JetpackSetup
+  autocmd Jetpack SourcePre */jetpack/opt/*/plugin/**/* ++once doautocmd <nomodeline> Jetpack User JetpackSetup
   autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
 
   syntax enable
