@@ -129,15 +129,17 @@ function! s:nvim_exit_cb(buf, cb, job, ...) abort
   call a:cb(join(a:buf, "\n"))
 endfunction
 
-function! s:jobstart(cmd, cb) abort
-  if has('nvim')
+if has('nvim')
+  function! s:jobstart(cmd, cb) abort
     let buf = []
     return jobstart(a:cmd, {
     \   'on_stdout': { _, data -> extend(buf, data) },
     \   'on_stderr': { _, data -> extend(buf, data) },
     \   'on_exit': { -> a:cb(join(buf, "\n")) }
     \ })
-  else
+  endfunction
+else
+  function! s:jobstart(cmd, cb) abort
     let buf = []
     return job_start(a:cmd, {
     \   'out_mode': 'raw',
@@ -146,8 +148,8 @@ function! s:jobstart(cmd, cb) abort
     \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
     \   'exit_cb': function('s:nvim_exit_cb', [buf, a:cb])
     \ })
-  endif
-endfunction
+  endfunction
+endif
 
 function! s:copy_dir(from, to) abort
   call mkdir(a:to, 'p')
@@ -480,10 +482,10 @@ endif
 " If opt/do/dir/setup/config option is enabled,
 " it should be placed isolated directory (not merged).
 function! s:is_merged(pkg) abort
-  return !a:pkg.opt 
-        \ && empty(a:pkg.do) 
-        \ && empty(a:pkg.dir) 
-        \ && empty(a:pkg.setup) 
+  return !a:pkg.opt
+        \ && empty(a:pkg.do)
+        \ && empty(a:pkg.dir)
+        \ && empty(a:pkg.setup)
         \ && empty(a:pkg.config)
 endfunction
 
@@ -545,8 +547,8 @@ function! jetpack#begin(...) abort
   " In lua, passing nil and no argument are synonymous, but in practice, v:null is passed.
   if a:0 > 0 && a:1 != v:null
     let s:home = expand(a:1)
-    execute 'set packpath^=' . s:home
-    execute 'set runtimepath^=' . s:home
+    let &packpath .= ',' . s:home
+    let &runtimepath .=  ',' . s:home
   elseif has('nvim')
     let s:home = stdpath('data') . '/' . 'site'
   elseif has('win32')
@@ -559,7 +561,7 @@ function! jetpack#begin(...) abort
   let s:declared_packages = {}
   let available_packages_file = s:optdir . '/available_packages.json'
   let available_packages_text =
-        \ filereadable(available_packages_file) 
+        \ filereadable(available_packages_file)
         \ ? join(readfile(available_packages_file)) : "{}"
   let s:available_packages = json_decode(available_packages_text)
   augroup Jetpack
@@ -578,8 +580,6 @@ function! s:doautocmd(ord, pkg_name) abort
       execute 'doautocmd <nomodeline> User' pattern
     endif
   endfor
-  let hook = { 'pre': 'setup', 'post': 'config' }[a:ord]
-  execute s:declared_packages[a:pkg_name][hook]
 endfunction
 
 " Not called during startup
@@ -656,6 +656,14 @@ function! jetpack#end() abort
       let pattern = 'JetpackPre:'.pkg_name
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endfor
+    if !empty(pkg.setup)
+      let pattern = 'JetpackPre:'.pkg_name
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': pkg.setup, 'once': v:true }])
+    endif
+    if !empty(pkg.config)
+      let pattern = 'JetpackPost:'.pkg_name
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': pkg.config, 'once': v:true }])
+    endif
     if !empty(pkg.dir) || pkg.local
       if isdirectory(pkg.path)
         let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
@@ -696,8 +704,8 @@ function! jetpack#end() abort
   endfor
   call s:packadd('_', '!')
 
-  autocmd Jetpack SourcePost $MYVIMRC doautocmd <nomodeline> Jetpack User JetpackSetup
-  autocmd Jetpack VimEnter * doautocmd <nomodeline> Jetpack User JetpackConfig
+  autocmd Jetpack SourcePre */jetpack/opt/*/plugin/* ++once doautocmd <nomodeline> Jetpack User JetpackSetup
+  autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
 
   syntax enable
   filetype plugin indent on
@@ -719,7 +727,7 @@ function! s:ask(message, ...)
 endfunction
 
 function! jetpack#tap(name) abort
-  return has_key(s:available_packages, a:name) && has_key(s:declared_packages, a:name) ? v:true : v:false
+  return has_key(s:available_packages, a:name) && has_key(s:declared_packages, a:name)
 endfunction
 
 function! jetpack#names() abort
@@ -735,7 +743,10 @@ lua<<========================================
 local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
-  Jetpack[name] = function(...) return vim.fn['jetpack#' .. name](...) end
+  Jetpack[name] = function(...)
+    local result = vim.fn['jetpack#' .. name](...)
+    return result == 0 and false or result == 1 and true or result
+  end
 end
 Jetpack.prologue = Jetpack['begin']
 Jetpack.epilogue = Jetpack['end']
