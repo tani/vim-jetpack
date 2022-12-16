@@ -47,6 +47,10 @@ else
   endfunction
 endif
 
+function! s:execute(code) abort
+  call execute(a:code->substitute('\n\s*\\', ' ', 'g')->split("\n"))
+endfunction
+
 function! s:packadd(pkg_name, bang='') abort
   if isdirectory(s:optdir . '/'. a:pkg_name)
     execute 'packadd'.a:bang a:pkg_name
