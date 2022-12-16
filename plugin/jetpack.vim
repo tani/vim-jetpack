@@ -124,7 +124,7 @@ function! jetpack#parse_toml(lines) abort
           let plugin[key] = eval(plugin[key])
           let multiline = ''
         else
-          let plugin[key] .= substitute(line, multiline, '', '')
+          let plugin[key] = substitute(line, multiline, '', '')
           let multiline = ''
         endif
       endif
