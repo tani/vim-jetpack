@@ -48,7 +48,16 @@ else
 endif
 
 function! s:execute(code) abort
-  call execute(a:code->substitute('\n\s*\\', ' ', 'g')->split("\n"))
+  if has('nvim')
+    call v:lua.vim.cmd(a:code)
+  elseif has('lua')
+    call luaeval('vim.command')(a:code)
+  else
+    let temp = tempname()
+    call writefile([a:code], temp)
+    execute 'source' temp
+    call delete(temp)
+  endif
 endfunction
 
 function! s:packadd(pkg_name, bang='') abort
