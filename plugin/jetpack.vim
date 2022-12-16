@@ -36,7 +36,9 @@ elseif has('patch-8.2.4594')
     call setline(1, split(a:code, "\n"))
     source
     execute 'silent buffer' c
-    execute t.'bdelete!'
+    if buflisted(t)
+      execute 'bdelete!' t
+    endif
   endfunction
 else
   function! s:execute(code) abort
