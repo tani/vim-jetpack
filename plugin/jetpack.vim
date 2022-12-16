@@ -237,7 +237,7 @@ endfunction
 
 function! s:initialize_buffer() abort
   execute 'silent! bdelete!' bufnr('jetpack://status')
-  40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
+  40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap jetpack://status
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
   syntax match jetpackComplete /^[a-z]*ed/
