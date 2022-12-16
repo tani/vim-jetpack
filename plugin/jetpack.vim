@@ -25,18 +25,12 @@ if exists('g:loaded_jetpack')
 endif
 let g:loaded_jetpack = 1
 
-if has('nvim')
-  function! s:execute(code) abort
-    call v:lua.vim.cmd(a:code)
-  endfunction
-else
-  function! s:execute(code) abort
-    let temp = tempname()
-    call writefile(split(a:code, "\n"), temp)
-    execute 'source' temp
-    call delete(temp)
-  endfunction
-endif
+function! s:execute(code) abort
+  let temp = tempname()
+  call writefile(split(a:code, "\n"), temp)
+  execute 'source' temp
+  call delete(temp)
+endfunction
 
 function! s:packadd(pkg_name, bang='') abort
   if isdirectory(s:optdir . '/'. a:pkg_name)
