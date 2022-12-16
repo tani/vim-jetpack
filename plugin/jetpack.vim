@@ -98,6 +98,76 @@ function! s:list_files(path) abort
   return files
 endfunction
 
+function! jetpack#parse_toml(lines) abort
+  let plugins = {}
+  let repo = ''
+  let key = ''
+  let value = ''
+  let plugin = {}
+  let multiline = ''
+  for line in a:lines
+    if !empty(multiline)
+      if multiline == ']'
+        let plugin[key] .= line
+        if trim(line) =~ multiline
+          let plugin[key] = eval(plugin[key])
+          let multiline = ''
+        endif
+      else
+        if trim(line) =~ multiline
+          let plugin[key] .= substitute(line, multiline, '', '')
+          let multiline = ''
+        else
+          let plugin[key] .= line . "\n"
+        endif
+      endif
+      continue
+    endif
+    if trim(line) =~ '^#'
+      continue
+    endif
+    if trim(line) =~ '^$'
+      continue
+    endif
+    if trim(line) =~ '^\[\[plugins\]\]$'
+      let plugins[repo] = deepcopy(plugin)
+      let plugin = {}
+      continue
+    endif
+    if trim(line) =~ '^repo\s*=\s*'
+      let repo = eval(substitute(trim(line), 'repo\s*=\s*', '', ''))
+      continue
+    endif
+    if trim(line) =~ '^\w\+\s*=\s*'
+      let key = substitute(trim(line), '^\(\w\+\)\s*=\s*.*', '\1', '')
+      let raw = substitute(trim(line), '^\w\+\s*=\s*', '', '')
+      if trim(raw) =~ '^""".*"""$'
+        let plugin[key] = substitute(trim(raw), '"""', '', 'g')
+      elseif trim(raw) =~ "^'''.*'''$"
+        let plugin[key] = substitute(trim(raw), "'''", '', 'g')
+      elseif trim(raw) =~ '^"""' || trim(raw) =~ "^'''"
+        let multiline = trim(raw) =~ '^"""' ? '"""' : "'''"
+        let plugin[key] = substitute(trim(raw), '^...', '', '') 
+      elseif trim(raw) =~ '^\[.*\]$'
+        let plugin[key] = eval(raw)
+      elseif trim(raw) =~ '^\['
+        let multiline = ']'
+        let plugin[key] = trim(raw)
+      else
+        if trim(raw) =~ 'true\|false'
+          let value = eval('v:'..raw)
+        else
+          let value = eval(raw)
+        endif
+        let plugin[key] = value
+      endif
+    endif
+  endfor
+  let plugins[repo] = plugin
+  unlet plugins['']
+  return plugins
+endfunction
+
 function! s:make_progressbar(n) abort
   return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
@@ -533,12 +603,20 @@ function! jetpack#add(plugin, ...) abort
   \   'path': path,
   \   'status': [s:status.pending],
   \   'output': '',
-  \   'setup': get(opts, 'setup', ''),
-  \   'config': get(opts, 'config', ''),
+  \   'setup': s:gets(opts, ['setup', 'hook_add', 'hook_source'], [''])[0],
+  \   'config': s:gets(opts, ['config', 'hook_post_source'], [''])[0],
   \   'requires': requires,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
+endfunction
+
+function! jetpack#load_toml(path) abort
+  let lines = readfile(a:path)
+  let toml = jetpack#parse_toml(lines)
+  for [name, options] in items(toml)
+    call jetpack#add(name, options)
+  endfor
 endfunction
 
 function! jetpack#begin(...) abort
@@ -659,11 +737,13 @@ function! jetpack#end() abort
     endfor
     if !empty(pkg.setup)
       let pattern = 'JetpackPre:'.pkg_name
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': pkg.setup, 'once': v:true }])
+      let cmd = 'execute s:declared_packages['.string(pkg_name).'].setup'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
     if !empty(pkg.config)
       let pattern = 'JetpackPost:'.pkg_name
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': pkg.config, 'once': v:true }])
+      let cmd = 'execute s:declared_packages['.string(pkg_name).'].config'
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
     if !empty(pkg.dir) || pkg.local
       let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'

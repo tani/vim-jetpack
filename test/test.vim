@@ -72,6 +72,31 @@ function s:assert.notloaded(package)
   endtry
 endfunction
 
+function s:suite.parse_toml()
+let toml =<<EOF
+[[plugins]]
+repo = 'tani/jetpack.vim'
+opt = true
+depends = [
+  'Shougo/deoplete.nvim',
+  'Shougo/vimproc.vim',
+]
+hook_add = '''
+  let g:jetpack_loaded = 1
+'''
+[[plugins]]
+repo = 'tani/glance-vim'
+opt = 1
+hook_add = '''let g:glance_loaded = 1'''
+EOF
+let plugins = jetpack#parse_toml(toml)
+call s:assert.equals(plugins['tani/jetpack.vim']['opt'], v:true)
+call s:assert.equals(plugins['tani/jetpack.vim']['depends'][0], 'Shougo/deoplete.nvim')
+call s:assert.equals(plugins['tani/jetpack.vim']['depends'][1], 'Shougo/vimproc.vim')
+call s:assert.match(plugins['tani/jetpack.vim']['hook_add'], 'let g:jetpack_loaded = 1')
+call s:assert.equals(plugins['tani/glance-vim']['opt'], 1)
+call s:assert.match(plugins['tani/glance-vim']['hook_add'], 'let g:glance_loaded = 1')
+endfunction
 
 function s:suite.multiple_plugins_with_the_same_ondemand_command()
   call s:setup(

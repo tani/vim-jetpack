@@ -106,6 +106,7 @@ call jetpack#end()
 ----
 packadd vim-jetpack
 call jetpack#begin()
+call jetpack#load_toml('path/to/dein.toml')
 call jetpack#add('tani/vim-jetpack', {'opt': 1}) "bootstrap
 call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
@@ -116,6 +117,23 @@ call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
 call jetpack#add('dracula/vim', { 'name': 'dracula' })
 call jetpack#add('tpope/vim-fireplace', { 'on_ft': 'clojure' })
 call jetpack#end()
+----
+
+[source, toml]
+----
+[[plugins]]
+repo = 'tani/vim-jetpack'
+opt = true
+
+[[plugins]]
+repo = 'tpope/vim-fugitive'
+on_cmd = 'Git'
+hook_source = '''
+let g:fugitive_no_mappings = 1
+'''
+hook_post_source = '''
+echom 'fugitive is loaded'
+'''
 ----
 
 === Legacy packer.nvim style
@@ -359,6 +377,18 @@ We are welcome to your pull requests to improve the compatibility.
 |`depends`
 |`string` or `array`
 | Install plugins after the specified plugins.
+
+|`hook_add`
+|`string`
+| Execute the specified Vim script before loading the plugin. (Alis of `hook_source`)
+
+|`hook_source`
+|`string`
+| Execute the specified Vim script before loading the plugin.
+
+|`hook_post_source`
+|`string`
+| Execute the specified Vim script after loading the plugin.
 |===
 
 ==== Legacy packer.nvim style
