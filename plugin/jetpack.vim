@@ -113,31 +113,31 @@ function! jetpack#parse_toml(lines) abort
   for line in a:lines
     if !empty(multiline)
       let plugin[key] .= line . (multiline =~ ']' ? "" : "\n")
-      if trim(line) =~ multiline
+      if line =~ multiline
         if multiline == ']'
           let plugin[key] = eval(plugin[key])
         else
-          let plugin[key] = substitute(plugin[key], multiline, '', '')
+          let plugin[key] = substitute(plugin[key], multiline, '', 'g')
         endif
         let multiline = ''
       endif
     elseif trim(line) =~ '^#\|^$'
-    elseif trim(line) =~ '^\[\[plugins\]\]$'
+    elseif line =~ '\[\[plugins\]\]'
       call add(plugins, deepcopy(plugin))
       let plugin = {}
-    elseif trim(line) =~ '^\w\+\s*=\s*'
-      let key = substitute(trim(line), '^\(\w\+\)\s*=\s*.*', '\1', '')
-      let raw = substitute(trim(line), '^\w\+\s*=\s*', '', '')
-      if trim(raw) =~ "^\\(\"\"\"\\|'''\\)\\(.*\\)\\1$"
-        let plugin[key] = substitute(trim(raw), "^\\(\"\"\"\\|'''\\)\\(.*\\)\\1$", '\2', '')
-      elseif trim(raw) =~ '^"""' || trim(raw) =~ "^'''"
-        let multiline = trim(raw) =~ '^"""' ? '"""' : "'''"
-        let plugin[key] = substitute(trim(raw), '^...', '', '') 
-      elseif trim(raw) =~ '^\[.*\]$'
+    elseif line =~ '\(\w\+\)\s*=\s*'
+      let key = substitute(line, '\(\w\+\)\s*=\s*.*', '\1', '')
+      let raw = substitute(line, '\w\+\s*=\s*', '', '')
+      if raw =~ "\\(\"\"\"\\|'''\\)\\(.*\\)\\1"
+        let plugin[key] = substitute(raw, "\\(\"\"\"\\|'''\\)\\(.*\\)\\1", '\2', '')
+      elseif raw =~ '"""' || raw =~ "'''"
+        let multiline = raw =~ '"""' ? '"""' : "'''"
+        let plugin[key] = raw
+      elseif raw =~ '\[.*\]'
         let plugin[key] = eval(raw)
-      elseif trim(raw) =~ '^\['
+      elseif raw =~ '\['
         let multiline = ']'
-        let plugin[key] = trim(raw)
+        let plugin[key] = raw
       else
         let plugin[key] = eval(trim(raw) =~ 'true\|false' ? 'v:'.raw : raw)
       endif
