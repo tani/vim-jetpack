@@ -236,8 +236,8 @@ function! s:copy_dir(from, to) abort
 endfunction
 
 function! s:initialize_buffer() abort
-  execute 'silent! bdelete!' bufnr('jetpack://status')
-  40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap jetpack://status
+  execute 'silent! bdelete!' bufnr('JetpackStatus')
+  40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
   syntax match jetpackComplete /^[a-z]*ed/
@@ -249,7 +249,7 @@ function! s:initialize_buffer() abort
 endfunction
 
 function! s:show_progress(title) abort
-  let buf = bufnr('jetpack://status')
+  let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
   let processed = len(filter(copy(s:declared_packages), { _, val -> val.status[-1] =~# 'ed' }))
   call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:declared_packages)))
@@ -261,7 +261,7 @@ function! s:show_progress(title) abort
 endfunction
 
 function! s:show_result() abort
-  let buf = bufnr('jetpack://status')
+  let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
   call setbufline(buf, 1, 'Result')
   call appendbufline(buf, '$', s:make_progressbar(100))
