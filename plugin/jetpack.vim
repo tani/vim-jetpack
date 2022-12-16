@@ -112,52 +112,31 @@ function! s:list_files(path) abort
 endfunction
 
 function! jetpack#parse_toml(lines) abort
-  let plugins = {}
-  let repo = ''
-  let key = ''
-  let value = ''
+  let plugins = []
   let plugin = {}
+  let key = ''
   let multiline = ''
   for line in a:lines
     if !empty(multiline)
-      if multiline == ']'
-        let plugin[key] .= line
-        if trim(line) =~ multiline
+      let plugin[key] .= line . (multiline =~ ']' ? "" : "\n")
+      if trim(line) =~ multiline
+        if multiline == ']'
           let plugin[key] = eval(plugin[key])
           let multiline = ''
-        endif
-      else
-        if trim(line) =~ multiline
+        else
           let plugin[key] .= substitute(line, multiline, '', '')
           let multiline = ''
-        else
-          let plugin[key] .= line . "\n"
         endif
       endif
-      continue
-    endif
-    if trim(line) =~ '^#'
-      continue
-    endif
-    if trim(line) =~ '^$'
-      continue
-    endif
-    if trim(line) =~ '^\[\[plugins\]\]$'
-      let plugins[repo] = deepcopy(plugin)
+    elseif trim(line) =~ '^#\|^$'
+    elseif trim(line) =~ '^\[\[plugins\]\]$'
+      call add(plugins, deepcopy(plugin))
       let plugin = {}
-      continue
-    endif
-    if trim(line) =~ '^repo\s*=\s*'
-      let repo = eval(substitute(trim(line), 'repo\s*=\s*', '', ''))
-      continue
-    endif
-    if trim(line) =~ '^\w\+\s*=\s*'
+    elseif trim(line) =~ '^\w\+\s*=\s*'
       let key = substitute(trim(line), '^\(\w\+\)\s*=\s*.*', '\1', '')
       let raw = substitute(trim(line), '^\w\+\s*=\s*', '', '')
-      if trim(raw) =~ '^""".*"""$'
-        let plugin[key] = substitute(trim(raw), '"""', '', 'g')
-      elseif trim(raw) =~ "^'''.*'''$"
-        let plugin[key] = substitute(trim(raw), "'''", '', 'g')
+      if trim(raw) =~ "^\\(\"\"\"\\|'''\\)\\(.*\\)\\1$"
+        let plugin[key] = substitute(trim(raw), "^\\(\"\"\"\\|'''\\)\\(.*\\)\\1$", '\2', '')
       elseif trim(raw) =~ '^"""' || trim(raw) =~ "^'''"
         let multiline = trim(raw) =~ '^"""' ? '"""' : "'''"
         let plugin[key] = substitute(trim(raw), '^...', '', '') 
@@ -167,18 +146,12 @@ function! jetpack#parse_toml(lines) abort
         let multiline = ']'
         let plugin[key] = trim(raw)
       else
-        if trim(raw) =~ 'true\|false'
-          let value = eval('v:'..raw)
-        else
-          let value = eval(raw)
-        endif
-        let plugin[key] = value
+        let plugin[key] = eval(trim(raw) =~ 'true\|false' ? 'v:'.raw : raw)
       endif
     endif
   endfor
-  let plugins[repo] = plugin
-  unlet plugins['']
-  return plugins
+  call add(plugins, plugin)
+  return filter(plugins,{ _, val -> !empty(val) })
 endfunction
 
 function! s:make_progressbar(n) abort
@@ -263,7 +236,7 @@ function! s:copy_dir(from, to) abort
 endfunction
 
 function! s:initialize_buffer() abort
-  execute 'silent! bdelete!' bufnr('JetpackStatus')
+  execute 'silent! bdelete!' bufnr('jetpack://status')
   40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
   syntax match jetpackProgress /^[a-z]*ing/
@@ -276,7 +249,7 @@ function! s:initialize_buffer() abort
 endfunction
 
 function! s:show_progress(title) abort
-  let buf = bufnr('JetpackStatus')
+  let buf = bufnr('jetpack://status')
   call deletebufline(buf, 1, '$')
   let processed = len(filter(copy(s:declared_packages), { _, val -> val.status[-1] =~# 'ed' }))
   call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:declared_packages)))
@@ -288,7 +261,7 @@ function! s:show_progress(title) abort
 endfunction
 
 function! s:show_result() abort
-  let buf = bufnr('JetpackStatus')
+  let buf = bufnr('jetpack://status')
   call deletebufline(buf, 1, '$')
   call setbufline(buf, 1, 'Result')
   call appendbufline(buf, '$', s:make_progressbar(100))
@@ -628,9 +601,8 @@ endfunction
 
 function! jetpack#load_toml(path) abort
   let lines = readfile(a:path)
-  let toml = jetpack#parse_toml(lines)
-  for [name, options] in items(toml)
-    call jetpack#add(name, options)
+  for pkg in jetpack#parse_toml(lines)
+    call jetpack#add(pkg.repo, pkg)
   endfor
 endfunction
 

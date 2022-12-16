@@ -88,14 +88,22 @@ hook_add = '''
 repo = 'tani/glance-vim'
 opt = 1
 hook_add = '''let g:glance_loaded = 1'''
+[[plugins]]
+repo = 'tani/ddc-fuzzy'
+hook_add = '''
+let g:ddc_fuzzy_loaded = 1'''
 EOF
 let plugins = jetpack#parse_toml(toml)
-call s:assert.equals(plugins['tani/jetpack.vim']['opt'], v:true)
-call s:assert.equals(plugins['tani/jetpack.vim']['depends'][0], 'Shougo/deoplete.nvim')
-call s:assert.equals(plugins['tani/jetpack.vim']['depends'][1], 'Shougo/vimproc.vim')
-call s:assert.match(plugins['tani/jetpack.vim']['hook_add'], 'let g:jetpack_loaded = 1')
-call s:assert.equals(plugins['tani/glance-vim']['opt'], 1)
-call s:assert.match(plugins['tani/glance-vim']['hook_add'], 'let g:glance_loaded = 1')
+call s:assert.equals(plugins[0].repo, 'tani/jetpack.vim')
+call s:assert.equals(plugins[0].opt, 1)
+call s:assert.equals(plugins[0].depends[0], 'Shougo/deoplete.nvim')
+call s:assert.equals(plugins[0].depends[1], 'Shougo/vimproc.vim')
+call s:assert.match(plugins[0].hook_add, 'let g:jetpack_loaded = 1')
+call s:assert.equals(plugins[1].repo, 'tani/glance-vim')
+call s:assert.equals(plugins[1].opt, 1)
+call s:assert.match(plugins[1].hook_add, 'let g:glance_loaded = 1')
+call s:assert.equals(plugins[2].repo, 'tani/ddc-fuzzy')
+call s:assert.match(plugins[2].hook_add, 'let g:ddc_fuzzy_loaded = 1')
 endfunction
 
 function s:suite.multiple_plugins_with_the_same_ondemand_command()
