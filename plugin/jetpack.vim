@@ -610,7 +610,7 @@ function! jetpack#add(plugin, ...) abort
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
-  execute pkg.code
+  execute pkg.code->substitute("\\n\\s*\\\\", '', 'g')
 endfunction
 
 function! jetpack#load_toml(path) abort
@@ -739,12 +739,12 @@ function! jetpack#end() abort
     endfor
     if !empty(pkg.setup)
       let pattern = 'JetpackPre:'.pkg_name
-      let cmd = 'execute s:declared_packages['.string(pkg_name).'].setup'
+      let cmd = 'execute s:declared_packages['.string(pkg_name).'].setup->substitute("\\n\\s*\\\\", "", "g")'
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
     if !empty(pkg.config)
       let pattern = 'JetpackPost:'.pkg_name
-      let cmd = 'execute s:declared_packages['.string(pkg_name).'].config'
+      let cmd = 'execute s:declared_packages['.string(pkg_name).'].config->substitute("\\n\\s*\\\\", "", "g")'
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
     if !empty(pkg.dir) || pkg.local
