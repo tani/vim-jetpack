@@ -32,7 +32,7 @@ if has('nvim')
 else
   function! s:execute(code) abort
     let temp = tempname()
-    call writefile([a:code], temp)
+    call writefile(split(a:code, "\n"), temp)
     execute 'source' temp
     call delete(temp)
   endfunction
@@ -122,11 +122,10 @@ function! jetpack#parse_toml(lines) abort
       if trim(line) =~ multiline
         if multiline == ']'
           let plugin[key] = eval(plugin[key])
-          let multiline = ''
         else
-          let plugin[key] = substitute(line, multiline, '', '')
-          let multiline = ''
+          let plugin[key] = substitute(plugin[key], multiline, '', '')
         endif
+        let multiline = ''
       endif
     elseif trim(line) =~ '^#\|^$'
     elseif trim(line) =~ '^\[\[plugins\]\]$'
@@ -590,7 +589,7 @@ function! jetpack#add(plugin, ...) abort
   \   'status': [s:status.pending],
   \   'output': '',
   \   'code': get(opts, 'hook_add', ''),
-  \   'setup': s:gets(opts, ['setup', 'hook_add', 'hook_source'], [''])[0],
+  \   'setup': s:gets(opts, ['setup', 'hook_source'], [''])[0],
   \   'config': s:gets(opts, ['config', 'hook_post_source'], [''])[0],
   \   'requires': requires,
   \ }
