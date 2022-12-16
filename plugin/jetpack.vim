@@ -24,13 +24,28 @@ if exists('g:loaded_jetpack')
   finish
 endif
 let g:loaded_jetpack = 1
-
-function! s:execute(code) abort
-  let temp = tempname()
-  call writefile(split(a:code, "\n"), temp)
-  execute 'source' temp
-  call delete(temp)
-endfunction
+if has('nvim')
+  function! s:execute(code) abort
+    return v:lua.vim.cmd(a:code)
+  endfunction
+elseif has('patch-8.2.4594')
+  function! s:execute(code) abort
+    let c = bufnr()
+    let t = bufadd('')
+    execute 'silent buffer' t
+    call setline(1, split(a:code, "\n"))
+    source
+    execute 'silent buffer' c
+    execute 'bdelete!' t
+  endfunction
+else
+  function! s:execute(code) abort
+    let temp = tempname()
+    call writefile(split(a:code, "\n"), temp)
+    execute 'source' temp
+    call delete(temp)
+  endfunction
+endif
 
 function! s:packadd(pkg_name, bang='') abort
   if isdirectory(s:optdir . '/'. a:pkg_name)
