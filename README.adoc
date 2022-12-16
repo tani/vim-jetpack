@@ -380,7 +380,7 @@ We are welcome to your pull requests to improve the compatibility.
 
 |`hook_add`
 |`string`
-| Execute the specified Vim script before loading the plugin. (Alias of `hook_source`)
+| Execute the specified Vim script at the end of `jetpack#add` function.
 
 |`hook_source`
 |`string`

@@ -603,12 +603,14 @@ function! jetpack#add(plugin, ...) abort
   \   'path': path,
   \   'status': [s:status.pending],
   \   'output': '',
+  \   'code': get(opts, 'hook_add', ''),
   \   'setup': s:gets(opts, ['setup', 'hook_add', 'hook_source'], [''])[0],
   \   'config': s:gets(opts, ['config', 'hook_post_source'], [''])[0],
   \   'requires': requires,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
+  execute pkg.code
 endfunction
 
 function! jetpack#load_toml(path) abort
