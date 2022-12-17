@@ -335,9 +335,15 @@ function! s:merge_plugins() abort
   " Delete old directories
   for dir in glob(s:optdir . '/*', '', 1)
     let pkg_name = fnamemodify(dir, ':t')
+    let is_jetpack = pkg_name == 'vim-jetpack' || pkg_name == 'vim-jetpack.git'
+
+    if has_key(s:declared_packages, pkg_name) && is_jetpack
+      continue
+    endif
+
     if !has_key(s:declared_packages, pkg_name)
      \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
-      if pkg_name == 'vim-jetpack' && !s:ask('Delete "' . pkg_name . '"?')
+      if is_jetpack && !s:ask('Delete "' . pkg_name . '"?')
         call s:ask("Please add the following snippet: \"Jetpack 'tani/vim-jetpack', {'opt': 1}\"")
       else
         call delete(dir, 'rf')
