@@ -35,8 +35,8 @@ elseif has('patch-8.2.4594')
     execute 'silent buffer' t
     call setline(1, split(a:code, "\n"))
     source
-    execute 'silent buffer' c
     execute 'bwipeout!' t
+    execute 'silent buffer' c
   endfunction
 else
   function! s:execute(code) abort
@@ -811,8 +811,9 @@ function! jetpack#get(name) abort
   return get(s:declared_packages, a:name, {})
 endfunction
 
-if !has('nvim') | finish | endif
-lua<<========================================
+if !has('nvim') && !has('lua') | finish | endif
+
+lua<<EOF
 local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
@@ -840,6 +841,32 @@ package.preload['jetpack'] = function()
   return Jetpack
 end
 
+local Util = {}
+
+function Util.load(input)
+  if type(input) == 'string' or vim.fn.has('nvim') == 1 then
+    return (load or loadstring)(input)
+  else
+    local str = ''
+    for i = 0, (#input - 1) do
+      str = str .. string.char(input[i])
+    end
+    return (load or loadstring)(str)
+  end
+end
+
+function Util.eval(str)
+  if vim.fn.has('nvim') == 1 then
+    return vim.api.nvim_eval(str)
+  else
+    return vim.eval(str)
+  end
+end
+
+package.preload['jetpack.util'] = function()
+  return Util
+end
+
 local Packer = {
   option = {},
 }
@@ -853,11 +880,15 @@ Packer.init = function(option)
 end
 
 local function create_hook(name, value)
-  local fun = type(value) == 'function' and value or assert(loadstring(value))
-  local dump = vim.fn.string(string.dump(fun))
+  local fun = type(value) == 'function' and value or assert(Util.load(value))
+  local dump = string.dump(fun)
+  local hex = '0z'
+  for i = 1, #dump do
+    hex = hex .. string.format('%02x', string.byte(dump, i))
+  end
   return
     "lua if require('jetpack').tap('"..name.."') then "..
-    "  assert(loadstring(vim.api.nvim_eval('"..dump.."')))() "..
+    "  assert(require('jetpack.util').load(require('jetpack.util').eval('"..hex.."')))() "..
     "end"
 end
 
@@ -876,7 +907,11 @@ local function use(plugin)
       if plugin.config then
         plugin.config = create_hook(name, plugin.config)
       end
-      Jetpack.add(repo, plugin)
+      if vim.fn.has('nvim') == 1 then
+        Jetpack.add(repo, plugin)
+      else
+        Jetpack.add(repo, vim.dict(plugin))
+      end
     end
   end
 end
@@ -888,7 +923,7 @@ Packer.startup = function(config)
 end
 
 Packer.add = function(config)
-  Jetpack.prologue()
+  Jetpack.prologue(Packer.option.package_root)
   for _, plugin in pairs(config) do
     use(plugin)
   end
@@ -910,5 +945,4 @@ end
 package.preload['jetpack.paq'] = function()
   return Paq
 end
-
-========================================
+EOF

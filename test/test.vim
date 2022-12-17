@@ -386,6 +386,33 @@ call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
 call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
 endfunction
 
+function s:suite.pkg_setup()
+  lua <<EOL
+  packer_setup({
+    'hrsh7th/vim-searchx',
+    setup = function()
+      if vim.fn.has('nvim') == 1 then
+        vim.g.searchx = {
+          auto_accept = true, -- default: false
+        }
+      else
+        vim.g.searchx = vim.dict{
+          auto_accept = true, -- default: false
+        }
+      end
+    end,
+  })
+EOL
+  call s:assert.isdirectory(s:optdir . '/vim-searchx')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
+  call s:assert.true(jetpack#load('vim-searchx'), 'vim-searchx cannot be loaded')
+  call s:assert.true(g:searchx.auto_accept) " Default is v:false, so if v:true, setup has been called.
+endfunction
+
+if !has('nvim')
+  finish
+endif
+
 function s:suite.pkg_config()
 lua <<EOL
 packer_setup({
@@ -431,23 +458,6 @@ call s:assert.loaded('filetype') " means config is called
 edit foo.pn
 lua require('filetype').resolve()
 call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
-endfunction
-
-function s:suite.pkg_setup()
-lua <<EOL
-packer_setup({
-  'hrsh7th/vim-searchx',
-  setup = function()
-    vim.g.searchx = {
-      auto_accept = true, -- default: false
-    }
-  end,
-})
-EOL
-call s:assert.isdirectory(s:optdir . '/vim-searchx')
-call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
-call s:assert.true(jetpack#load('vim-searchx'), 'vim-searchx cannot be loaded')
-call s:assert.true(g:searchx.auto_accept) " Default is v:false, so if v:true, setup has been called.
 endfunction
 
 function! s:suite.pkg_requires() abort
