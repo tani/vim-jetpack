@@ -11,32 +11,31 @@ jobs:
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
+        exclude:
+          - os: windows-2022
+            dl: wget
+          - vi: vim
+            cp: symlink
+          - vi: vim
+            cp: hardlink
     steps:
-      - id: check
-        if: ${{ (matrix.os == 'windows-2022' && matrix.dl == 'wget') ||
-                (matrix.vi == 'vim' && contains(matrix.cp, 'link')) }}
-        run: echo 'Unsupported environment'
-
       - name: Clone vim-jetpack
         uses: actions/checkout@v2
-        if: ${{ steps.check.conclusion == 'skipped' }}
 
       - name: Install Lua
         uses: leafo/gh-actions-lua@v9
-        if: ${{ steps.check.conclusion == 'skipped' && contains(matrix.os, 'windows') }}
+        if: ${{ contains(matrix.os, 'windows') }}
         with:
           luaVersion: "5.4.4"
 
       - name: Install vim-themis
         uses: actions/checkout@v2
-        if: ${{ steps.check.conclusion == 'skipped' }}
         with:
           repository: thinca/vim-themis
           path: vim-themis
 
       - name: Install ${{ matrix.vi }}
         uses: rhysd/action-setup-vim@v1
-        if: ${{ steps.check.conclusion == 'skipped' }}
         id: vim
         with:
           version: ${{ (matrix.vi == 'vim' && matrix.os == 'ubuntu-20.04') && 
@@ -44,7 +43,6 @@ jobs:
           neovim: ${{ matrix.vi == 'neovim' }}
 
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
-        if: ${{ steps.check.conclusion == 'skipped' }}
         timeout-minutes: 5
         env:
           JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
