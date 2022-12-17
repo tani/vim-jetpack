@@ -25,8 +25,8 @@ jobs:
       - name: Install Lua
         if: ${{ contains(matrix.os, 'windows') }}
         run: |
-          Invoke-WebRequest -Uri https://sourceforge.net/projects/luabinaries/files/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dllw6_lib.zip -OutFile .\lua.zip -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::FireFox
-          Expand-Archive .\lua.zip C:\Lua
+          Invoke-WebRequest -Uri https://sourceforge.net/projects/luabinaries/files/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dllw6_lib.zip -OutFile .\Lua.zip -UserAgent Wget
+          Expand-Archive .\Lua.zip C:\Lua
           Add-Content $env:GITHUB_PATH C:\Lua
 
       - name: Install vim-themis
