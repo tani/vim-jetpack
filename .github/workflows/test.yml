@@ -25,7 +25,7 @@ jobs:
       - name: Install Lua
         if: ${{ contains(matrix.os, 'windows') }}
         run: |
-          Invoke-WebRequest -Uri https://sourceforge.net/projects/luabinaries/files/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dllw6_lib.zip -OutFile .\Lua.zip -UserAgent Wget
+          Invoke-WebRequest -Uri https://joedf.ahkscript.org/LuaBuilds/hdata/lua-5.4.4_Win64_bin.zip -OutFile .\Lua.zip
           Expand-Archive .\Lua.zip C:\Lua
           Add-Content $env:GITHUB_PATH C:\Lua
 
