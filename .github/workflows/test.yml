@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2022, macos-11]
+        os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
@@ -20,6 +20,12 @@ jobs:
       - name: Clone vim-jetpack
         uses: actions/checkout@v2
         if: ${{ steps.check.conclusion == 'skipped' }}
+
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v9
+        if: ${{ steps.check.conclusion == 'skipped' && contains(matrix.os, 'windows') }}
+        with:
+          luaVersion: "5.4.4"
 
       - name: Install vim-themis
         uses: actions/checkout@v2
