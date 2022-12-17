@@ -26,7 +26,7 @@ jobs:
         if: ${{ contains(matrix.os, 'windows') }}
         run: |
           curl -fsSLO https://sourceforge.net/projects/luabinaries/files/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dllw6_lib.zip
-          7z x ./lua-5.4.2_Win64_dllw6_lib.zip -o C:/Lua
+          7z x ./lua-5.4.2_Win64_dllw6_lib.zip -oc:/Lua
 
       - name: Install vim-themis
         uses: actions/checkout@v2
