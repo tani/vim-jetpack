@@ -817,7 +817,7 @@ lua<<EOF
 local Util = {}
 
 function Util.command(input)
-  if vim.call('has', 'nvim') == 1 then
+  if vim.fn.has('nvim') == 1 then
     vim.cmd(input)
   else
     vim.command(input)
@@ -826,7 +826,7 @@ end
 
 function Util.load(input)
   local _load = loadstring or load
-  if type(input) == 'string' or vim.call('has', 'nvim') == 1 then
+  if type(input) == 'string' or vim.fn.has('nvim') == 1 then
     return _load(input)
   else
     local str = ''
@@ -838,7 +838,7 @@ function Util.load(input)
 end
 
 function Util.eval(str)
-  if vim.call('has', 'nvim') == 1 then
+  if vim.fn.has('nvim') == 1 then
     return vim.api.nvim_eval(str)
   else
     return vim.eval(str)
@@ -853,7 +853,7 @@ local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
   Jetpack[name] = function(...)
-    local result = vim.call('jetpack#' .. name, ...)
+    local result = vim.fn['jetpack#' .. name](...)
     return result == 0 and false or result == 1 and true or result
   end
 end
@@ -882,7 +882,7 @@ local Packer = {
 
 Packer.init = function(option)
   if option.package_root then
-    option.package_root = vim.call('fnamemodify', option.package_root, ":h")
+    option.package_root = vim.fn.fnamemodify(option.package_root, ":h")
     option.package_root = string.gsub(option.package_root, '\\', '/')
   end
   Packer.option = option
