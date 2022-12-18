@@ -814,6 +814,59 @@ endfunction
 if !has('nvim') && !has('lua') | finish | endif
 
 lua<<EOF
+local Util = {}
+
+function Util.command(input)
+  local _command = vim.api.nvim_command or vim.command
+  return _command(input)
+end
+
+function Util.load(input)
+  local _load = loadstring or load
+  if type(input) == 'string' or vim.fn.has('nvim') == 1 then
+    return _load(input)
+  else
+    local str = ''
+    for i = 0, (#input - 1) do
+      str = str .. string.char(input[i])
+    end
+    return _load(str)
+  end
+end
+
+function Util.eval(str)
+  if vim.fn.has('nvim') == 1 then
+    return vim.api.nvim_eval(str)
+  else
+    return vim.eval(str)
+  end
+end
+
+function Util.convert(value)
+  if vim.fn.has('nvim') == 1 then
+    return value
+  elseif type(value) == 'table' then
+    local is_list = true
+    for key, _ in pairs(value) do
+      if type(key) ~= 'number' then
+        is_list = false
+        break
+      end
+    end
+    if is_list then
+      return vim.list(value)
+    else
+      return vim.dict(value)
+    end
+  else
+    return value
+  end
+end
+
+package.preload['jetpack.util'] = function()
+  return Util
+end
+
 local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
@@ -826,45 +879,19 @@ Jetpack.prologue = Jetpack['begin']
 Jetpack.epilogue = Jetpack['end']
 
 Jetpack.startup = function(config)
-  vim.cmd([[echomsg 'require("jetpack").startup() is deprecated.]] ..
-          [[Please use require("jetpack.packer").startup() .']])
+  Util.command([[echomsg 'require("jetpack").startup() is deprecated.]] ..
+               [[Please use require("jetpack.packer").startup() .']])
   Packer.startup(config)
 end
 
 Jetpack.setup = function(config)
-  vim.cmd([[echomsg 'require("jetpack").setup() is deprecated.]] ..
-          [[Please use require("jetpack.paq")() .']])
+  vim.command([[echomsg 'require("jetpack").setup() is deprecated.]] ..
+              [[Please use require("jetpack.paq")() .']])
   Paq(config)
 end
 
 package.preload['jetpack'] = function()
   return Jetpack
-end
-
-local Util = {}
-
-function Util.load(input)
-  if type(input) == 'string' or vim.fn.has('nvim') == 1 then
-    return (load or loadstring)(input)
-  else
-    local str = ''
-    for i = 0, (#input - 1) do
-      str = str .. string.char(input[i])
-    end
-    return (load or loadstring)(str)
-  end
-end
-
-function Util.eval(str)
-  if vim.fn.has('nvim') == 1 then
-    return vim.api.nvim_eval(str)
-  else
-    return vim.eval(str)
-  end
-end
-
-package.preload['jetpack.util'] = function()
-  return Util
 end
 
 local Packer = {
@@ -907,11 +934,7 @@ local function use(plugin)
       if plugin.config then
         plugin.config = create_hook(name, plugin.config)
       end
-      if vim.fn.has('nvim') == 1 then
-        Jetpack.add(repo, plugin)
-      else
-        Jetpack.add(repo, vim.dict(plugin))
-      end
+      Jetpack.add(repo, Util.convert(plugin))
     end
   end
 end
