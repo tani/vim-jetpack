@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2022, macos-11]
+        os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
@@ -52,7 +52,7 @@ jobs:
         run: ./vim-themis/bin/themis ./test/test.vim
   post-test:
     name: All tests passed
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: test
     steps:
       - run: echo ok
