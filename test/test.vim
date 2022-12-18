@@ -366,7 +366,7 @@ lua <<EOL
 local packer = require('jetpack.packer')
 
 packer.init({
-package_root = vim.g.vimhome .. '/pack',
+  package_root = require('jetpack.util').eval('g:vimhome') .. '/pack',
 })
 
 _G.packer_setup = function(...)
