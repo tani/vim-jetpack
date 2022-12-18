@@ -392,9 +392,8 @@ function s:suite.pkg_setup()
     'hrsh7th/vim-searchx',
     setup = function()
       local dict = vim.dict or function(x) return x end
-      local searchx = dict({ auto_accept = true })
-      local value = vim.fn.string(searchx)
-      require('jetpack.util').command('let g:searchx = ' .. value)
+      local str = vim.call('string', dict({ auto_accept = true }))
+      require('jetpack.util').command('let g:searchx = ' .. str)
     end,
   })
 EOL
