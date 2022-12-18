@@ -391,15 +391,10 @@ function s:suite.pkg_setup()
   packer_setup({
     'hrsh7th/vim-searchx',
     setup = function()
-      if vim.fn.has('nvim') == 1 then
-        vim.g.searchx = {
-          auto_accept = true, -- default: false
-        }
-      else
-        vim.g.searchx = vim.dict{
-          auto_accept = true, -- default: false
-        }
-      end
+      local dict = vim.dict or function(x) return x end
+      local searchx = dict({ auto_accept = true })
+      local value = vim.fn.string(searchx)
+      require('jetpack.util').command('let g:searchx = ' .. value)
     end,
   })
 EOL

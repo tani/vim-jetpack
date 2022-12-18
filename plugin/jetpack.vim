@@ -817,8 +817,11 @@ lua<<EOF
 local Util = {}
 
 function Util.command(input)
-  local _command = vim.api.nvim_command or vim.command
-  return _command(input)
+  if vim.fn.has('nvim') == 1 then
+    vim.cmd(input)
+  else
+    vim.command(input)
+  end
 end
 
 function Util.load(input)
@@ -839,27 +842,6 @@ function Util.eval(str)
     return vim.api.nvim_eval(str)
   else
     return vim.eval(str)
-  end
-end
-
-function Util.convert(value)
-  if vim.fn.has('nvim') == 1 then
-    return value
-  elseif type(value) == 'table' then
-    local is_list = true
-    for key, _ in pairs(value) do
-      if type(key) ~= 'number' then
-        is_list = false
-        break
-      end
-    end
-    if is_list then
-      return vim.list(value)
-    else
-      return vim.dict(value)
-    end
-  else
-    return value
   end
 end
 
@@ -934,7 +916,8 @@ local function use(plugin)
       if plugin.config then
         plugin.config = create_hook(name, plugin.config)
       end
-      Jetpack.add(repo, Util.convert(plugin))
+      local dict = vim.dict or function(x) return x end
+      Jetpack.add(repo, dict(plugin))
     end
   end
 end
