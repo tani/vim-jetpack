@@ -20,7 +20,7 @@ jobs:
             cp: hardlink
     steps:
       - name: Clone vim-jetpack
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Lua
         if: ${{ contains(matrix.os, 'windows') }}
@@ -30,7 +30,7 @@ jobs:
           Add-Content $env:GITHUB_PATH C:\Lua
 
       - name: Install vim-themis
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: thinca/vim-themis
           path: vim-themis
