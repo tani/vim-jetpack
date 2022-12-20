@@ -28,22 +28,38 @@ jobs:
           repository: thinca/vim-themis
           path: vim-themis
 
-      - name: Install ${{ matrix.vi }}
+      - name: Install Vim
         uses: rhysd/action-setup-vim@v1
-        if: ${{ steps.check.conclusion == 'skipped' }}
+        if: ${{ steps.check.conclusion == 'skipped' && matrix.vi == 'vim' }}
         id: vim
         with:
-          version: 'stable'
-          neovim: ${{ matrix.vi == 'neovim' }}
-
-      - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
-        if: ${{ steps.check.conclusion == 'skipped' }}
+          version: 'v8.1.2424'
+          neovim: 'false'
+      - name: Run Vim tests with ${{ matrix.dl }} and ${{ matrix.cp }}
+        if: ${{ steps.check.conclusion == 'skipped' && matrix.vi == 'vim' }}
         timeout-minutes: 5
         env:
           JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
           JETPACK_COPY_METHOD: ${{ matrix.cp }}
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
+
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        if: ${{ steps.check.conclusion == 'skipped' && matrix.vi == 'neovim' }}
+        id: neovim
+        with:
+          version: 'stable'
+          neovim: 'true'
+      - name: Run Neovim tests with ${{ matrix.dl }} and ${{ matrix.cp }}
+        if: ${{ steps.check.conclusion == 'skipped' && matrix.vi == 'neovim' }}
+        timeout-minutes: 5
+        env:
+          JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
+          JETPACK_COPY_METHOD: ${{ matrix.cp }}
+          THEMIS_VIM: ${{ steps.neovim.outputs.executable }}
+        run: ./vim-themis/bin/themis ./test/test.vim
+
   post-test:
     name: All tests passed
     runs-on: ubuntu-20.04
