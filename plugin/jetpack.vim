@@ -337,7 +337,7 @@ function! s:merge_plugins() abort
   " Delete old directories
   for dir in glob(s:optdir . '/*', '', 1)
     let pkg_name = fnamemodify(dir, ':t')
-    let is_jetpack = pkg_name == 'vim-jetpack' || pkg_name == 'vim-jetpack.git'
+    let is_jetpack = pkg_name =~? '^vim-jetpack\(\.git\)\?$'
 
     if has_key(s:declared_packages, pkg_name) && is_jetpack
       continue
