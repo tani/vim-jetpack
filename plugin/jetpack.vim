@@ -748,8 +748,6 @@ function! jetpack#end() abort
       let pattern = 'JetpackPre:'.pkg_name
       let cmd = 'call s:execute(s:declared_packages['.string(pkg_name).'].setup)'
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
-      let &runtimepath .= printf(',%s/%s', pkg.dir, pkg.rtp)
-      continue
     endif
     if !empty(pkg.config)
       let pattern = 'JetpackPost:'.pkg_name
