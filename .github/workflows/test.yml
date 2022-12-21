@@ -13,6 +13,9 @@ jobs:
         dl: [git, curl, wget]
         ver: [stable, v8.1.2110]
         exclude:
+          - vi: vim
+            ver: stable
+            os: ubuntu-22.04
           - vi: neovim
             ver: v8.1.2110
           - os: windows-2022
