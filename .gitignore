@@ -1,3 +1,5 @@
 **/pack
+**/plugged
 **/*.log
 **/tags
+**/*.png

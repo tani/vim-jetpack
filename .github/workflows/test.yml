@@ -7,38 +7,48 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2022, macos-11]
+        os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
+        ver: [stable, v8.1.2110]
+        exclude:
+          - vi: neovim
+            ver: v8.1.2110
+          - os: windows-2022
+            ver: v8.1.2110
+          - os: macos-12
+            ver: v8.1.2110
+          - os: windows-2022
+            dl: wget
+          - vi: vim
+            cp: symlink
+          - vi: vim
+            cp: hardlink
     steps:
-      - id: check
-        if: ${{ (matrix.os == 'windows-2022' && matrix.dl == 'wget') ||
-                (matrix.vi == 'vim' && contains(matrix.cp, 'link')) }}
-        run: echo 'Unsupported environment'
-
       - name: Clone vim-jetpack
-        uses: actions/checkout@v2
-        if: ${{ steps.check.conclusion == 'skipped' }}
+        uses: actions/checkout@v3
+
+      - name: Install Lua
+        if: ${{ contains(matrix.os, 'windows') }}
+        run: |
+          Invoke-WebRequest -Uri https://joedf.ahkscript.org/LuaBuilds/hdata/lua-5.4.4_Win64_bin.zip -OutFile .\Lua.zip
+          Expand-Archive .\Lua.zip C:\Lua
+          Add-Content $env:GITHUB_PATH C:\Lua
 
       - name: Install vim-themis
-        uses: actions/checkout@v2
-        if: ${{ steps.check.conclusion == 'skipped' }}
         with:
           repository: thinca/vim-themis
           path: vim-themis
 
       - name: Install ${{ matrix.vi }}
         uses: rhysd/action-setup-vim@v1
-        if: ${{ steps.check.conclusion == 'skipped' }}
         id: vim
         with:
-          version: ${{ (matrix.vi == 'vim' && matrix.os == 'ubuntu-20.04') && 
-                       'v8.1.2110' || 'stable' }}
+          version: ${{ matrix.ver }}
           neovim: ${{ matrix.vi == 'neovim' }}
 
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
-        if: ${{ steps.check.conclusion == 'skipped' }}
         timeout-minutes: 5
         env:
           JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
@@ -47,7 +57,7 @@ jobs:
         run: ./vim-themis/bin/themis ./test/test.vim
   post-test:
     name: All tests passed
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: test
     steps:
       - run: echo ok

@@ -106,25 +106,44 @@ call jetpack#end()
 ----
 packadd vim-jetpack
 call jetpack#begin()
+call jetpack#load_toml('path/to/dein.toml')
 call jetpack#add('tani/vim-jetpack', {'opt': 1}) "bootstrap
 call jetpack#add('https://github.com/dense-analysis/ale')
 call jetpack#add('junegunn/fzf.vim')
-call jetpack#add('junegunn/fzf', { 'do': {-> fzf#install()} })
+call jetpack#add('junegunn/fzf', { 'build': './install' })
 call jetpack#add('neoclide/coc.nvim', { 'branch': 'release' })
-call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'do': 'yarn install --frozen-lockfile' })
+call jetpack#add('neoclide/coc.nvim', { 'branch': 'master', 'build': 'yarn install --frozen-lockfile' })
 call jetpack#add('vlime/vlime', { 'rtp': 'vim' })
-call jetpack#add('dracula/vim', { 'as': 'dracula' })
-call jetpack#add('tpope/vim-fireplace', { 'for': 'clojure' })
+call jetpack#add('dracula/vim', { 'name': 'dracula' })
+call jetpack#add('tpope/vim-fireplace', { 'on_ft': 'clojure' })
 call jetpack#end()
+----
+
+[source, toml]
+----
+[[plugins]]
+repo = 'tani/vim-jetpack'
+opt = true
+
+[[plugins]]
+repo = 'tpope/vim-fugitive'
+on_cmd = 'Git'
+hook_source = '''
+let g:fugitive_no_mappings = 1
+'''
+hook_post_source = '''
+echom 'fugitive is loaded'
+'''
 ----
 
 === Legacy packer.nvim style
 
 [source, lua]
 ----
+-- Packer.nvim v1
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').startup(function(use)
-  use { 'tani/vim-jetpack', opt = 1 }-- bootstrap
+  use { 'tani/vim-jetpack', opt = 1 } -- bootstrap
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -132,7 +151,16 @@ require('jetpack.packer').startup(function(use)
   use {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'}
   use {'vlime/vlime', rtp = 'vim' }
   use {'dracula/vim', as = 'dracula' }
-  use {'tpope/vim-fireplace', ft = 'clojure' }
+  use {'tpope/vim-fireplace', ft = 'clojure' },
+  use {'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate',
+    config = function()
+      require'nvim-treesitter.configs'.setup {
+        ensure_installed = 'maintained',
+        highlight = { enable = true }
+      }
+    end
+  }
 end)
 ----
 
@@ -140,8 +168,9 @@ end)
 
 [source, lua]
 ----
+-- Packer.nvim v2
 vim.cmd('packadd vim-jetpack')
-require('jetpack.paq') {
+require('jetpack.packer').add {
   {'tani/vim-jetpack', opt = 1}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
@@ -151,6 +180,30 @@ require('jetpack.paq') {
   {'vlime/vlime', rtp = 'vim' },
   {'dracula/vim', as = 'dracula' },
   {'tpope/vim-fireplace', ft = 'clojure' },
+  {'nvim-treesitter/nvim-treesitter',
+    run = ':TSUpdate',
+    config = function()
+      require'nvim-treesitter.configs'.setup {
+        ensure_installed = 'maintained',
+        highlight = { enable = true }
+      }
+    end
+  }
+}
+----
+
+[source, lua]
+----
+-- Paq.nvim
+vim.cmd('packadd vim-jetpack')
+require('jetpack.paq') {
+  {'tani/vim-jetpack', opt = 1}, -- bootstrap
+  'https://github.com/dense-analysis/ale',
+  'junegunn/fzf.vim',
+  {'junegunn/fzf', run = './install' },
+  {'neoclide/coc.nvim', branch = 'release'},
+  {'neoclide/coc.nvim', branch = 'master', run = 'yarn install --frozen-lockfile'},
+  {'dracula/vim', as = 'dracula' },
 }
 ----
 
@@ -324,6 +377,18 @@ We are welcome to your pull requests to improve the compatibility.
 |`depends`
 |`string` or `array`
 | Install plugins after the specified plugins.
+
+|`hook_add`
+|`string`
+| Execute the specified Vim script at the end of `jetpack#add` function.
+
+|`hook_source`
+|`string`
+| Execute the specified Vim script before loading the plugin.
+
+|`hook_post_source`
+|`string`
+| Execute the specified Vim script after loading the plugin.
 |===
 
 ==== Legacy packer.nvim style
@@ -620,12 +685,13 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 === Events
 
+* `User JetpackPre:{plugin-name}`/ `User JetpackPost:{plugin-name}`
+**  Let {plugin-name} be the name of the plugin.
+    The specified event is fired before/after the plugin is loaded.
+
 * `User Jetpack{PluginName}Pre`/ `User Jetpack{PluginName}Post`
 **  Let {PluginName} be a CamelCase of plugin name.
-    Code to execute when the plugin is lazily loaded on demand with
-    `User Jetpack{PluginName}Post` .
-    It is impossible to hook `packadd` for a Lua plugin in Neovim,
-    because Neovim does not load any files until the module is required.
+    The specified event is fired before/after the plugin is loaded.
 +
 [%autowidth]
 |===

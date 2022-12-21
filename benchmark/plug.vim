@@ -1,3 +1,5 @@
+set packpath=
+execute 'set runtimepath-=' . stdpath('config')
 call execute(printf('source %s/plugin/plug.vim', expand('<sfile>:p:h')))
 
 let g:vimhome = substitute(expand('<sfile>:p:h'), '\', '/', 'g')
@@ -46,7 +48,6 @@ Plug 'rhysd/git-messenger.vim'
 Plug 'mhinz/vim-grepper'
 Plug 'haya14busa/incsearch.vim'
 Plug 'matze/vim-move'
-Plug 'wellle/context.vim'
 Plug 'rhysd/vim-grammarous'
 Plug 'jacoborus/tender.vim'
 Plug 'rhysd/vim-clang-format'

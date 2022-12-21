@@ -1,4 +1,5 @@
 set packpath=
+execute 'set runtimepath-=' . stdpath('config')
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h')))
 
 function s:fallback(val, default)
@@ -55,7 +56,7 @@ Jetpack 'rhysd/git-messenger.vim'
 Jetpack 'mhinz/vim-grepper'
 Jetpack 'haya14busa/incsearch.vim'
 Jetpack 'matze/vim-move'
-Jetpack 'wellle/context.vim'
+"Jetpack 'wellle/context.vim'
 Jetpack 'rhysd/vim-grammarous'
 Jetpack 'jacoborus/tender.vim'
 Jetpack 'rhysd/vim-clang-format'
@@ -113,3 +114,5 @@ Jetpack 'kristijanhusak/vim-dadbod-completion'
 Jetpack 'whiteinge/diffconflicts'
 Jetpack 'AndrewRadev/tagalong.vim'
 call jetpack#end()
+
+execute 'autocmd SourcePost' expand('<sfile>:p:h') 'echomsg "loaded"'
