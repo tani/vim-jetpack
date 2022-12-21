@@ -380,12 +380,6 @@ require('jetpack').sync()
 end
 EOL
 
-function s:suite.packer_style_simple()
-  lua packer_setup('EdenEast/nightfox.nvim')
-  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
-endfunction
-
 function s:suite.packer_style_complex()
   let g:nightfox_setup_done = 0
   let g:nightfox_config_done = 0
