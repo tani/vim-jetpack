@@ -47,19 +47,6 @@ else
   endfunction
 endif
 
-if has('nvim')
-  function! s:execute(code) abort
-    call v:lua.vim.cmd(a:code)
-  endfunction
-else
-  function! s:execute(code) abort
-    let temp = tempname()
-    call writefile([a:code], temp)
-    execute 'source' temp
-    call delete(temp)
-  endfunction
-endif
-
 function! s:packadd(pkg_name, bang='') abort
   if isdirectory(s:optdir . '/'. a:pkg_name)
     execute 'packadd'.a:bang a:pkg_name
