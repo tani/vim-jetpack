@@ -402,8 +402,8 @@ lua<<EOF
     end
   })
 EOF
-  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
+  call s:assert.isdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/nightfox.vim')
   call s:assert.equals(g:nightfox_setup_done, 1)
   call s:assert.equals(g:nightfox_config_done, 1)
 endfunction
