@@ -388,7 +388,7 @@ function s:suite.packer_style_complex()
 lua<<EOF
   packer_setup({
     'EdenEast/nightfox.nvim',
-    config = function()
+    setup = function()
       require('jetpack.util').command('let g:nightfox_setup_done = 1')
     end,
     config = function()
