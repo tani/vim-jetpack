@@ -396,6 +396,7 @@ lua<<EOF
     end
   })
 EOF
+  call jetpack#load('nightfox.nvim')
   call s:assert.isdirectory(s:optdir . '/nightfox.nvim')
   call s:assert.notfilereadable(s:optdir . '/_/plugin/nightfox.vim')
   call s:assert.equals(g:nightfox_setup_done, 1)
