@@ -33,13 +33,8 @@ jobs:
         if: ${{ steps.check.conclusion == 'skipped' }}
         id: vim
         with:
-          version: |
-            ${{(
-              matrix.vi == 'vim' &&
-              (matrix.os == 'windows-2022' || matrix.os == 'ubuntu-20.04')
-            ) && 'v8.1.2424'
-              || 'stable'
-            }}
+          version: ${{ (matrix.vi == 'vim' && matrix.os == 'ubuntu-20.04') && 
+                       'v8.1.2110' || 'stable' }}
           neovim: ${{ matrix.vi == 'neovim' }}
 
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
