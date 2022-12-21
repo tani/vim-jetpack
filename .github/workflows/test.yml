@@ -11,7 +11,14 @@ jobs:
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
         dl: [git, curl, wget]
+        ver: [stable, v8.1.2110]
         exclude:
+          - vi: neovim
+            ver: v8.1.2110
+          - os: windows-2022
+            ver: v8.1.2110
+          - os: macos-12
+            ver: v8.1.2110
           - os: windows-2022
             dl: wget
           - vi: vim
@@ -38,8 +45,7 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         id: vim
         with:
-          version: ${{ (matrix.vi == 'vim' && matrix.os == 'ubuntu-20.04') && 
-                       'v8.1.2110' || 'stable' }}
+          version: ${{ matrix.ver }}
           neovim: ${{ matrix.vi == 'neovim' }}
 
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
