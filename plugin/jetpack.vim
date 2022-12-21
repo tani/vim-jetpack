@@ -63,6 +63,10 @@ let s:status = {
 \   'copied': 'copied'
 \ }
 
+function! s:check_ignorable(filename) abort
+  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
+endfunction
+
 function! s:list_files(path) abort
   let files = readdir(a:path, { entry -> filereadable(a:path . '/' . entry) })
   let files = map(files, { _, entry -> a:path . '/' . entry })
@@ -72,10 +76,6 @@ function! s:list_files(path) abort
     let files += s:list_files(dir)
   endfor
   return files
-endfunction
-
-function! s:check_ignorable(filename) abort
-  return filter(copy(g:jetpack_ignore_patterns), { _, val -> a:filename =~# glob2regpat(val) }) != []
 endfunction
 
 function! s:make_progressbar(n) abort
@@ -136,9 +136,11 @@ function! s:copy_dir(from, to) abort
       let dest = substitute(src, '\V' . escape(a:from, '\'), escape(a:to, '\'), '')
       call mkdir(fnamemodify(dest, ':p:h'), 'p')
       if g:jetpack_copy_method ==# 'copy'
-        let perm = getfperm(src)
         call writefile(readfile(src, 'b'), dest, 'b')
-        call setfperm(dest, perm)
+        let perm = split(getfperm(src), '\zs')
+        let perm[0] = 'r' | let perm[3] = 'r' | let perm[6] = 'r'
+        let perm[1] = 'w' | let perm[4] = 'w' | let perm[7] = 'w'
+        call setfperm(dest, join(perm, ''))
       elseif g:jetpack_copy_method ==# 'hardlink'
         call v:lua.vim.loop.fs_link(src, dest)
       elseif g:jetpack_copy_method ==# 'symlink'
@@ -335,9 +337,19 @@ function! s:merge_plugins() abort
   " Delete old directories
   for dir in glob(s:optdir . '/*', '', 1)
     let pkg_name = fnamemodify(dir, ':t')
+    let is_jetpack = pkg_name =~? '^vim-jetpack\(\.git\)\?$'
+
+    if has_key(s:declared_packages, pkg_name) && is_jetpack
+      continue
+    endif
+
     if !has_key(s:declared_packages, pkg_name)
      \ || s:declared_packages[pkg_name].output !~# 'Already up to date.'
-      call delete(dir, 'rf')
+      if is_jetpack && !s:ask('Delete "' . pkg_name . '"?')
+        call s:ask("Please add the following snippet: \"Jetpack 'tani/vim-jetpack', {'opt': 1}\"")
+      else
+        call delete(dir, 'rf')
+      endif
     endif
   endfor
 
@@ -347,7 +359,7 @@ function! s:merge_plugins() abort
     call s:show_progress('Merge Plugins')
     let srcdir = pkg.path . '/' . pkg.rtp
     let files = map(s:list_files(srcdir), {_, file -> file[len(srcdir):]})
-    let files = filter(files, { _, file -> !s:check_ignorable(file) })
+    let files = filter(files, {_, file -> !s:check_ignorable(file)})
     let conflicted = v:false
     for file in files
       for merged_file in merged_files
@@ -681,6 +693,21 @@ function! s:available_packages() abort
   let s:available_packages = json_decode(available_packages_text)
   let s:available_packages = empty(s:available_packages) ? {} : s:available_packages
   return s:available_packages
+endfunction
+
+
+" s:ask() from junegunn/plug.vim
+" https://github.com/junegunn/vim-plug/blob/ddce935b16fbaaf02ac96f9f238deb04d4d33a31/plug.vim#L316-L324
+" MIT License: https://github.com/junegunn/vim-plug/blob/88cc9d78687dd309389819f85b39368a4fd745c8/LICENSE
+function! s:ask(message, ...)
+  call inputsave()
+  echohl WarningMsg
+
+  let answer = input(a:message.(a:0 ? ' (y/N/a) ' : ' (y/N) '))
+  echohl None
+  call inputrestore()
+  echo "\r"
+  return (a:0 && answer =~? '^a') ? 2 : (answer =~? '^y') ? 1 : 0
 endfunction
 
 function! jetpack#tap(name) abort
