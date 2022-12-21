@@ -37,6 +37,7 @@ jobs:
           Add-Content $env:GITHUB_PATH C:\Lua
 
       - name: Install vim-themis
+        uses: actions/checkout@v3
         with:
           repository: thinca/vim-themis
           path: vim-themis
