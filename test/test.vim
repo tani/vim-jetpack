@@ -321,45 +321,45 @@ function s:suite.local_plugin()
 endfunction
 
 function s:suite.self_delete()
-let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
-let opt_path = expand(s:optdir . '/vim-jetpack')
-
-" When jetpack is added, it does not delete itself.
-call s:setup(['tani/vim-jetpack', { 'opt': 1 }])
-call s:assert.isdirectory(src_path)
-call s:assert.isdirectory(opt_path)
-
-" When jetpack is not added, it ask me to delete itself.
-call jetpack#begin(g:vimhome)
-call jetpack#end()
-
-" If you press "no", nothing will happen.
-augroup SelfDeletePressKey
-  au!
-  au CmdlineEnter * call feedkeys("no\<CR>", "n")
-augroup END
-call jetpack#sync()
-call s:assert.isdirectory(opt_path)
-
-" If you press "yes", it will delete the directory
-augroup SelfDeletePressKey
-  au!
-  autocmd CmdlineEnter * call feedkeys("yes\<CR>", "n")
-augroup END
-call jetpack#sync()
-call s:assert.isnotdirectory(opt_path)
-
-" If you have an old jetpack, don't ask.
-call s:setup(['tani/vim-jetpack', { 'opt': 1 }])
-call system('git -C ' . src_path . ' fetch --depth 2')
-call system('git -C ' . src_path . ' reset --hard HEAD~')
-call jetpack#sync()
-call s:assert.isdirectory(src_path)
-call s:assert.isdirectory(opt_path)
+  let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
+  let opt_path = expand(s:optdir . '/vim-jetpack')
+  
+  " When jetpack is added, it does not delete itself.
+  call s:setup(['tani/vim-jetpack', { 'opt': 1 }])
+  call s:assert.isdirectory(src_path)
+  call s:assert.isdirectory(opt_path)
+  
+  " When jetpack is not added, it ask me to delete itself.
+  call jetpack#begin(g:vimhome)
+  call jetpack#end()
+  
+  " If you press "no", nothing will happen.
+  augroup SelfDeletePressKey
+    au!
+    au CmdlineEnter * call feedkeys("no\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isdirectory(opt_path)
+  
+  " If you press "yes", it will delete the directory
+  augroup SelfDeletePressKey
+    au!
+    autocmd CmdlineEnter * call feedkeys("yes\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isnotdirectory(opt_path)
+  
+  " If you have an old jetpack, don't ask.
+  call s:setup(['tani/vim-jetpack', { 'opt': 1 }])
+  call system('git -C ' . src_path . ' fetch --depth 2')
+  call system('git -C ' . src_path . ' reset --hard HEAD~')
+  call jetpack#sync()
+  call s:assert.isdirectory(src_path)
+  call s:assert.isdirectory(opt_path)
 endfunction
 
-if !has('nvim')
-finish
+if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
+  finish 
 endif
 
 lua <<EOL
@@ -380,15 +380,41 @@ require('jetpack').sync()
 end
 EOL
 
-function s:suite.packer_style()
-lua packer_setup('EdenEast/nightfox.nvim')
-call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
-call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
+function s:suite.packer_style_simple()
+  lua packer_setup('EdenEast/nightfox.nvim')
+  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
 endfunction
+
+function s:suite.packer_style_complex()
+  let g:nightfox_setup_done = 0
+  let g:nightfox_config_done = 0
+  call s:assert.equals(g:nightfox_setup_done, 0)
+  call s:assert.equals(g:nightfox_config_done, 0)
+lua<<EOF
+  packer_setup({
+    'EdenEast/nightfox.nvim',
+    config = function()
+      require('jetpack.util').command('let g:nightfox_setup_done = 1')
+    end,
+    config = function()
+      require('jetpack.util').command('let g:nightfox_config_done = 1')
+    end
+  })
+EOF
+  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
+  call s:assert.equals(g:nightfox_setup_done, 1)
+  call s:assert.equals(g:nightfox_config_done, 1)
+endfunction
+
+if !has('nvim')
+  finish
+endif
 
 function s:suite.pkg_config()
 lua <<EOL
-packer_setup({
+  packer_setup({
   'nvim-tree/nvim-web-devicons',
   config = function()
     require('nvim-web-devicons').set_icon({
@@ -397,20 +423,20 @@ packer_setup({
       },
     })
   end,
-})
+  })
 EOL
-call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
-call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
-call s:assert.notloaded('nvim-web-devicons')
-call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
-call s:assert.loaded('nvim-web-devicons') " means config is called
-let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
-call s:assert.equals(zsh_icon, '', 'zsh_icon is expected ``, but got ' . zsh_icon)
+  call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
+  call s:assert.notloaded('nvim-web-devicons')
+  call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
+  call s:assert.loaded('nvim-web-devicons') " means config is called
+  let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
+  call s:assert.equals(zsh_icon, '', 'zsh_icon is expected ``, but got ' . zsh_icon)
 endfunction
 
 function s:suite.only_lua()
 lua <<EOL
-packer_setup({
+  packer_setup({
   'nathom/filetype.nvim',
   config = function()
     require("filetype").setup({
@@ -422,102 +448,33 @@ packer_setup({
       }
     })
   end
-})
-EOL
-call s:assert.isdirectory(s:optdir . '/filetype.nvim')
-call s:assert.notloaded('filetype')
-call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
-call s:assert.loaded('filetype') " means config is called
-edit foo.pn
-lua require('filetype').resolve()
-call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
-endfunction
-
-function s:suite.pkg_setup()
-lua <<EOL
-packer_setup({
-  'hrsh7th/vim-searchx',
-  setup = function()
-    local dict = vim.dict or function(x) return x end
-    local str = vim.call('string', dict({ auto_accept = true }))
-    require('jetpack.util').command('let g:searchx = ' .. str)
-  end,
-})
-EOL
-call s:assert.isdirectory(s:optdir . '/vim-searchx')
-call s:assert.notfilereadable(s:optdir . '/_/plugin/searchx.vim')
-call s:assert.true(jetpack#load('vim-searchx'), 'vim-searchx cannot be loaded')
-call s:assert.true(g:searchx.auto_accept) " Default is v:false, so if v:true, setup has been called.
-endfunction
-
-if !has('nvim')
-finish
-endif
-
-function s:suite.pkg_config()
-lua <<EOL
-packer_setup({
-'nvim-tree/nvim-web-devicons',
-config = function()
-  require('nvim-web-devicons').set_icon({
-    zsh = {
-      icon = '',
-    },
   })
-end,
-})
 EOL
-call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
-call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
-call s:assert.notloaded('nvim-web-devicons')
-call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
-call s:assert.loaded('nvim-web-devicons') " means config is called
-let zsh_icon = luaeval('require("nvim-web-devicons").get_icon("foo.zsh")')
-call s:assert.equals(zsh_icon, '', 'zsh_icon is expected ``, but got ' . zsh_icon)
-endfunction
-
-function s:suite.only_lua()
-lua <<EOL
-packer_setup({
-'nathom/filetype.nvim',
-config = function()
-  require("filetype").setup({
-    overrides = {
-      extensions = {
-        -- Set the filetype of *.pn files to potion
-        pn = "potion",
-      },
-    }
-  })
-end
-})
-EOL
-call s:assert.isdirectory(s:optdir . '/filetype.nvim')
-call s:assert.notloaded('filetype')
-call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
-call s:assert.loaded('filetype') " means config is called
-edit foo.pn
-lua require('filetype').resolve()
-call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
+  call s:assert.isdirectory(s:optdir . '/filetype.nvim')
+  call s:assert.notloaded('filetype')
+  call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
+  call s:assert.loaded('filetype') " means config is called
+  edit foo.pn
+  lua require('filetype').resolve()
+  call s:assert.equals(&ft, 'potion', '&ft is expected `potion`, but got ' . &ft)
 endfunction
 
 function! s:suite.pkg_requires() abort
 lua <<EOL
-packer_setup({
-  'hrsh7th/nvim-cmp',
-  opt = true,
-}, {
-  'hrsh7th/cmp-buffer',
-  requires = 'nvim-cmp',
-  opt = true,
-}
-)
+  packer_setup({
+    'hrsh7th/nvim-cmp',
+    opt = true,
+  }, {
+    'hrsh7th/cmp-buffer',
+    requires = 'nvim-cmp',
+    opt = true,
+  })
 EOL
-call s:assert.isdirectory(s:optdir . '/nvim-cmp')
-call s:assert.isdirectory(s:optdir . '/cmp-buffer')
-call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
-call s:assert.true(jetpack#load('cmp-buffer'), 'cmp-buffer cannot be loaded')
-call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
-call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
+  call s:assert.isdirectory(s:optdir . '/nvim-cmp')
+  call s:assert.isdirectory(s:optdir . '/cmp-buffer')
+  call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
+  call s:assert.true(jetpack#load('cmp-buffer'), 'cmp-buffer cannot be loaded')
+  call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
+  call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced
 endfunction
 
