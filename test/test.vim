@@ -223,6 +223,20 @@ function s:suite.on_option_plug()
   call s:assert.true(s:loaded_eskk_vim)
 endfunction
 
+function s:suite.on_source()
+  call s:setup(
+  \ ['ctrlpvim/ctrlp.vim', { 'opt': 1 }],
+  \ ['tracyone/ctrlp-findfile', { 'on_source': 'ctrlp.vim' }]
+  \ )
+  call s:assert.isdirectory(s:optdir . '/ctrlp.vim')
+  call s:assert.isdirectory(s:optdir . '/ctrlp-findfile')
+  call s:assert.cmd_not_exists('CtrlP')
+  call s:assert.cmd_not_exists('CtrlPFindFile')
+  call jetpack#load('ctrlp.vim')
+  call s:assert.cmd_exists('CtrlP')
+  call s:assert.cmd_exists('CtrlPFindFile')
+endfunction
+
 function s:suite.on_option_event()
   call s:setup(['tpope/vim-fugitive', { 'on': 'User Test' }])
   let s:loaded_fugitive = 0
