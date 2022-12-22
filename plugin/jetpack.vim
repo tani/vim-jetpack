@@ -547,6 +547,8 @@ function! s:is_merged(pkg) abort
   return !a:pkg.opt
         \ && empty(a:pkg.do)
         \ && empty(a:pkg.dir)
+        \ && empty(a:pkg.setup)
+        \ && empty(a:pkg.config)
 endfunction
 
 function! s:gets(pkg, keys, default) abort
