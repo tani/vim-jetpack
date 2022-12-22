@@ -397,8 +397,8 @@ lua<<EOF
   })
 EOF
   call jetpack#load('nightfox.nvim')
-  call s:assert.isdirectory(s:optdir . '/nightfox.nvim')
-  call s:assert.notfilereadable(s:optdir . '/_/plugin/nightfox.vim')
+  call s:assert.isnotdirectory(s:optdir . '/nightfox.nvim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nightfox.vim')
   call s:assert.equals(g:nightfox_setup_done, 1)
   call s:assert.equals(g:nightfox_config_done, 1)
 endfunction
@@ -410,18 +410,18 @@ endif
 function s:suite.pkg_config()
 lua <<EOL
   packer_setup({
-  'nvim-tree/nvim-web-devicons',
-  config = function()
-    require('nvim-web-devicons').set_icon({
-      zsh = {
-        icon = '',
-      },
-    })
-  end,
+    'nvim-tree/nvim-web-devicons',
+    config = function()
+      require('nvim-web-devicons').set_icon({
+        zsh = {
+          icon = '',
+        },
+      })
+    end,
   })
 EOL
-  call s:assert.isdirectory(s:optdir . '/nvim-web-devicons')
-  call s:assert.notfilereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
+  call s:assert.isnotdirectory(s:optdir . '/nvim-web-devicons')
+  call s:assert.filereadable(s:optdir . '/_/plugin/nvim-web-devicons.vim')
   call s:assert.notloaded('nvim-web-devicons')
   call s:assert.true(jetpack#load('nvim-web-devicons'), 'nvim-web-devicons cannot be loaded')
   call s:assert.loaded('nvim-web-devicons') " means config is called
@@ -445,7 +445,8 @@ lua <<EOL
   end
   })
 EOL
-  call s:assert.isdirectory(s:optdir . '/filetype.nvim')
+  call s:assert.isnotdirectory(s:optdir . '/filetype.nvim')
+  call s:assert.isdirectory(s:optdir . '/_/lua/filetype')
   call s:assert.notloaded('filetype')
   call s:assert.true(jetpack#load('filetype.nvim'), 'filetype.nvim cannot be loaded')
   call s:assert.loaded('filetype') " means config is called
@@ -467,7 +468,8 @@ lua <<EOL
 EOL
   call s:assert.isdirectory(s:optdir . '/nvim-cmp')
   call s:assert.isdirectory(s:optdir . '/cmp-buffer')
-  call s:assert.notfilereadable(s:optdir . '/_/plugin/cmp.lua')
+  call s:assert.isnotdirectory(s:optdir . '/_/lua/cmp')
+  call s:assert.isnotdirectory(s:optdir . '/_/lua/cmp_buffer')
   call s:assert.true(jetpack#load('cmp-buffer'), 'cmp-buffer cannot be loaded')
   call s:assert.true(jetpack#tap('nvim-cmp'), 'nvim-cmp is not loaded') " means nvim-cmp is also loaded
   call s:assert.loaded('cmp_buffer') " means cmp-buffer/after/plugin is sourced

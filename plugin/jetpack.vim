@@ -547,8 +547,6 @@ function! s:is_merged(pkg) abort
   return !a:pkg.opt
         \ && empty(a:pkg.do)
         \ && empty(a:pkg.dir)
-        \ && empty(a:pkg.setup)
-        \ && empty(a:pkg.config)
 endfunction
 
 function! s:gets(pkg, keys, default) abort
@@ -659,7 +657,7 @@ endfunction
 " Not called during startup
 function! jetpack#load(pkg_name) abort
   let pkg = get(s:available_packages, a:pkg_name, {})
-  if !jetpack#tap(a:pkg_name) || pkg.merged
+  if !jetpack#tap(a:pkg_name)
     return v:false
   endif
   " Load package
