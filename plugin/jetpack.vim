@@ -67,20 +67,6 @@ if !exists('?autocmd_add')
   endfunction
 endif
 
-function! s:autocmd_add(autocmds) abort
-  call autocmd_add(a:autocmds)
-endfunction
-
-if !exists('?autocmd_add')
-  function! s:autocmd_add(autocmds) abort
-    for a in a:autocmds
-      call extend(a, {'group': '', 'pattern': '*', 'cmd': ':', 'once': v:false}, 'keep')
-      let once = a.once ? '++once' : ''
-      execute 'autocmd' a.group a.event a.pattern once a.cmd
-    endfor
-  endfunction
-endif
-
 let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
 let g:jetpack_ignore_patterns =
@@ -561,8 +547,6 @@ function! s:is_merged(pkg) abort
   return !a:pkg.opt
         \ && empty(a:pkg.do)
         \ && empty(a:pkg.dir)
-        \ && empty(a:pkg.setup)
-        \ && empty(a:pkg.config)
 endfunction
 
 function! s:gets(pkg, keys, default) abort
@@ -734,6 +718,9 @@ function! jetpack#end() abort
   syntax off
   filetype plugin indent off
 
+  autocmd Jetpack SourcePost $MYVIMRC ++once doautocmd <nomodeline> Jetpack User JetpackSetup
+  autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
+
   if sort(keys(s:declared_packages)) != sort(keys(s:available_packages))
     echomsg 'Some packages are not synchronized. Run :JetpackSync'
   endif
@@ -790,9 +777,6 @@ function! jetpack#end() abort
     endfor
   endfor
   call s:packadd('_', '!')
-
-  autocmd Jetpack SourcePre */jetpack/opt/*/plugin/**/* ++once doautocmd <nomodeline> Jetpack User JetpackSetup
-  autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
 
   syntax enable
   filetype plugin indent on
