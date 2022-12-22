@@ -24,6 +24,7 @@ if exists('g:loaded_jetpack')
   finish
 endif
 let g:loaded_jetpack = 1
+
 if has('nvim')
   function! s:execute(code) abort
     return v:lua.vim.cmd(a:code)
@@ -723,6 +724,8 @@ function! jetpack#end() abort
   syntax off
   filetype plugin indent off
 
+  autocmd Jetpack User JetpackSetup :
+  autocmd Jetpack User JetpackConfig :
   autocmd Jetpack SourcePost $MYVIMRC ++once doautocmd <nomodeline> Jetpack User JetpackSetup
   autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
 
