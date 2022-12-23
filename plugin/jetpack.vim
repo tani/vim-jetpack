@@ -567,8 +567,8 @@ endfunction
 function! jetpack#add(plugin, ...) abort
   let opts = a:0 > 0 ? a:1 : {}
   let local = s:is_local_plug(a:plugin)
-  let url = local ? expand(a:plugin) : (a:plugin !~# ':' ? 'https://github.com/' : '') . a:plugin
-  let path = s:srcdir . '/' .  substitute(url, 'https\?://', '', '')
+  let url = local ? expand(a:plugin) : (a:plugin !~# '.\+://' ? 'https://github.com/' : '') . a:plugin
+  let path = s:srcdir . '/' .  substitute(url, '.\+://', '', '')
   let path = local ? expand(a:plugin) : expand(s:gets(opts, ['dir', 'path'], [path])[0])
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let dependees = s:gets(opts, ['requires', 'depends'], [])
