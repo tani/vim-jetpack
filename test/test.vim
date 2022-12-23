@@ -27,6 +27,7 @@ function s:setup(...)
   endfor
   call jetpack#end()
   call jetpack#sync()
+  call feedkeys("\<CR>", 'n')
 endfunction
 
 function s:assert.filereadable(file)
@@ -217,10 +218,25 @@ function s:suite.on_option_plug()
   augroup END
   call s:assert.cmd_not_exists('EskkMap')
   call s:assert.false(s:loaded_eskk_vim)
+  call feedkeys('', 'x')
   call feedkeys("i\<Plug>(eskk:toggle)\<Esc>", 'x')
   call feedkeys('', 'x')
   call s:assert.cmd_exists('EskkMap')
   call s:assert.true(s:loaded_eskk_vim)
+endfunction
+
+function s:suite.on_source()
+  call s:setup(
+  \ ['ctrlpvim/ctrlp.vim', { 'opt': 1 }],
+  \ ['tracyone/ctrlp-findfile', { 'on_source': 'ctrlp.vim' }]
+  \ )
+  call s:assert.isdirectory(s:optdir . '/ctrlp.vim')
+  call s:assert.isdirectory(s:optdir . '/ctrlp-findfile')
+  call s:assert.cmd_not_exists('CtrlP')
+  call s:assert.cmd_not_exists('CtrlPFindFile')
+  call jetpack#load('ctrlp.vim')
+  call s:assert.cmd_exists('CtrlP')
+  call s:assert.cmd_exists('CtrlPFindFile')
 endfunction
 
 function s:suite.on_option_event()

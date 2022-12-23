@@ -376,7 +376,11 @@ We are welcome to your pull requests to improve the compatibility.
 
 |`depends`
 |`string` or `array`
-| Install plugins after the specified plugins.
+| Load the specified plugins before the plugin.
+
+|`on_source`
+|`string` or `array`
+| Load the plugin before the specified plugins.
 
 |`hook_add`
 |`string`
@@ -453,7 +457,7 @@ We are welcome to your pull requests to improve the compatibility.
 
 |`requires`
 |`string` or `array`
-| Install plugins after the specified plugins.
+| Enable plugins after the specified plugins.
 
 |`lock`
 |`boolean`
