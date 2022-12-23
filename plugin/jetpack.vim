@@ -573,8 +573,10 @@ function! jetpack#add(plugin, ...) abort
   let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let dependees = s:gets(opts, ['requires', 'depends'], [])
   call map(dependees, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
-  let dependers = s:gets(opts, ['on_source'], [])
-  call map(dependers, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
+  let dependers_before = s:gets(opts, ['before', 'on_source'], [])
+  call map(dependers_before, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
+  let dependers_after = s:gets(opts, ['after', 'on_post_source'], [])
+  call map(dependers_after, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let keys = s:gets(opts, ['on', 'keys', 'on_map'], [])
   call filter(keys, { _, k -> k =~? '^<Plug>' })
   let cmd = s:gets(opts, ['on', 'cmd', 'on_cmd'], [])
@@ -596,7 +598,7 @@ function! jetpack#add(plugin, ...) abort
   \   'do': s:gets(opts, ['do', 'run', 'build'], [''])[0],
   \   'frozen': s:gets(opts, ['frozen', 'lock'], [v:false])[0],
   \   'dir': s:gets(opts, ['dir', 'path'], [''])[0],
-  \   'opt': !empty(dependers) || !empty(cmd)|| !empty(keys) || !empty(event) || get(opts, 'opt'),
+  \   'opt': !empty(dependers_before) || !empty(dependers_after) || !empty(cmd)|| !empty(keys) || !empty(event) || get(opts, 'opt'),
   \   'path': path,
   \   'status': [s:status.pending],
   \   'output': '',
@@ -604,7 +606,8 @@ function! jetpack#add(plugin, ...) abort
   \   'setup': s:gets(opts, ['setup', 'hook_source'], [''])[0],
   \   'config': s:gets(opts, ['config', 'hook_post_source'], [''])[0],
   \   'dependees': dependees,
-  \   'dependers': dependers,
+  \   'dependers_before': dependers_before,
+  \   'dependers_after': dependers_after,
   \ }
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
@@ -739,9 +742,20 @@ function! jetpack#end() abort
       let pattern = 'JetpackPre:'.pkg_name
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endfor
-    for dep_name in pkg.dependers
+    for dep_name in pkg.dependers_before
       let cmd = 'call jetpack#load('.string(pkg_name).')'
       let pattern = 'JetpackPre:'.dep_name
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
+    endfor
+    let slug = substitute(pkg_name, '\W\+', '_', 'g')
+    let s:loaded_count_{slug} = len(pkg.dependers_after)
+    for dep_name in pkg.dependers_after
+      let cmd = 'if s:loaded_count_'.slug.' == 1 '.
+              \ '|  call jetpack#load('.string(pkg_name).') '.
+              \ '| else'.
+              \ '|  let s:loaded_count_'.slug.' -= 1 '.
+              \ '| endif'
+      let pattern = 'JetpackPost:'.dep_name
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endfor
     for it in pkg.keys

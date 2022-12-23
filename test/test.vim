@@ -239,6 +239,20 @@ function s:suite.on_source()
   call s:assert.cmd_exists('CtrlPFindFile')
 endfunction
 
+function s:suite.on_post_source()
+  call s:setup(
+  \ ['lambdalisue/fern.vim', { 'opt': 1 }],
+  \ ['lambdalisue/fern-hijack.vim', { 'on_post_source': 'fern.vim' }]
+  \ )
+  call s:assert.isdirectory(s:optdir . '/fern.vim')
+  call s:assert.isdirectory(s:optdir . '/fern-hijack.vim')
+  call s:assert.not_exists('g:loaded_fern')
+  call s:assert.not_exists('g:loaded_fern_hijack')
+  call jetpack#load('fern.vim')
+  call s:assert.exists('g:loaded_fern')
+  call s:assert.exists('g:loaded_fern_hijack')
+endfunction
+
 function s:suite.on_option_event()
   call s:setup(['tpope/vim-fugitive', { 'on': 'User Test' }])
   let s:loaded_fugitive = 0
