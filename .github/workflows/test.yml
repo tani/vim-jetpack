@@ -55,11 +55,12 @@ jobs:
       - name: Prepare test cases in Windows
         if: ${{ contains(matrix.os, 'windows') }}
         run: |
-          C:\Windows\System32\bash.exe .\prepare.sh
+          gitbash.exe .\prepare.sh
 
-      - name: Prepare test cases in Windows
+      - name: Prepare test cases in Linux/macOS
+        if: ${{ ! contains(matrix.os, 'windows') }}
         run: |
-          bash.exe ./prepare.sh
+          bash ./prepare.sh
 
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
         timeout-minutes: 5
