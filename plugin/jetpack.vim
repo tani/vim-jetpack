@@ -379,7 +379,7 @@ function! s:download_plugins() abort
       let status = s:status.installed
     endif
     let cmd = s:make_download_cmd(pkg)
-    call mkdir(pkg.path, 'p')
+    call mkdir(fnamemodify(pkg.path, ':p:h'), 'p')
     let job = s:jobstart(cmd, function({status, pkg, output -> [
     \   add(pkg.status, status),
     \   execute("let pkg.output = output")
