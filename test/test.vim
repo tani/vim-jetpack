@@ -417,15 +417,15 @@ function s:suite.branch_option()
   \ ['let g:loaded_'.g:id.' = 1'],
   \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
   \ )
-  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"', 'checkout -b other'])
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"', 'branch other', 'switch other'])
   call writefile(
   \ ['let g:loaded_'.g:id.' = 2'],
   \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
   \ )
-  call Git(DummyPath(g:id), ['add -A', 'commit -m "Second commit"'])
-  call Setup([DummyUrl(g:id), { 'branch': 'main' }])
+  call Git(DummyPath(g:id), ['add -A', 'commit -m "Second commit"', 'switch main'])
+  call Setup([DummyUrl(g:id), { 'branch': 'other' }])
   call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
-  call s:assert.equals(g:loaded_{g:id}, 1)
+  call s:assert.equals(g:loaded_{g:id}, 2)
 endfunction
 
 function s:suite.commit_option()

@@ -10,7 +10,7 @@ jobs:
         os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
-        dl: [git, curl, wget]
+        dl: [git] #[git, curl, wget]
         ver: [stable, v8.1.2110]
         exclude:
           - vi: vim
@@ -29,6 +29,11 @@ jobs:
           - vi: vim
             cp: hardlink
     steps:
+      - name: Init git
+        run: |
+          git config --global user.email vim-jetpack@example.com
+          git config --global user.name vim-jetpack
+
       - name: Clone vim-jetpack
         uses: actions/checkout@v3
 
