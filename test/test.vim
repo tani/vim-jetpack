@@ -38,11 +38,11 @@ function Setup(...)
 endfunction
 
 function DummyPath(name)
-  return fnamemodify(g:vimhome, ':p:h:h').'/data/'.a:name
+  return substitute('\V'.fnamemodify(g:vimhome, ':p:h:h').'/data/'.a:name, '\', '/', '')
 endfunction
 
 function DummyUrl(name)
-  return 'file://'.fnamemodify(g:vimhome, ':p:h:h').'/data/'.a:name
+  return 'file://'.DummyPath(a:name)
 endfunction
 
 let s:counter = 0
