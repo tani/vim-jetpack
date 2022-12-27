@@ -38,7 +38,7 @@ function Setup(...)
 endfunction
 
 function DummyPath(name)
-  return substitute(fnamemodify(g:vimhome, ':p:h:h').'/data/'.a:name, '\', '/', '')
+  return substitute(fnamemodify(g:vimhome, ':p:h:h').'/data/'.a:name, '\', '/', 'g')
 endfunction
 
 function DummyUrl(name)
