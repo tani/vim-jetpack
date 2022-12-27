@@ -1,5 +1,5 @@
 set packpath=
-set verbose=1
+"set verbose=1
 call execute(printf('source %s/plugin/jetpack.vim', expand('<sfile>:p:h:h')))
 
 function s:fallback(val, default)
@@ -16,6 +16,12 @@ let s:optdir =  g:vimhome . '/pack/jetpack/opt'
 let s:srcdir =  g:vimhome . '/pack/jetpack/src'
 
 call delete(g:vimhome . '/pack', 'rf')
+
+function Git(dir, commands)
+  for cmd in a:commands
+    call system('git -C '.a:dir.' '.cmd)
+  endfor
+endfunction
 
 function Setup(...)
   call jetpack#begin(g:vimhome)
@@ -123,39 +129,31 @@ call s:assert.match(plugins[2].hook_add, 'let g:ddc_fuzzy_loaded = 1')
 endfunction
 
 function s:suite.multiple_plugins_with_the_same_ondemand_command()
-  let id1 = UniqueId()
-  let id2 = UniqueId()
-  call mkdir(DummyPath(id1).'/plugin', 'p')
+  let g:id1 = UniqueId()
+  let g:id2 = UniqueId()
+  call mkdir(DummyPath(g:id1).'/plugin', 'p')
   call writefile(
-  \ [
-  \   'let g:loaded_'.id1.' = 1',
-  \   'echom "'.id1.' is loaded"',
-  \ ],
-  \ DummyPath(id1).'/plugin/'.id1.'.vim'
+  \ ['let g:loaded_'.g:id1.' = 1'],
+  \ DummyPath(g:id1).'/plugin/'.g:id1.'.vim'
   \ )
-  call system('git -C '.DummyPath(id1).' add -A')
-  call system('git -C '.DummyPath(id1).' commit -m "Initial commit"')
-  call mkdir(DummyPath(id2).'/plugin', 'p')
+  call Git(DummyPath(g:id1), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call mkdir(DummyPath(g:id2).'/plugin', 'p')
   call writefile(
-  \ [
-  \   'let g:loaded_'.id2.' = 1',
-  \   'echom "'.id2.' is loaded"',
-  \ ],
-  \ DummyPath(id2).'/plugin/'.id2.'.vim'
+  \ ['let g:loaded_'.g:id2.' = 1'],
+  \ DummyPath(g:id2).'/plugin/'.g:id2.'.vim'
   \ )
-  call system('git -C '.DummyPath(id1).' add -A')
-  call system('git -C '.DummyPath(id1).' commit -m "Initial commit"')
+  call Git(DummyPath(g:id2), ['init', 'add -A', 'commit -m "Initial commit"'])
   call Setup(
-  \ [DummyUrl(id1), { 'on_cmd': 'Test' }],
-  \ [DummyUrl(id2), { 'on_cmd': 'Test' }]
+  \ [DummyUrl(g:id1), { 'on_cmd': 'Test' }],
+  \ [DummyUrl(g:id2), { 'on_cmd': 'Test' }]
   \ )
-  call s:assert.isdirectory(s:optdir.'/'.id1)
-  call s:assert.isdirectory(s:optdir.'/'.id2)
-  call s:assert.not_exists('g:loaded_'.id1)
-  call s:assert.not_exists('g:loaded_'.id2)
-  Test
-  call s:assert.exists('g:loaded_'.id1)
-  call s:assert.exists('g:loaded_'.id2)
+  call s:assert.isdirectory(s:optdir.'/'.g:id1)
+  call s:assert.isdirectory(s:optdir.'/'.g:id2)
+  call s:assert.not_exists('g:loaded_'.g:id1)
+  call s:assert.not_exists('g:loaded_'.g:id2)
+  silent Test
+  call s:assert.exists('g:loaded_'.g:id1)
+  call s:assert.exists('g:loaded_'.g:id2)
 endfunction
 
 function s:suite.no_option_github()
@@ -173,221 +171,350 @@ function s:suite.no_option_url()
 endfunction
 
 function s:suite.opt()
-  let id = UniqueId()
-  call mkdir(DummyPath(id).'/plugin', 'p')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
   call writefile(
-  \ ['let g:loaded_'.id.' = 1'],
-  \ DummyPath(id).'/plugin/'.id.'.vim'
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
   \ )
-  call Setup([DummyUrl(id), { 'opt': 1 }])
-  call s:assert.isdirectory(s:optdir.'/'.id)
-  call s:assert.not_exists('g:loaded_'.id)
-  call jetpack#load(id)
-  call s:assert.exists('g:loaded_'.id)
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'opt': 1 }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.not_exists('g:loaded_'.g:id)
+  call jetpack#load(g:id)
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
 function s:suite.do_func()
-  let id = UniqueId()
-  call mkdir(DummyPath(id).'/plugin', 'p')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
   call writefile(
   \ [
-  \ 'let g:loaded_'.id.' = 1',
-  \ 'function Install'.id.'()',
-  \ 'let g:installed_'.id.'=1',
+  \ 'let g:loaded_'.g:id.' = 1',
+  \ 'function Install'.g:id.'()',
+  \ 'let g:installed_'.g:id.'=1',
   \ 'endfunction'
   \ ],
-  \ DummyPath(id).'/plugin/'.id.'.vim')
-  call Setup([DummyUrl(id), { 'do': { -> execute('call Install'.id.'()') } }])
-  call s:assert.isdirectory(s:optdir.'/'.id)
-  call s:assert.exists('g:loaded_'.id)
-  call s:assert.exists('g:installed_'.id)
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim')
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'do': { -> execute('call Install'.g:id.'()') } }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.exists('g:loaded_'.g:id)
+  call s:assert.exists('g:installed_'.g:id)
 endfunction
 
 function s:suite.on_ft()
-  let id = UniqueId()
-  call mkdir(DummyPath(id).'/plugin', 'p')
-  call writefile(['let g:loaded_'.id.' = 1'], DummyPath(id).'/plugin/'.id.'.vim')
-  call Setup([DummyUrl(id), { 'on_ft': 'c' }])
-  call s:assert.isdirectory(s:optdir.'/'.id)
-  call s:assert.not_exists('g:loaded_'.id)
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(['let g:loaded_'.g:id.' = 1'], DummyPath(g:id).'/plugin/'.g:id.'.vim')
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'on_ft': 'c' }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.not_exists('g:loaded_'.g:id)
   let filetype = &filetype
   setf c
-  call s:assert.exists('g:loaded_'.id)
+  call s:assert.exists('g:loaded_'.g:id)
   let &filetype = filetype
 endfunction
 
 function s:suite.on_cmd()
-  let id = UniqueId()
-  call mkdir(DummyPath(id).'/plugin', 'p')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
   call writefile([
-  \ 'let g:loaded_'.id.' = 1',
-  \ 'command Load'.id.' :'
-  \],
-  \ DummyPath(id).'/plugin/'.id.'.vim')
-  call Setup([DummyUrl(id), { 'on_cmd': 'Load'.id }])
-  call s:assert.isdirectory(s:optdir.'/'.id)
-  call s:assert.not_exists('g:loaded_'.id)
-  silent! execute 'Load'.id
-  call s:assert.exists('g:loaded_'.id)
+  \ 'let g:loaded_'.g:id.' = 1',
+  \ 'command Load'.g:id.' :'
+  \ ],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim')
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'on_cmd': 'Load'.g:id }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.not_exists('g:loaded_'.g:id)
+  silent! execute 'Load'.g:id
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
 function s:suite.on_map()
-  call Setup([DummyUrl('F'), { 'on_map': '<Plug>F' }])
-  call s:assert.isdirectory(s:optdir . '/F')
-  call s:assert.not_exists('g:loaded_F')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile([
+  \ 'let g:loaded_'.g:id.' = 1',
+  \ 'map <Plug>'.g:id.' :'
+  \],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim')
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'on_map': '<Plug>'.g:id }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.not_exists('g:loaded_'.g:id)
   call feedkeys('', 'x')
-  call feedkeys("\<Plug>F", 'x')
+  call feedkeys("\<Plug>".g:id, 'x')
   call feedkeys('', 'x')
-  call s:assert.exists('g:loaded_F')
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
 function s:suite.on_source()
-  call Setup(
-  \ [DummyUrl('G'), { 'opt': 1 }],
-  \ [DummyUrl('H'), { 'on_source': 'G' }]
+  let g:id1 = UniqueId()
+  let g:id2 = UniqueId()
+  call mkdir(DummyPath(g:id1).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id1.' = 1'],
+  \ DummyPath(g:id1).'/plugin/'.g:id1.'.vim'
   \ )
-  call s:assert.isdirectory(s:optdir . '/G')
-  call s:assert.isdirectory(s:optdir . '/H')
-  call s:assert.not_exists('g:loaded_G')
-  call s:assert.not_exists('g:loaded_H')
-  call jetpack#load('G')
-  call s:assert.exists('g:loaded_G')
-  call s:assert.exists('g:loaded_H')
+  call Git(DummyPath(g:id1), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call mkdir(DummyPath(g:id2).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id2.' = 1'],
+  \ DummyPath(g:id2).'/plugin/'.g:id2.'.vim'
+  \ )
+  call Git(DummyPath(g:id2), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup(
+  \ [DummyUrl(g:id1), { 'opt': 1 }],
+  \ [DummyUrl(g:id2), { 'on_source': g:id1 }]
+  \ )
+  call s:assert.isdirectory(s:optdir.'/'.g:id1)
+  call s:assert.isdirectory(s:optdir.'/'.g:id2)
+  call s:assert.not_exists('g:loaded_'.g:id1)
+  call s:assert.not_exists('g:loaded_'.g:id2)
+  call jetpack#load(g:id1)
+  call s:assert.exists('g:loaded_'.g:id1)
+  call s:assert.exists('g:loaded_'.g:id2)
 endfunction
 
 function s:suite.on_post_source()
-  call Setup(
-  \ [DummyUrl('I'), { 'opt': 1 }],
-  \ [DummyUrl('J'), { 'on_post_source': 'I' }]
+  let g:id1 = UniqueId()
+  let g:id2 = UniqueId()
+  call mkdir(DummyPath(g:id1).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id1.' = 1'],
+  \ DummyPath(g:id1).'/plugin/'.g:id1.'.vim'
   \ )
-  call s:assert.isdirectory(s:optdir . '/I')
-  call s:assert.isdirectory(s:optdir . '/J')
-  call s:assert.not_exists('g:loaded_I')
-  call s:assert.not_exists('g:loaded_J')
-  call jetpack#load('I')
-  call s:assert.exists('g:loaded_I')
-  call s:assert.exists('g:loaded_J')
+  call Git(DummyPath(g:id1), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call mkdir(DummyPath(g:id2).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id2.' = 1'],
+  \ DummyPath(g:id2).'/plugin/'.g:id2.'.vim'
+  \ )
+  call Git(DummyPath(g:id2), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup(
+  \ [DummyUrl(g:id1), { 'opt': 1 }],
+  \ [DummyUrl(g:id2), { 'on_post_source': g:id1 }]
+  \ )
+  call s:assert.isdirectory(s:optdir.'/'.g:id1)
+  call s:assert.isdirectory(s:optdir.'/'.g:id2)
+  call s:assert.not_exists('g:loaded_'.g:id1)
+  call s:assert.not_exists('g:loaded_'.g:id2)
+  call jetpack#load(g:id1)
+  call s:assert.exists('g:loaded_'.g:id1)
+  call s:assert.exists('g:loaded_'.g:id2)
 endfunction
 
 function s:suite.on_event()
-  call Setup([DummyUrl('K'), { 'on_event': 'User Test' }])
-  call s:assert.isdirectory(s:optdir . '/K')
-  call s:assert.not_exists('g:loaded_K')
-  doautocmd User Test
-  call s:assert.exists('g:loaded_K')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'on_event': 'User '.g:id }])
+  call s:assert.isdirectory(s:optdir.'/'.g:id)
+  call s:assert.not_exists('g:loaded_'.g:id)
+  execute 'doautocmd User' g:id
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
 function s:suite.rtp()
-  call Setup([DummyUrl('L'), { 'rtp': 'vim' }])
-  call s:assert.isnotdirectory(s:optdir . '/_/vim')
-  call s:assert.filereadable(s:optdir . '/_/plugin/L.vim')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/vim/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/vim/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'rtp': 'vim' }])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
-" function s:suite.issue15()
-"   call Setup(['vim-test/vim-test'])
-"   call s:assert.isdirectory(s:optdir . '/_/autoload/test')
-" endfunction
+function s:suite.issue15()
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/autoload/test', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/autoload/test/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyPath(g:id)])
+  call s:assert.isdirectory(s:optdir . '/_/autoload/test')
+endfunction
 
 function s:suite.names()
-  call Setup([DummyUrl('M')])
-  call s:assert.filereadable(s:optdir . '/_/plugin/M.vim')
-  call s:assert.equals(jetpack#names(), ['M'])
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id)])
+  call s:assert.equals(jetpack#names(), [g:id])
 endfunction
 
 function s:suite.tap()
-  call Setup([DummyUrl('N')])
-  call s:assert.filereadable(s:optdir . '/_/plugin/N.vim')
-  call s:assert.true(jetpack#tap('N'))
-  call s:assert.false(jetpack#tap('_'))
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id)])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  call s:assert.true(jetpack#tap(g:id), g:id.' is not installed')
+  call s:assert.false(jetpack#tap('_'), '_ is installed')
 endfunction
 
 function s:suite.get()
-  call Setup([DummyUrl('O')])
-  call s:assert.filereadable(s:optdir . '/_/plugin/O.vim')
-  let data = jetpack#get('O')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id)])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  let data = jetpack#get(g:id)
   call s:assert.equals(type(data), type({}))
   call s:assert.false(empty(data), 'data is empty')
 endfunction
-
-" function s:suite.change_repo_url()
-"   call Setup(['sveltejs/template'])
-"   call Setup(['readthedocs/template'])
-"   call s:assert.match(jetpack#get('template').path, 'readthedocs')
-" endfunction
 
 function s:suite.frozen_option()
   call s:assert.skip('')
 endfunction
 
 function s:suite.tag_option()
-  call Setup([DummyUrl('S'), { 'tag': 'v1' }])
-  call s:assert.filereadable(s:optdir . '/_/plugin/S.vim')
-  call s:assert.equals(g:version_S, 'v1')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"', 'tag v1'])
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 2'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['add -A', 'commit -m "Second commit"', 'tag v2'])
+  call Setup([DummyUrl(g:id), {'tag': 'v1'}])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  call s:assert.equals(g:loaded_{g:id}, 1)
 endfunction
 
 function s:suite.branch_option()
-  call Setup([DummyUrl('T'), { 'branch': 'other' }])
-  call s:assert.filereadable(s:optdir . '/_/plugin/T.vim')
-  call s:assert.equals(g:branch_T, 'other')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"', 'checkout -b other'])
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 2'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['add -A', 'commit -m "Second commit"'])
+  call Setup([DummyUrl(g:id), { 'branch': 'main' }])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  call s:assert.equals(g:loaded_{g:id}, 1)
 endfunction
 
 function s:suite.commit_option()
-  let ids = systemlist('git -C '.fnamemodify(g:vimhome, ':p:h:h').'/data/U'.' log -3 --pretty=format:"%h"')
-  call Setup([DummyUrl('U'), { 'commit': ids[1] }])
-  call s:assert.filereadable(s:optdir . '/_/plugin/U.vim')
-  call s:assert.equals(g:version_U, 'v0')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 2'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['add -A', 'commit -m "Second commit"'])
+  let g:ids = systemlist('git -C '.DummyPath(g:id).' log -3 --pretty=format:"%h"')
+  call Setup([DummyUrl(g:id), { 'commit': g:ids[1] }])
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
+  call s:assert.equals(g:loaded_{g:id}, 1)
 endfunction
 
-" function s:suite.issue70()
-"   call Setup(['s1n7ax/nvim-window-picker'], ['p00f/nvim-ts-rainbow'])
-"   call s:assert.filereadable(s:optdir . '/_/screenshots')
-"   call s:assert.isdirectory(s:optdir. '/nvim-ts-rainbow/screenshots')
-" endfunction
+function s:suite.issue70()
+  call mkdir(DummyPath(g:id1).'/screenshots', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id1.' = 1'],
+  \ DummyPath(g:id1).'/screenshots/'.g:id1.'.vim'
+  \ )
+  call Git(DummyPath(g:id1), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call mkdir(DummyPath(g:id2), 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id2.' = 1'],
+  \ DummyPath(g:id2).'/screenshots'
+  \ )
+  call Git(DummyPath(g:id2), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id1)], [DummyUrl(g:id2)])
+  call s:assert.isdirectory(s:optdir . '/_/screenshots')
+  call s:assert.filereadable(s:optdir. '/'.g:id2.'/screenshots')
+endfunction
 
 function s:suite.local_plugin()
-  let install_path = fnamemodify(g:vimhome, ':p:h:h') . '/data/P'
-  call Setup([install_path])
-  call s:assert.isdirectory(install_path)
-  call s:assert.exists('g:loaded_P')
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyPath(g:id)])
+  call s:assert.isdirectory(DummyPath(g:id))
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
-"function s:suite.self_delete()
-"  let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
-"  let opt_path = expand(s:optdir . '/vim-jetpack')
-"  
-"  " When jetpack is added, it does not delete itself.
-"  call Setup(['tani/vim-jetpack', { 'opt': 1 }])
-"  call s:assert.isdirectory(src_path)
-"  call s:assert.isdirectory(opt_path)
-"  
-"  " When jetpack is not added, it ask me to delete itself.
-"  call jetpack#begin(g:vimhome)
-"  call jetpack#end()
-"  
-"  " If you press "no", nothing will happen.
-"  augroup SelfDeletePressKey
-"    au!
-"    au CmdlineEnter * call feedkeys("no\<CR>", "n")
-"  augroup END
-"  call jetpack#sync()
-"  call s:assert.isdirectory(opt_path)
-"  
-"  " If you press "yes", it will delete the directory
-"  augroup SelfDeletePressKey
-"    au!
-"    autocmd CmdlineEnter * call feedkeys("yes\<CR>", "n")
-"  augroup END
-"  call jetpack#sync()
-"  call s:assert.isnotdirectory(opt_path)
-"  
-"  " If you have an old jetpack, don't ask.
-"  call Setup(['tani/vim-jetpack', { 'opt': 1 }])
-"  call system('git -C ' . src_path . ' fetch --depth 2')
-"  call system('git -C ' . src_path . ' reset --hard HEAD~')
-"  call jetpack#sync()
-"  call s:assert.isdirectory(src_path)
-"  call s:assert.isdirectory(opt_path)
-"endfunction
+function s:suite.self_delete()
+  let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
+  let opt_path = expand(s:optdir . '/vim-jetpack')
+  
+  " When jetpack is added, it does not delete itself.
+  call Setup(['tani/vim-jetpack', { 'opt': 1 }])
+  call s:assert.isdirectory(src_path)
+  call s:assert.isdirectory(opt_path)
+  
+  " When jetpack is not added, it ask me to delete itself.
+  call jetpack#begin(g:vimhome)
+  call jetpack#end()
+  
+  " If you press "no", nothing will happen.
+  augroup SelfDeletePressKey
+    au!
+    au CmdlineEnter * call feedkeys("no\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isdirectory(opt_path)
+  
+  " If you press "yes", it will delete the directory
+  augroup SelfDeletePressKey
+    au!
+    autocmd CmdlineEnter * call feedkeys("yes\<CR>", "n")
+  augroup END
+  call jetpack#sync()
+  call s:assert.isnotdirectory(opt_path)
+  
+  " If you have an old jetpack, don't ask.
+  call Setup(['tani/vim-jetpack', { 'opt': 1 }])
+  call system('git -C ' . src_path . ' fetch --depth 2')
+  call system('git -C ' . src_path . ' reset --hard HEAD~')
+  call jetpack#sync()
+  call s:assert.isdirectory(src_path)
+  call s:assert.isdirectory(opt_path)
+endfunction
 
 if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
   finish 
@@ -412,56 +539,91 @@ end
 EOL
 
 function s:suite.packer_style()
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
 lua<<EOF
   packer_setup({
-    vim.fn.DummyUrl('V'),
+    vim.fn.DummyUrl(vim.g.id),
   })
 EOF
-call s:assert.filereadable(s:optdir . '/_/plugin/V.vim')
+  call s:assert.filereadable(s:optdir . '/_/plugin/'.g:id.'.vim')
 endfunction
 
 function s:suite.packer_style_setup()
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id.' = 1'],
+  \ DummyPath(g:id).'/plugin/'.g:id.'.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
 lua<<EOF
   packer_setup({
-    vim.fn.DummyUrl('W'),
+    vim.fn.DummyUrl(vim.g.id),
     setup = function()
-      require('jetpack.util').command[[
-        let g:variable_W = 0 
-      ]]
+      vim.g['loaded_' .. vim.g.id] = 2
     end
   })
 EOF
-call jetpack#load('W')
-call s:assert.exists('g:loaded_W')
-call s:assert.exists('g:variable_W')
+  call jetpack#load(g:id)
+  call s:assert.equals(g:loaded_{g:id}, 2)
 endfunction
 
 function s:suite.packer_style_config()
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/lua', 'p')
+  call writefile(
+  \ ['return { setup = function() vim.g["loaded_"..vim.g.id] = 1 end }'],
+  \ DummyPath(g:id).'/lua/'.g:id.'.lua'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
 lua<<EOF
   packer_setup({
-    vim.fn.DummyUrl('X'),
+    vim.fn.DummyUrl(vim.g.id),
     config = function()
-      require('X').setup{}
+      require(vim.g.id).setup{}
     end
   })
 EOF
-call jetpack#load('X')
-call s:assert.exists('g:loaded_X')
-call s:assert.exists('g:variable_X')
+  call jetpack#load(g:id)
+  call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
 function! s:suite.pkg_requires() abort
+  let g:id1 = UniqueId()
+  let g:id2 = UniqueId()
+  call mkdir(DummyPath(g:id1).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id1.' = 1'],
+  \ DummyPath(g:id1).'/plugin/'.g:id1.'.vim'
+  \ )
+  call Git(DummyPath(g:id1), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call mkdir(DummyPath(g:id2).'/plugin', 'p')
+  call writefile(
+  \ ['let g:loaded_'.g:id2.' = 1'],
+  \ DummyPath(g:id2).'/plugin/'.g:id2.'.vim'
+  \ )
+  call Git(DummyPath(g:id2), ['init', 'add -A', 'commit -m "Initial commit"'])
 lua<<EOF
   packer_setup({
-    vim.fn.DummyUrl('Y'),
+    vim.fn.DummyUrl(vim.g.id1),
     opt = true
   }, {
-    vim.fn.DummyUrl('Z'),
-    requires = { 'Y' },
+    vim.fn.DummyUrl(vim.g.id2),
+    requires = vim.g.id1,
     opt = true
   })
 EOF
-  call jetpack#load('Z')
-  call s:assert.exists('g:loaded_Z')
-  call s:assert.exists('g:loaded_Y')
+  call s:assert.isdirectory(s:optdir.'/'.g:id1)
+  call s:assert.isdirectory(s:optdir.'/'.g:id2)
+  call s:assert.not_exists('g:loaded_'.g:id1)
+  call s:assert.not_exists('g:loaded_'.g:id2)
+  call jetpack#load(g:id2)
+  call s:assert.exists('g:loaded_'.g:id1)
+  call s:assert.exists('g:loaded_'.g:id2)
 endfunction

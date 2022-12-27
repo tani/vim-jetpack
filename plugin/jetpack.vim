@@ -580,7 +580,7 @@ function! jetpack#add(plugin, ...) abort
   let keys = s:gets(opts, ['on', 'keys', 'on_map'], [])
   call filter(keys, { _, k -> k =~? '^<Plug>' })
   let cmd = s:gets(opts, ['on', 'cmd', 'on_cmd'], [])
-  call filter(cmd, { _, k -> k =~? '^[A-Z]\+$' })
+  call filter(cmd, { _, k -> k =~? '^[A-Z]' })
   let event = s:gets(opts, ['on', 'event', 'on_event'], [])
   call filter(event, { _, v -> exists('##' . substitute(v, ' .*', '', ''))})
   let filetypes = s:gets(opts, ['for', 'ft', 'on_ft'], [])

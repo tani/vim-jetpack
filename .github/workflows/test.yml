@@ -52,16 +52,6 @@ jobs:
           version: ${{ matrix.ver }}
           neovim: ${{ matrix.vi == 'neovim' }}
 
-      - name: Prepare test cases in Windows
-        if: ${{ contains(matrix.os, 'windows') }}
-        run: |
-          gitbash.exe .\prepare.sh
-
-      - name: Prepare test cases in Linux/macOS
-        if: ${{ ! contains(matrix.os, 'windows') }}
-        run: |
-          bash ./prepare.sh
-
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
         timeout-minutes: 5
         env:

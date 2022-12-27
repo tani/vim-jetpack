@@ -3,3 +3,4 @@
 **/*.log
 **/tags
 **/*.png
+**/data
