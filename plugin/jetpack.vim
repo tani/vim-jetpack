@@ -36,7 +36,7 @@ elseif has('patch-8.2.4594')
     execute 'silent buffer' t
     call setline(1, split(a:code, "\n"))
     source
-    execute 'bwipeout!' t
+    execute 'silent bwipeout!' t
     execute 'silent buffer' c
   endfunction
 else
