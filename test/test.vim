@@ -478,7 +478,20 @@ function s:suite.local_plugin()
   call s:assert.exists('g:loaded_'.g:id)
 endfunction
 
+function s:suite.curl()
+  let g:jetpack_download_method = 'curl'
+  call Setup(['tani/vim-jetpack', {'opt': 1}])
+  call s:assert.isdirectory(s:optdir . '/vim-jetpack')
+endfunction
+
+function s:suite.wget()
+  let g:jetpack_download_method = 'wget'
+  call Setup(['tani/vim-jetpack', {'opt': 1}])
+  call s:assert.isdirectory(s:optdir . '/vim-jetpack')
+endfunction
+
 function s:suite.self_delete()
+  let g:jetpack_download_method = 'git'
   let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
   let opt_path = expand(s:optdir . '/vim-jetpack')
   

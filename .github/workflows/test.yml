@@ -10,7 +10,6 @@ jobs:
         os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
         cp: [system, copy, hardlink, symlink]
-        dl: [git] #[git, curl, wget]
         ver: [stable, v8.1.2110]
         exclude:
           - vi: vim
@@ -60,7 +59,6 @@ jobs:
       - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
         timeout-minutes: 5
         env:
-          JETPACK_DOWNLOAD_METHOD: ${{ matrix.dl }}
           JETPACK_COPY_METHOD: ${{ matrix.cp }}
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
