@@ -382,6 +382,10 @@ We are welcome to your pull requests to improve the compatibility.
 |`string` or `array`
 | Load the plugin before the specified plugins.
 
+|`on_post_source`
+|`string` or `array`
+| Load the plugin after the specified plugins.
+
 |`hook_add`
 |`string`
 | Execute the specified Vim script at the end of `jetpack#add` function.
@@ -457,7 +461,15 @@ We are welcome to your pull requests to improve the compatibility.
 
 |`requires`
 |`string` or `array`
-| Enable plugins after the specified plugins.
+| Enable the plugin after the specified plugins.
+
+|`after`
+|`string` or `array`
+| Enable the plugin after the specified plugins.
+
+|`before`
+|`string` or `array`
+| Enable the plugin before the specified plugins.
 
 |`lock`
 |`boolean`
