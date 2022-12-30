@@ -21,8 +21,6 @@ jobs:
             ver: v8.1.2110
           - os: macos-12
             ver: v8.1.2110
-          - os: windows-2022
-            dl: wget
           - vi: vim
             cp: symlink
           - vi: vim

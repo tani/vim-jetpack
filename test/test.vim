@@ -484,12 +484,6 @@ function s:suite.curl()
   call s:assert.isdirectory(s:optdir . '/vim-jetpack')
 endfunction
 
-function s:suite.wget()
-  let g:jetpack_download_method = 'wget'
-  call Setup(['tani/vim-jetpack', {'opt': 1}])
-  call s:assert.isdirectory(s:optdir . '/vim-jetpack')
-endfunction
-
 function s:suite.self_delete()
   let g:jetpack_download_method = 'git'
   let src_path = expand(s:srcdir . '/github.com/tani/vim-jetpack')
