@@ -2,7 +2,7 @@ name: Test
 on: [push, pull_request]
 jobs:
   test:
-    name: ${{ matrix.os }} / ${{ matrix.vi }} / ${{ matrix.cp }}, ${{ matrix.dl }}
+    name: ${{ matrix.os }} / ${{ matrix.vi }} / ${{ matrix.cp }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,7 +56,7 @@ jobs:
           version: ${{ matrix.ver }}
           neovim: ${{ matrix.vi == 'neovim' }}
 
-      - name: Run tests with ${{ matrix.dl }} and ${{ matrix.cp }}
+      - name: Run tests with ${{ matrix.cp }}
         timeout-minutes: 5
         env:
           JETPACK_COPY_METHOD: ${{ matrix.cp }}
