@@ -380,7 +380,7 @@ function! s:download_plugins() abort
       let status = s:status.installed
     endif
     let cmd = s:make_download_cmd(pkg)
-    call delete(a:pkg.path, 'rf')
+    call delete(pkg.path, 'rf')
     call mkdir(pkg.path, 'p')
     let job = s:jobstart(cmd, function({status, pkg, output -> [
     \   add(pkg.status, status),
