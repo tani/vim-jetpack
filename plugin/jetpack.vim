@@ -350,7 +350,6 @@ function! s:make_download_cmd(pkg) abort
       throw 'g:jetpack_download_method: ' . g:jetpack_download_method . ' is not a valid value'
     endif
     let extract_cmd = 'tar -zxf - -C ' . a:pkg.path . ' --strip-components 1'
-    call delete(a:pkg.path, 'rf')
     if has('unix')
       return ['sh', '-c', download_cmd . ' | ' . extract_cmd]
     elseif has('win32')
@@ -381,7 +380,8 @@ function! s:download_plugins() abort
       let status = s:status.installed
     endif
     let cmd = s:make_download_cmd(pkg)
-    call mkdir(fnamemodify(pkg.path, ':p:h'), 'p')
+    call delete(a:pkg.path, 'rf')
+    call mkdir(pkg.path, 'p')
     let job = s:jobstart(cmd, function({status, pkg, output -> [
     \   add(pkg.status, status),
     \   execute("let pkg.output = output")
