@@ -240,7 +240,9 @@ function! s:copy_dir(from, to) abort
   elseif has('unix')
     call system(printf('cp -R %s/. %s', a:from, a:to))
   elseif has('win32')
-    call system(printf('xcopy %s %s /E /Y', expand(a:from), expand(a:to)))
+    let src = substitute(expand(a:from), '\\$', '', '')
+    let dest = substitute(expand(a:to), '\\$', '', '')
+    call system(printf('xcopy %s %s /E /Y', src, dest))
   endif
 endfunction
 
