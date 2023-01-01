@@ -448,6 +448,8 @@ function s:suite.commit_option()
 endfunction
 
 function s:suite.issue70()
+  let g:id1 = UniqueId()
+  let g:id2 = UniqueId()
   call mkdir(DummyPath(g:id1).'/screenshots', 'p')
   call writefile(
   \ ['let g:loaded_'.g:id1.' = 1'],
