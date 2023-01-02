@@ -731,7 +731,7 @@ function! jetpack#end() abort
 
   autocmd Jetpack User JetpackSetup :
   autocmd Jetpack User JetpackConfig :
-  autocmd Jetpack SourcePost $MYVIMRC ++once doautocmd <nomodeline> Jetpack User JetpackSetup
+  autocmd Jetpack SourcePost $MYVIMRC,*.lua,*.vim ++once doautocmd <nomodeline> Jetpack User JetpackSetup
   autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
 
   if sort(keys(s:declared_packages)) != sort(keys(s:available_packages))
