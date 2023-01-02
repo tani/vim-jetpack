@@ -882,7 +882,13 @@ local Jetpack = {}
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
   Jetpack[name] = function(...)
     local result = vim.fn['jetpack#' .. name](...)
-    return result == 0 and false or result == 1 and true or result
+    if result == 0 then
+      return false
+    elseif result == 1 then
+      return true
+    else
+      return result
+    end
   end
 end
 Jetpack.prologue = Jetpack['begin']
