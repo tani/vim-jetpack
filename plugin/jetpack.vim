@@ -905,6 +905,7 @@ package.preload['jetpack'] = function()
 end
 
 local Packer = {
+  hook = {},
   option = {},
 }
 
@@ -916,16 +917,15 @@ Packer.init = function(option)
   Packer.option = option
 end
 
-local function create_hook(name, value)
-  local fun = type(value) == 'function' and value or assert(Util.load(value))
-  local dump = string.dump(fun)
-  local hex = '0z'
-  for i = 1, #dump do
-    hex = hex .. string.format('%02x', string.byte(dump, i))
+local function create_hook(hook_name, pkg_name, value)
+  if type(value) == 'function' then
+    Packer.hook[hook_name .. '.' .. pkg_name] = value
+  else
+    Packer.hook[hook_name .. '.' .. pkg_name] = assert(Util.load(value))
   end
   return
-    "lua if require('jetpack').tap('"..name.."') then "..
-    "  assert(require('jetpack.util').load(require('jetpack.util').eval('"..hex.."')))() "..
+    "lua if require('jetpack').tap('"..pkg_name.."') then "..
+    "  require('jetpack.packer').hook['"..hook_name.."."..pkg_name.."']() "..
     "end"
 end
 
@@ -939,10 +939,10 @@ local function use(plugin)
     else
       local name = plugin['as'] or string.gsub(repo, '.*/', '')
       if plugin.setup then
-        plugin.setup = create_hook(name, plugin.setup)
+        plugin.setup = create_hook('setup', name, plugin.setup)
       end
       if plugin.config then
-        plugin.config = create_hook(name, plugin.config)
+        plugin.config = create_hook('config', name, plugin.config)
       end
       local dict = vim.dict or function(x) return x end
       Jetpack.add(repo, dict(plugin))
