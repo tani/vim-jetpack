@@ -553,8 +553,7 @@ function! s:is_merged(pkg) abort
 endfunction
 
 function! s:is_opt(pkg) abort
-  return !empty(a:pkg.dependees)
-       \ || !empty(a:pkg.dependers_before)
+  return !empty(a:pkg.dependers_before)
        \ || !empty(a:pkg.dependers_after)
        \ || !empty(a:pkg.cmd)
        \ || !empty(a:pkg.keys)
