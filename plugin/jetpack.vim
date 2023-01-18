@@ -548,9 +548,17 @@ endif
 " it should be placed isolated directory (not merged).
 function! s:is_merged(pkg) abort
   return !a:pkg.opt
-        \ && empty(a:pkg.do)
-        \ && empty(a:pkg.dir)
+       \ && empty(a:pkg.do)
+       \ && empty(a:pkg.dir)
 endfunction
+
+function! s:is_opt(pkg) abort
+  return !empty(a:pkg.dependers_before)
+       \ || !empty(a:pkg.dependers_after)
+       \ || !empty(a:pkg.cmd)
+       \ || !empty(a:pkg.keys)
+       \ || !empty(a:pkg.event)
+  endfunction
 
 function! s:gets(pkg, keys, default) abort
   let values = []
@@ -602,20 +610,20 @@ function! jetpack#add(plugin, ...) abort
   \   'do': s:gets(opts, ['do', 'run', 'build'], [''])[0],
   \   'frozen': s:gets(opts, ['frozen', 'lock'], [v:false])[0],
   \   'dir': s:gets(opts, ['dir', 'path'], [''])[0],
-  \   'opt': !empty(dependers_before) || !empty(dependers_after) || !empty(cmd)|| !empty(keys) || !empty(event) || get(opts, 'opt'),
   \   'path': path,
   \   'status': [s:status.pending],
   \   'output': '',
-  \   'code': get(opts, 'hook_add', ''),
-  \   'setup': s:gets(opts, ['setup', 'hook_source'], [''])[0],
-  \   'config': s:gets(opts, ['config', 'hook_post_source'], [''])[0],
+  \   'hook_add': get(opts, 'hook_add', ''),
+  \   'hook_source': get(opts, 'hook_source', ''),
+  \   'hook_post_source': get(opts, 'hook_post_source', ''),
   \   'dependees': dependees,
   \   'dependers_before': dependers_before,
   \   'dependers_after': dependers_after,
   \ }
+  let pkg.opt = get(opts, 'opt', s:is_opt(pkg))
   let pkg.merged = get(opts, 'merged', s:is_merged(pkg))
   let s:declared_packages[name] = pkg
-  call s:execute(pkg.code)
+  call s:execute(pkg.hook_add)
 endfunction
 
 function! jetpack#load_toml(path) abort
@@ -731,10 +739,10 @@ function! jetpack#end() abort
   syntax off
   filetype plugin indent off
 
-  autocmd Jetpack User JetpackSetup :
-  autocmd Jetpack User JetpackConfig :
-  autocmd Jetpack SourcePost $MYVIMRC ++once doautocmd <nomodeline> Jetpack User JetpackSetup
-  autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackConfig
+  autocmd Jetpack User JetpackPre:init :
+  autocmd Jetpack User JetpackPost:init :
+  autocmd Jetpack SourcePost $MYVIMRC,*.lua,*.vim ++once doautocmd <nomodeline> Jetpack User JetpackPre:init
+  autocmd Jetpack VimEnter * ++once doautocmd <nomodeline> Jetpack User JetpackPost:init
 
   if sort(keys(s:declared_packages)) != sort(keys(s:available_packages))
     echomsg 'Some packages are not synchronized. Run :JetpackSync'
@@ -779,31 +787,31 @@ function! jetpack#end() abort
       let s:cmds[cmd] = add(get(s:cmds, cmd, []), pkg_name)
       execute printf('command! -range -nargs=* %s :call <SID>load_cmd(%s, %s, <f-args>)', cmd, string(cmd), s:cmds[cmd])
     endfor
-    if !empty(pkg.setup)
+    if !empty(pkg.hook_source)
       let pattern = 'JetpackPre:'.pkg_name
-      let cmd = 'call s:execute(s:declared_packages['.string(pkg_name).'].setup)'
+      let cmd = 'call s:execute(s:declared_packages['.string(pkg_name).'].hook_source)'
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
-    if !empty(pkg.config)
+    if !empty(pkg.hook_post_source)
       let pattern = 'JetpackPost:'.pkg_name
-      let cmd = 'call s:execute(s:declared_packages['.string(pkg_name).'].config)'
+      let cmd = 'call s:execute(s:declared_packages['.string(pkg_name).'].hook_post_source)'
       call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': pattern, 'cmd': cmd, 'once': v:true }])
     endif
     if !empty(pkg.dir) || pkg.local
       let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd, 'once': v:true }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackPre:init', 'cmd': cmd, 'once': v:true }])
       execute 'set runtimepath^=' . pkg.path . '/' . pkg.rtp
       execute 'set runtimepath+=' . pkg.path . '/' . pkg.rtp . '/after'
       let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd, 'once': v:true }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackPost:init', 'cmd': cmd, 'once': v:true }])
       continue
     endif
     if !pkg.opt
       let cmd = 'call s:doautocmd("pre", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackSetup', 'cmd': cmd, 'once': v:true }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackPre:init', 'cmd': cmd, 'once': v:true }])
       call s:packadd(pkg_name, '!')
       let cmd = 'call s:doautocmd("post", '.string(pkg_name).')'
-      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackConfig', 'cmd': cmd, 'once': v:true }])
+      call s:autocmd_add([{ 'group': 'Jetpack', 'event': 'User', 'pattern': 'JetpackPost:init', 'cmd': cmd, 'once': v:true }])
       continue
     endif
   endfor
@@ -907,6 +915,7 @@ package.preload['jetpack'] = function()
 end
 
 local Packer = {
+  hook = {},
   option = {},
 }
 
@@ -918,16 +927,15 @@ Packer.init = function(option)
   Packer.option = option
 end
 
-local function create_hook(name, value)
-  local fun = type(value) == 'function' and value or assert(Util.load(value))
-  local dump = string.dump(fun)
-  local hex = '0z'
-  for i = 1, #dump do
-    hex = hex .. string.format('%02x', string.byte(dump, i))
+local function create_hook(hook_name, pkg_name, value)
+  if type(value) == 'function' then
+    Packer.hook[hook_name .. '.' .. pkg_name] = value
+  else
+    Packer.hook[hook_name .. '.' .. pkg_name] = assert(Util.load(value))
   end
   return
-    "lua if require('jetpack').tap('"..name.."') then "..
-    "  assert(require('jetpack.util').load(require('jetpack.util').eval('"..hex.."')))() "..
+    "lua if require('jetpack').tap('"..pkg_name.."') then "..
+    "  require('jetpack.packer').hook['"..hook_name.."."..pkg_name.."']() "..
     "end"
 end
 
@@ -941,10 +949,10 @@ local function use(plugin)
     else
       local name = plugin['as'] or string.gsub(repo, '.*/', '')
       if plugin.setup then
-        plugin.setup = create_hook(name, plugin.setup)
+        plugin.hook_add = create_hook('setup', name, plugin.setup)
       end
       if plugin.config then
-        plugin.config = create_hook(name, plugin.config)
+        plugin.hook_post_source = create_hook('config', name, plugin.config)
       end
       local dict = vim.dict or function(x) return x end
       Jetpack.add(repo, dict(plugin))
