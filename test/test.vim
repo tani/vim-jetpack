@@ -580,7 +580,7 @@ lua<<EOF
   })
 EOF
   call jetpack#load(g:id)
-  call s:assert.equals(g:loaded_{g:id}, 2)
+  call s:assert.equals(g:loaded_{g:id}, 1)
 endfunction
 
 function s:suite.packer_style_config()
