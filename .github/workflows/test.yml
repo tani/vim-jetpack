@@ -2,29 +2,13 @@ name: Test
 on: [push, pull_request]
 jobs:
   test:
-    name: ${{ matrix.os }} / ${{ matrix.vi }} / ${{ matrix.cp }}
+    name: ${{ matrix.os }} / ${{ matrix.vi }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2022, macos-12]
         vi: [neovim, vim]
-        cp: [system, copy, hardlink, symlink]
-        ver: [stable, v8.1.2110]
-        exclude:
-          - vi: vim
-            ver: stable
-            os: ubuntu-22.04
-          - vi: neovim
-            ver: v8.1.2110
-          - os: windows-2022
-            ver: v8.1.2110
-          - os: macos-12
-            ver: v8.1.2110
-          - vi: vim
-            cp: symlink
-          - vi: vim
-            cp: hardlink
     steps:
       - name: Init git
         run: |
@@ -51,13 +35,12 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         id: vim
         with:
-          version: ${{ matrix.ver }}
+          version: stable
           neovim: ${{ matrix.vi == 'neovim' }}
 
-      - name: Run tests with ${{ matrix.cp }}
+      - name: Run tests
         timeout-minutes: 5
         env:
-          JETPACK_COPY_METHOD: ${{ matrix.cp }}
           THEMIS_VIM: ${{ steps.vim.outputs.executable }}
         run: ./vim-themis/bin/themis ./test/test.vim
   post-test:

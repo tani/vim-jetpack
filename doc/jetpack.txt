@@ -232,22 +232,6 @@ COMMAND                                                         *jetpack-command
 
 VARIABLE                                                       *jetpack-variable*
 
-*   `g:jetpack_ignore_patterns`
-    *   The list of glob-patterns is used to skip duplicated files.
-        Jetpack aggressively bundles plugins if you extend this list.
-        The following example skip bunding any JSON files.
->
-            call add(g:jetpack_ignore_patterns, '/*.json')
-<
-*   `g:jetpack_copy_method`
-    *   The default value is `'system'`.
-        Consider using `'copy'` if you have some trouble to run the
-        external commands. `'hardlink'` and `'symlink'` are faster than `'copy'`
-        but these are available in Neovim only.
-    *   `'system'` Use `cp`/ `xcopy` to copy files.
-    *   `'copy'` Use |readfile| and |writefile| to copy files.
-    *   `'hardlink'` Use |vim.loop| to make hardlink of files.
-    *   `'symlink'` Use |vim.loop| to make symlink of files.
 *   `g:jetpack_download_method`
     *   The default value is `'git'`.
         Consider using `'curl'` or `'wget'`

@@ -214,13 +214,6 @@ require('jetpack.paq') {
 We provides configuration variables to change the internal behaviors:
 copying files, downloading plugins.
 
-`g:jetpack_copy_method`::
-Jetpack copies files with the external command by default.
-Further, Jetpack can copy files with the external command,
-Vim's built-in functions, or Neovim's built-in functions.
-Note that the most cross-platform way is to use Vim's built-in functions.
-The fastest way is to use the Neovim's built-in functions.
-
 `g:jetpack_download_method`::
 Jetpack downloads plugins with git by default.
 Further, Jetpack can download plugins with git, cURL, and wget
@@ -235,7 +228,6 @@ We recommend the following configuration to avoid
 the external commands except cURL.
 [source, vim]
 ----
-let g:jetpack_copy_method = 'copy'
 let g:jetpack_download_method = 'curl'
 ----
 ====
@@ -731,7 +723,7 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 == License
 
-Copyright (c) 2022 Masaya Taniguchi
+Copyright (c) 2022 -- 2023 Masaya Taniguchi
 
 The software is released under the MIT License,
 see the header of the source code.
