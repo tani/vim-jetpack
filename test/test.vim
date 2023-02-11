@@ -343,7 +343,7 @@ function s:suite.issue15()
   \ DummyPath(g:id).'/autoload/test/'.g:id.'.vim'
   \ )
   call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
-  call Setup([DummyPath(g:id)])
+  call Setup([DummyUrl(g:id)])
   call s:assert.isdirectory(s:optdir . '/_/autoload/test')
 endfunction
 
