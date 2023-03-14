@@ -522,7 +522,7 @@ function! jetpack#load(pkg_name) abort
   endif
   " Load package
   call s:doautocmd('pre', a:pkg_name)
-  let &rtp = pkg.path . '/' . pkg.rtp . ',' . &rtp
+  let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp 
   let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
   for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
     execute 'source' file
@@ -576,6 +576,7 @@ function! s:load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
+  let runtimepath = ''
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
 
@@ -641,8 +642,8 @@ function! jetpack#end() abort
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
     if !pkg.opt
-      let &rtp = pkg.path . '/' . pkg.rtp . ',' . &rtp
-      let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
+      let runtimepath = pkg.path . '/' . pkg.rtp . ',' . runtimepath
+      let runtimepath = runtimepath . ',' . pkg.path . '/' . pkg.rtp . '/after'
     endif
     let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
     execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
@@ -650,9 +651,9 @@ function! jetpack#end() abort
     execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
   endfor
 
+  let &runtimepath .= ',' . runtimepath
   syntax enable
   filetype plugin indent on
-
   autocmd Jetpack SourcePost $MYVIMRC call jetpack#init()
 endfunction
 
