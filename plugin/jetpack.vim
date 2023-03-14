@@ -230,7 +230,7 @@ function! s:clean_plugins() abort
     if isdirectory(pkg.path)
       call system(printf('git -C %s reset --hard', pkg.path)) 
       let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
-      if v:shell_error
+      if v:shell_error && !empty(pkg.commit)
         call delete(pkg.path, 'rf')
         continue
       endif
