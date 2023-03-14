@@ -653,6 +653,10 @@ function! jetpack#end() abort
   syntax enable
   filetype plugin indent on
 
+  autocmd Jetpack SourcePost $MYVIMRC call jetpack#init()
+endfunction
+
+function! jetpack#init() abort
   autocmd Jetpack User JetpackPre:init :
   autocmd Jetpack User JetpackPost:init :
   doautocmd <nomodeline> Jetpack User JetpackPre:init
