@@ -644,11 +644,11 @@ function! jetpack#end() abort
     if !pkg.opt
       let runtimepath = pkg.path . '/' . pkg.rtp . ',' . runtimepath
       let runtimepath = runtimepath . ',' . pkg.path . '/' . pkg.rtp . '/after'
+      let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
+      execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
+      let cmd = 'call s:doautocmd("post", "'.pkg_name.'")'
+      execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
     endif
-    let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
-    execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
-    let cmd = 'call s:doautocmd("post", "'.pkg_name.'")'
-    execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
   endfor
 
   let &runtimepath .= ',' . runtimepath
