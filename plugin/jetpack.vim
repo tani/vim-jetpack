@@ -728,6 +728,20 @@ local function create_hook(hook_name, pkg_name, value)
     "end"
 end
 
+local dict = vim.dict or function(x) return x end
+local list = vim.list or function(x) return x end
+local function cast(t)
+  if type(t) ~= 'table' then
+    return t
+  end
+  local assocp = false
+  for k, v in pairs(t) do
+    assocp = assocp or type(k) ~= 'number'
+    t[k] = cast(v)
+  end
+  return assocp and dict(t) or list(t)
+end
+
 local function use(plugin)
   if type(plugin) == 'string' then
     Jetpack.add(plugin)
@@ -743,8 +757,7 @@ local function use(plugin)
       if plugin.config then
         plugin.hook_post_source = create_hook('config', name, plugin.config)
       end
-      local dict = vim.dict or function(x) return x end
-      Jetpack.add(repo, dict(plugin))
+      Jetpack.add(repo, cast(plugin))
     end
   end
 end
