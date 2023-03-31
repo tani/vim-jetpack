@@ -374,7 +374,7 @@ function! jetpack#sync() abort
   for pkg in values(s:available_packages) | unlet pkg.do | endfor
   call writefile([json_encode(s:available_packages)], s:optdir . '/available_packages.json')
   call s:postupdate_plugins()
-  if has('nvim') && luaeval('vim.loader')
+  if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.reset()
   endif
 endfunction
@@ -657,7 +657,7 @@ function! jetpack#end() abort
   let &runtimepath .= ',' . runtimepath
   syntax enable
   filetype plugin indent on
-  if has('nvim') && luaeval('vim.loader')
+  if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.enable()
   endif
   autocmd Jetpack SourcePost $MYVIMRC call jetpack#init()
