@@ -414,6 +414,9 @@ function! s:gets(pkg, keys, default) abort
 endfunction
 
 function! jetpack#add(plugin, ...) abort
+  if has_key(s:declared_packages, a:plugin)
+    return
+  endif
   let opts = a:0 > 0 ? a:1 : {}
   let local = s:is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# '.\+://' ? 'https://github.com/' : '') . a:plugin
