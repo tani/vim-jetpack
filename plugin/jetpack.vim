@@ -530,8 +530,14 @@ function! jetpack#load(pkg_name) abort
   for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
     execute 'source' file
   endfor
+  for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.lua', '', 1)
+    execute 'luafile' file
+  endfor
   for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.vim', '', 1)
     execute 'source' file
+  endfor
+  for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.lua', '', 1)
+    execute 'luafile' file
   endfor
   call s:doautocmd('post', a:pkg_name)
   return v:true
