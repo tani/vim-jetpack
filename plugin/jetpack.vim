@@ -588,7 +588,7 @@ function! s:load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
-  let runtimepath = ''
+  let runtimepath = []
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
 
@@ -607,6 +607,8 @@ function! jetpack#end() abort
     for dep_name in pkg.dependees
       let cmd = 'call jetpack#load("'.dep_name.'")'
       let pattern = 'JetpackPre:'.pkg_name
+      execute 'autocmd Jetpack User' pattern '++once' cmd
+      let cmd = 'echo "call jetpack#load(\"'.dep_name.'\")"'
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endfor
     for dep_name in pkg.dependers_before
@@ -654,31 +656,28 @@ function! jetpack#end() abort
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
     if !pkg.opt
-      let runtimepath = pkg.path . '/' . pkg.rtp . ',' . runtimepath
-      let runtimepath = runtimepath . ',' . pkg.path . '/' . pkg.rtp . '/after'
+      let runtimepath = extend([pkg.path . '/' . pkg.rtp], runtimepath)
+      let runtimepath = extend(runtimepath, [pkg.path . '/' . pkg.rtp . '/after'])
       let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
       let cmd = 'call s:doautocmd("post", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
     endif
   endfor
-
-  let &runtimepath .= ',' . runtimepath
+  autocmd Jetpack User JetpackPre:init :
+  autocmd Jetpack User JetpackPost:init :
+  call mkdir(s:optdir . '/_/plugin', 'p')
+  call mkdir(s:optdir . '/_/after/plugin', 'p')
+  call writefile(['doautocmd <nomodeline> Jetpack User JetpackPre:init'], s:optdir . '/_/plugin/pre_hook.vim')
+  call writefile(['doautocmd <nomodeline> Jetpack User JetpackPost:init'], s:optdir . '/_/after/plugin/post_hook.vim')
+  let runtimepath = extend([s:optdir . '/_'], runtimepath)
+  let runtimepath = extend(runtimepath, [s:optdir . '/_/after'])
+  let &runtimepath .= ',' . join(runtimepath, ',')
   syntax enable
   filetype plugin indent on
   if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.enable()
   endif
-  autocmd Jetpack SourcePost $MYVIMRC call jetpack#init()
-endfunction
-
-function! jetpack#init() abort
-  autocmd Jetpack User JetpackPre:init :
-  autocmd Jetpack User JetpackPost:init :
-  doautocmd <nomodeline> Jetpack User JetpackPre:init
-  runtime! plugin/**/*.vim
-  runtime! plugin/**/*.lua
-  doautocmd <nomodeline> Jetpack User JetpackPost:init
 endfunction
 
 function! jetpack#tap(name) abort
