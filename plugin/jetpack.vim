@@ -674,6 +674,7 @@ function! jetpack#init() abort
   autocmd Jetpack User JetpackPost:init :
   doautocmd <nomodeline> Jetpack User JetpackPre:init
   runtime! plugin/**/*.vim
+  runtime! plugin/**/*.lua
   doautocmd <nomodeline> Jetpack User JetpackPost:init
 endfunction
 
