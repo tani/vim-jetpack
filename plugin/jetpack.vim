@@ -771,11 +771,8 @@ local function use(plugin)
         plugin.requires = {plugin.requires}
       end
       for i, req in pairs(plugin.requires or {}) do
+        plugin.requires[i] = type(req) == 'string' and req or req['as'] or req[1]
         use(req)
-        if type(req) == 'string' then
-          req = { req }
-        end 
-        plugin.requires[i] = req['as'] or req[1]
       end
       if plugin.setup then
         plugin.hook_add = create_hook('setup', name, plugin.setup)
