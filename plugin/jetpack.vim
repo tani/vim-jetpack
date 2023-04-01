@@ -763,13 +763,15 @@ local function use(plugin)
       Jetpack.add(repo)
     else
       local name = plugin['as'] or string.gsub(repo, '.*/', '')
+      if type(plugin.requires) == 'string' then
+        plugin.requires = {plugin.requires}
+      end
       for i, req in pairs(plugin.requires or {}) do
         use(req)
         if type(req) == 'string' then
-          plugin.requires[i] = req
+          req = { req }
         else
-          plugin.requires[i] = req['as'] or req[1]
-        end
+        plugin.requires[i] = req['as'] or req[1]
       end
       if plugin.setup then
         plugin.hook_add = create_hook('setup', name, plugin.setup)
