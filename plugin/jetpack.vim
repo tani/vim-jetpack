@@ -527,6 +527,15 @@ function! jetpack#load(pkg_name) abort
     return v:false
   endif
   " Load package
+  if !v:vim_did_enter
+    let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp
+    let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
+    let cmd = 'call s:doautocmd("pre", "'.a:pkg_name.'")'
+    execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
+    let cmd = 'call s:doautocmd("post", "'.a:pkg_name.'")'
+    execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
+    return
+  endif
   call s:doautocmd('pre', a:pkg_name)
   let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp 
   let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
