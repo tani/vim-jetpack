@@ -520,38 +520,65 @@ function! s:doautocmd(ord, pkg_name) abort
   endif
 endfunction
 
-" Not called during startup
-function! jetpack#load(pkg_name) abort
-  let pkg = get(s:available_packages, a:pkg_name, {})
+function! s:load_plugin(pkg_name) abort
+  let pkg = jetpack#get(a:pkg_name)
+  for dep_name in pkg.dependees
+    call s:load_plugin(dep_name)
+  endfor
+  let &runtimepath = pkg.path . '/' . pkg.rtp . ',' . &runtimepath
+  if v:vim_did_enter
+    call s:doautocmd('pre', a:pkg_name)
+    for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
+      execute 'source' file
+    endfor
+    for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.lua', '', 1)
+      execute 'luafile' file
+    endfor
+  else
+    let cmd = 'call s:doautocmd("pre", "'.a:pkg_name.'")'
+    execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
+  endif
+endfunction
+
+function! s:load_after_plugin(pkg_name) abort
+  let pkg = jetpack#get(a:pkg_name)
+  let &runtimepath = &runtimepath . ',' . pkg.path . '/' . pkg.rtp
+  if v:vim_did_enter
+    for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.vim', '', 1)
+      execute 'source' file
+    endfor
+    for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.lua', '', 1)
+      execute 'luafile' file
+    endfor
+    call s:doautocmd('post', a:pkg_name)
+  else
+    let cmd = 'call s:doautocmd("post", "'.a:pkg_name.'")'
+    execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
+  endif
+  for dep_name in pkg.dependees
+    call s:load_after_plugin(dep_name)
+  endfor
+endfunction
+
+function! s:check_dependees(pkg_name) abort
   if !jetpack#tap(a:pkg_name)
     return v:false
   endif
-  " Load package
-  if !v:vim_did_enter
-    let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp
-    let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
-    let cmd = 'call s:doautocmd("pre", "'.a:pkg_name.'")'
-    execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
-    let cmd = 'call s:doautocmd("post", "'.a:pkg_name.'")'
-    execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
-    return
+  let pkg = jetpack#get(a:pkg_name)
+  for dep_name in pkg.dependees
+    if !s:check_dependees(dep_name)
+      return v:false
+    endif
+  endfor
+  return v:true
+endfunction
+
+function! jetpack#load(pkg_name) abort
+  if !s:check_dependees(a:pkg_name)
+    return v:false
   endif
-  call s:doautocmd('pre', a:pkg_name)
-  let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp 
-  let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
-  for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
-    execute 'source' file
-  endfor
-  for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.lua', '', 1)
-    execute 'luafile' file
-  endfor
-  for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.vim', '', 1)
-    execute 'source' file
-  endfor
-  for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.lua', '', 1)
-    execute 'luafile' file
-  endfor
-  call s:doautocmd('post', a:pkg_name)
+  call s:load_plugin(a:pkg_name)
+  call s:load_after_plugin(a:pkg_name)
   return v:true
 endfunction
 
