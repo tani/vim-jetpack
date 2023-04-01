@@ -770,7 +770,7 @@ local function use(plugin)
         use(req)
         if type(req) == 'string' then
           req = { req }
-        else
+        end 
         plugin.requires[i] = req['as'] or req[1]
       end
       if plugin.setup then
