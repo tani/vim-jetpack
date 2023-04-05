@@ -228,8 +228,10 @@ function! s:clean_plugins() abort
   endif
   for [pkg_name, pkg] in items(s:declared_packages)
     if isdirectory(pkg.path)
-      call system(printf('git -C %s reset --hard', pkg.path)) 
-      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      if system(printf('git -C %s/.git rev-parse --is-inside-git-dir', pkg.path)) == 'true'
+        call system(printf('git -C %s reset --hard', pkg.path))
+        let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      end 
       if v:shell_error && !empty(pkg.commit)
         call delete(pkg.path, 'rf')
         continue
