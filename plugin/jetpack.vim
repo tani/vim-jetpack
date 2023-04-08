@@ -362,16 +362,16 @@ function! s:postupdate_plugins() abort
   for dir in glob(s:optdir . '/*/doc', '', 1)
     execute 'silent! helptags' dir
   endfor
-  call mkdir(s:optdir .. '/_/plugin', 'p')
-  call mkdir(s:optdir .. '/_/after/plugin', 'p')
+  call mkdir(s:optdir . '/_/plugin', 'p')
+  call mkdir(s:optdir . '/_/after/plugin', 'p')
   call writefile([
-  \ 'autocmd Jetpack User JetpackPre:init ++once :'
+  \ 'autocmd Jetpack User JetpackPre:init ++once :',
   \ 'doautocmd <nomodeline> User JetpackPre:init'
-  \ ], s:optdir .. '/_/plugin/hook.vim')
+  \ ], s:optdir . '/_/plugin/hook.vim')
   call writefile([
-  \ 'autocmd Jetpack User JetpackPost:init ++once :'
+  \ 'autocmd Jetpack User JetpackPost:init ++once :',
   \ 'doautocmd <nomodeline> User JetpackPost:init'
-  \ ], s:optdir .. '/_/after/plugin/hook.vim')
+  \ ], s:optdir . '/_/after/plugin/hook.vim')
 endfunction
 
 function! jetpack#sync() abort
@@ -708,12 +708,6 @@ function! jetpack#end() abort
       execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
     endif
   endfor
-  autocmd Jetpack User JetpackPre:init :
-  autocmd Jetpack User JetpackPost:init :
-  call mkdir(s:optdir . '/_/plugin', 'p')
-  call mkdir(s:optdir . '/_/after/plugin', 'p')
-  call writefile(['doautocmd <nomodeline> Jetpack User JetpackPre:init'], s:optdir . '/_/plugin/pre_hook.vim')
-  call writefile(['doautocmd <nomodeline> Jetpack User JetpackPost:init'], s:optdir . '/_/after/plugin/post_hook.vim')
   let runtimepath = extend([s:optdir . '/_'], runtimepath)
   let runtimepath = extend(runtimepath, [s:optdir . '/_/after'])
   let &runtimepath .= ',' . join(runtimepath, ',')
