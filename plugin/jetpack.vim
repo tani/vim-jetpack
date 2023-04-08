@@ -362,6 +362,16 @@ function! s:postupdate_plugins() abort
   for dir in glob(s:optdir . '/*/doc', '', 1)
     execute 'silent! helptags' dir
   endfor
+  call mkdir(s:optdir .. '/_/plugin', 'p')
+  call mkdir(s:optdir .. '/_/after/plugin', 'p')
+  call writefile([
+  \ 'autocmd Jetpack User JetpackPre:init ++once :'
+  \ 'doautocmd <nomodeline> User JetpackPre:init'
+  \ ], s:optdir .. '/_/plugin/hook.vim')
+  call writefile([
+  \ 'autocmd Jetpack User JetpackPost:init ++once :'
+  \ 'doautocmd <nomodeline> User JetpackPost:init'
+  \ ], s:optdir .. '/_/after/plugin/hook.vim')
 endfunction
 
 function! jetpack#sync() abort
@@ -576,7 +586,7 @@ function! s:load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
-  let runtimepath = ''
+  let runtimepath = []
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
 
@@ -642,18 +652,17 @@ function! jetpack#end() abort
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
     if !pkg.opt
-      let runtimepath = pkg.path . '/' . pkg.rtp . ',' . runtimepath
-      let runtimepath = runtimepath . ',' . pkg.path . '/' . pkg.rtp . '/after'
+      let runtimepath = extend([pkg.path . '/' . pkg.rtp], runtimepath)
+      let runtimepath = extend(runtimepath, [pkg.path . '/' . pkg.rtp . '/after'])
       let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
       let cmd = 'call s:doautocmd("post", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
     endif
   endfor
-
-  autocmd Jetpack User JetpackPre:init :
-  autocmd Jetpack User JetpackPost:init :
-  let &runtimepath .= ',' . runtimepath
+  let runtimepath = extend([s:optdir . '/_'], runtimepath)
+  let runtimepath = extend(runtimepath, [s:optdir . '/_/after'])
+  let &runtimepath .= join(runtimepath, ',')
   syntax enable
   filetype plugin indent on
 endfunction
