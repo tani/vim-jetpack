@@ -735,6 +735,20 @@ if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
 endif
 
 lua<<EOF
+local dict = vim.dict or function(x) return x end
+local list = vim.list or function(x) return x end
+local function cast(t)
+  if type(t) ~= 'table' then
+    return t
+  end
+  local assocp = false
+  for k, v in pairs(t) do
+    assocp = assocp or type(k) ~= 'number'
+    t[k] = cast(v)
+  end
+  return assocp and dict(t) or list(t)
+end
+
 local Jetpack = {}
 
 for _, name in pairs({'begin', 'end', 'add', 'names', 'get', 'tap', 'sync', 'load'}) do
@@ -803,8 +817,7 @@ local function use(plugin)
       if plugin.config then
         plugin.hook_post_source = create_hook('config', name, plugin.config)
       end
-      local dict = vim.dict or function(x) return x end
-      Jetpack.add(repo, dict(plugin))
+      Jetpack.add(repo, cast(plugin))
     end
   end
 end
