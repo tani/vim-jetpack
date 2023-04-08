@@ -650,11 +650,6 @@ function! jetpack#end() abort
   endif
 
   for [pkg_name, pkg] in items(s:declared_packages)
-    for dep_name in pkg.dependees
-      let cmd = 'call jetpack#load("'.dep_name.'")'
-      let pattern = 'JetpackPre:'.pkg_name
-      execute 'autocmd Jetpack User' pattern '++once' cmd
-    endfor
     for dep_name in pkg.dependers_before
       let cmd = 'call jetpack#load("'.pkg_name.'")'
       let pattern = 'JetpackPre:'.dep_name
