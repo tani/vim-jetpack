@@ -228,7 +228,7 @@ function! s:clean_plugins() abort
   endif
   for [pkg_name, pkg] in items(s:declared_packages)
     if isdirectory(pkg.path)
-      call system(printf('git -C %s reset --hard', pkg.path)) 
+      call system(printf('git -C %s reset --hard', pkg.path))
       let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
       if v:shell_error && !empty(pkg.commit)
         call delete(pkg.path, 'rf')
@@ -362,6 +362,16 @@ function! s:postupdate_plugins() abort
   for dir in glob(s:optdir . '/*/doc', '', 1)
     execute 'silent! helptags' dir
   endfor
+  call mkdir(s:optdir .. '/_/plugin', 'p')
+  call mkdir(s:optdir .. '/_/after/plugin', 'p')
+  call writefile([
+  \ 'autocmd Jetpack User JetpackPre:init ++once :'
+  \ 'doautocmd <nomodeline> User JetpackPre:init'
+  \ ], s:optdir .. '/_/plugin/hook.vim')
+  call writefile([
+  \ 'autocmd Jetpack User JetpackPost:init ++once :'
+  \ 'doautocmd <nomodeline> User JetpackPost:init'
+  \ ], s:optdir .. '/_/after/plugin/hook.vim')
 endfunction
 
 function! jetpack#sync() abort
@@ -727,7 +737,7 @@ function! jetpack#get(name) abort
 endfunction
 
 if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
-  finish 
+  finish
 endif
 
 lua<<EOF
@@ -777,20 +787,6 @@ local function create_hook(hook_name, pkg_name, value)
     "end"
 end
 
-local dict = vim.dict or function(x) return x end
-local list = vim.list or function(x) return x end
-local function cast(t)
-  if type(t) ~= 'table' then
-    return t
-  end
-  local assocp = false
-  for k, v in pairs(t) do
-    assocp = assocp or type(k) ~= 'number'
-    t[k] = cast(v)
-  end
-  return assocp and dict(t) or list(t)
-end
-
 local function use(plugin)
   if type(plugin) == 'string' then
     Jetpack.add(plugin)
@@ -813,7 +809,8 @@ local function use(plugin)
       if plugin.config then
         plugin.hook_post_source = create_hook('config', name, plugin.config)
       end
-      Jetpack.add(repo, cast(plugin))
+      local dict = vim.dict or function(x) return x end
+      Jetpack.add(repo, dict(plugin))
     end
   end
 end
