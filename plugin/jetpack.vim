@@ -228,7 +228,7 @@ function! s:clean_plugins() abort
   endif
   for [pkg_name, pkg] in items(s:declared_packages)
     if isdirectory(pkg.path)
-      call system(printf('git -C %s reset --hard', pkg.path)) 
+      call system(printf('git -C %s reset --hard', pkg.path))
       let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
       if v:shell_error && !empty(pkg.commit)
         call delete(pkg.path, 'rf')
@@ -522,7 +522,7 @@ function! jetpack#load(pkg_name) abort
   endif
   " Load package
   call s:doautocmd('pre', a:pkg_name)
-  let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp 
+  let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp
   let &rtp = &rtp . ',' . pkg.path . '/' . pkg.rtp . '/after'
   for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
     execute 'source' file
@@ -651,18 +651,11 @@ function! jetpack#end() abort
     endif
   endfor
 
+  autocmd Jetpack User JetpackPre:init :
+  autocmd Jetpack User JetpackPost:init :
   let &runtimepath .= ',' . runtimepath
   syntax enable
   filetype plugin indent on
-  autocmd Jetpack SourcePost $MYVIMRC call jetpack#init()
-endfunction
-
-function! jetpack#init() abort
-  autocmd Jetpack User JetpackPre:init :
-  autocmd Jetpack User JetpackPost:init :
-  doautocmd <nomodeline> Jetpack User JetpackPre:init
-  runtime! plugin/**/*.vim
-  doautocmd <nomodeline> Jetpack User JetpackPost:init
 endfunction
 
 function! jetpack#tap(name) abort
@@ -678,7 +671,7 @@ function! jetpack#get(name) abort
 endfunction
 
 if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
-  finish 
+  finish
 endif
 
 lua<<EOF
