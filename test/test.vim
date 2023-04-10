@@ -491,7 +491,7 @@ function s:suite.curl()
 endfunction
 
 if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
-  finish 
+  finish
 endif
 
 lua <<EOL

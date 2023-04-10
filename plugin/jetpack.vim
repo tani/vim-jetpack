@@ -26,16 +26,16 @@ endif
 let g:loaded_jetpack = 1
 
 if has('nvim')
-  function! s:execute(code) abort
+  function! jetpack#execute(code) abort
     return v:lua.vim.cmd(a:code)
   endfunction
 elseif has('lua')
-  function! s:execute(code) abort
+  function! jetpack#execute(code) abort
     let g:jetpack_code = a:code
-    lua vim.command(vim.g.jetpack_code)
+    lua vim.command(vim.eval('g:jetpack_code'))
   endfunction
 elseif has('patch-8.2.4594')
-  function! s:execute(code) abort
+  function! jetpack#execute(code) abort
     let c = bufnr()
     let t = bufadd('')
     execute 'silent buffer' t
@@ -45,7 +45,7 @@ elseif has('patch-8.2.4594')
     execute 'silent buffer' c
   endfunction
 else
-  function! s:execute(code) abort
+  function! jetpack#execute(code) abort
     let temp = tempname()
     call writefile(split(a:code, "\n"), temp)
     execute 'source' temp
@@ -56,7 +56,7 @@ endif
 let g:jetpack_njobs = get(g:, 'jetpack_njobs', 8)
 
 let g:jetpack_download_method =
-  \ get(g:, 'jetpack_download_method', 'git')
+  \ get(g:, 'jetpack_download_method', has('ivim') ? 'curl' : 'git')
   " curl: Use CURL to download
   " wget: Use Wget to download
 
@@ -117,60 +117,63 @@ function! jetpack#parse_toml(lines) abort
   return filter(plugins,{ _, val -> !empty(val) })
 endfunction
 
-function! s:make_progressbar(n) abort
+function! jetpack#make_progressbar(n) abort
   return '[' . join(map(range(0, 100, 3), {_, v -> v < a:n ? '=' : ' '}), '') . ']'
 endfunction
 
-function! s:jobstatus(job) abort
+function! jetpack#jobstatus(job) abort
   if has('nvim')
     return jobwait([a:job], 0)[0] == -1 ? 'run' : 'dead'
   endif
   return job_status(a:job)
 endfunction
 
-function! s:jobcount(jobs) abort
-  return len(filter(copy(a:jobs), { _, val -> s:jobstatus(val) ==# 'run' }))
+function! jetpack#jobcount(jobs) abort
+  return len(filter(copy(a:jobs), { _, val -> jetpack#jobstatus(val) ==# 'run' }))
 endfunction
 
-function! s:jobwait(jobs, njobs) abort
-  let running = s:jobcount(a:jobs)
+function! jetpack#jobwait(jobs, njobs) abort
+  let running = jetpack#jobcount(a:jobs)
   while running > a:njobs
-    let running = s:jobcount(a:jobs)
+    let running = jetpack#jobcount(a:jobs)
   endwhile
 endfunction
 
 " Original: https://github.com/lambdalisue/vital-Whisky/blob/90c71/autoload/vital/__vital__/System/Job/Vim.vim#L46
 "  License: https://github.com/lambdalisue/vital-Whisky/blob/90c71/LICENSE
-function! s:nvim_exit_cb(buf, cb, job, ...) abort
+function! jetpack#nvim_exit_cb(cmd, buf, cb, job, st) abort
   let ch = job_getchannel(a:job)
   while ch_status(ch) ==# 'open' | sleep 1ms | endwhile
   while ch_status(ch) ==# 'buffered' | sleep 1ms | endwhile
+  if a:st != 0
+    echoerr '`'.join(a:cmd, ' ').'`:'.join(a:buf, "\n")
+  endif
   call a:cb(join(a:buf, "\n"))
 endfunction
 
 if has('nvim')
-  function! s:jobstart(cmd, cb) abort
+  function! jetpack#jobstart(cmd, cb) abort
     let buf = []
     return jobstart(a:cmd, {
     \   'on_stdout': { _, data -> extend(buf, data) },
     \   'on_stderr': { _, data -> extend(buf, data) },
-    \   'on_exit': { -> a:cb(join(buf, "\n")) }
+    \   'on_exit': { _, st -> st != 0 ? execute("echoerr '`'.join(a:cmd, ' ').'`:'.join(buf, '')") : a:cb(join(buf, '')) }
     \ })
   endfunction
 else
-  function! s:jobstart(cmd, cb) abort
+  function! jetpack#jobstart(cmd, cb) abort
     let buf = []
     return job_start(a:cmd, {
     \   'out_mode': 'raw',
     \   'out_cb': { _, data -> extend(buf, split(data, "\n")) },
     \   'err_mode': 'raw',
     \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
-    \   'exit_cb': function('s:nvim_exit_cb', [buf, a:cb])
+    \   'exit_cb': function('jetpack#nvim_exit_cb', [a:cmd, buf, a:cb])
     \ })
   endfunction
 endif
 
-function! s:initialize_buffer() abort
+function! jetpack#initialize_buffer() abort
   execute 'silent! bdelete!' bufnr('JetpackStatus')
   silent 40vnew +setlocal\ buftype=nofile\ nobuflisted\ nonumber\ norelativenumber\ signcolumn=no\ noswapfile\ nowrap JetpackStatus
   syntax clear
@@ -183,23 +186,23 @@ function! s:initialize_buffer() abort
   redraw
 endfunction
 
-function! s:show_progress(title) abort
+function! jetpack#show_progress(title) abort
   let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
   let processed = len(filter(copy(s:declared_packages), { _, val -> val.status[-1] =~# 'ed' }))
   call setbufline(buf, 1, printf('%s (%d / %d)', a:title, processed, len(s:declared_packages)))
-  call appendbufline(buf, '$', s:make_progressbar((0.0 + processed) / len(s:declared_packages) * 100))
+  call appendbufline(buf, '$', jetpack#make_progressbar((0.0 + processed) / len(s:declared_packages) * 100))
   for [pkg_name, pkg] in items(s:declared_packages)
     call appendbufline(buf, '$', printf('%s %s', pkg.status[-1], pkg_name))
   endfor
   redraw
 endfunction
 
-function! s:show_result() abort
+function! jetpack#show_result() abort
   let buf = bufnr('JetpackStatus')
   call deletebufline(buf, 1, '$')
   call setbufline(buf, 1, 'Result')
-  call appendbufline(buf, '$', s:make_progressbar(100))
+  call appendbufline(buf, '$', jetpack#make_progressbar(100))
   for [pkg_name, pkg] in items(s:declared_packages)
     if index(pkg.status, s:status.installed) >= 0
       call appendbufline(buf, '$', printf('installed %s', pkg_name))
@@ -217,7 +220,7 @@ function! s:show_result() abort
   redraw
 endfunction
 
-function! s:clean_plugins() abort
+function! jetpack#clean_plugins() abort
   for [pkg_name, pkg] in items(s:available_packages)
     if !has_key(s:declared_packages, pkg_name) && empty(pkg.local) && empty(pkg.dir)
       call delete(pkg.path, 'rf')
@@ -246,25 +249,33 @@ function! s:clean_plugins() abort
   endfor
 endfunction
 
-function! s:make_download_cmd(pkg) abort
+function! jetpack#make_download_cmd(pkg) abort
   if g:jetpack_download_method ==# 'git'
     if isdirectory(a:pkg.path)
-      return ['git', '-C', a:pkg.path, 'pull', '--rebase']
+      return [join(['git', '-C', a:pkg.path, 'pull', '--rebase'], ' ')]
     else
-      let cmd = ['git', 'clone']
+      let git_cmd = ['git', 'clone']
       if a:pkg.commit ==# 'HEAD'
-        call extend(cmd, ['--depth', '1', '--recursive'])
+        call extend(git_cmd, ['--depth', '1', '--recursive'])
       endif
       if !empty(a:pkg.branch)
-        call extend(cmd, ['-b', a:pkg.branch])
+        call extend(git_cmd, ['-b', a:pkg.branch])
       endif
       if !empty(a:pkg.tag)
-        call extend(cmd, ['-b', a:pkg.tag])
+        call extend(git_cmd, ['-b', a:pkg.tag])
       endif
-      call extend(cmd, [a:pkg.url, a:pkg.path])
-      return cmd
+      call extend(git_cmd, [a:pkg.url, a:pkg.path])
+      if has('unix')
+        let rmdir_cmd = 'rm -rf ' . a:pkg.path
+        let mkdir_cmd = 'mkdir -p ' . a:pkg.path
+      else
+        let rmdir_cmd = '(if exist ' . a:pkg.path . ' rmdir /s /q ' . a:pkg.path . ')'
+        let mkdir_cmd = 'mkdir ' . a:pkg.path
+      endif
+      return [rmdir_cmd, mkdir_cmd, join(git_cmd, ' ')]
     endif
   else
+    let temp = tempname()
     if !empty(a:pkg.tag)
       let label = a:pkg.tag
     elseif !empty(a:pkg.branch)
@@ -273,23 +284,28 @@ function! s:make_download_cmd(pkg) abort
       let label = a:pkg.commit
     endif
     if g:jetpack_download_method ==# 'curl'
-      let download_cmd = 'curl -fsSL ' .  a:pkg.url . '/archive/' . label . '.tar.gz'
+      let curl_flags = has('ivim') ? ' -kfsSL ' : ' -fsSL '
+      let download_cmd = 'curl' . curl_flags .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -o ' . temp
     elseif g:jetpack_download_method ==# 'wget'
-      let download_cmd = 'wget -O - ' .  a:pkg.url . '/archive/' . label . '.tar.gz'
+      let download_cmd = 'wget ' .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -O ' . temp
     else
       throw 'g:jetpack_download_method: ' . g:jetpack_download_method . ' is not a valid value'
     endif
-    let extract_cmd = 'tar -zxf - -C ' . a:pkg.path . ' --strip-components 1'
-    call delete(a:pkg.path, 'rf')
+    let extract_cmd = 'tar -zxf ' . temp . ' -C ' . a:pkg.path . ' --strip-components 1'
     if has('unix')
-      return ['sh', '-c', download_cmd . ' | ' . extract_cmd]
-    elseif has('win32')
-      return ['cmd.exe', '/c' . download_cmd . ' | ' . extract_cmd]
+      let rmdir_cmd_1 = 'rm -rf ' . a:pkg.path
+      let rmdir_cmd_2 = 'rm ' . temp
+      let mkdir_cmd = 'mkdir -p ' . a:pkg.path
+    else
+      let rmdir_cmd_1 = '(if exist ' . a:pkg.path . ' rmdir /s /q ' . a:pkg.path . ')'
+      let rmdir_cmd_2 = '(if exist ' . temp . ' del ' . temp . ')'
+      let mkdir_cmd = 'mkdir ' . a:pkg.path
     endif
+    return [rmdir_cmd_1, mkdir_cmd, download_cmd, extract_cmd, rmdir_cmd_2]
   endif
 endfunction
 
-function! s:download_plugins() abort
+function! jetpack#download_plugins() abort
   let jobs = []
   for [pkg_name, pkg] in items(s:declared_packages)
     call add(pkg.status, s:status.pending)
@@ -298,7 +314,7 @@ function! s:download_plugins() abort
     if pkg.local
       continue
     endif
-    call s:show_progress('Install Plugins')
+    call jetpack#show_progress('Install Plugins')
     if isdirectory(pkg.path)
       if pkg.frozen
         call add(pkg.status, s:status.skipped)
@@ -310,19 +326,28 @@ function! s:download_plugins() abort
       call add(pkg.status, s:status.installing)
       let status = s:status.installed
     endif
-    let cmd = s:make_download_cmd(pkg)
-    call mkdir(pkg.path, 'p')
-    let job = s:jobstart(cmd, function({status, pkg, output -> [
-    \   add(pkg.status, status),
-    \   execute("let pkg.output = output")
-    \ ]}, [status, pkg]))
-    call add(jobs, job)
-    call s:jobwait(jobs, g:jetpack_njobs)
+    let cmds = jetpack#make_download_cmd(pkg)
+    if executable('sh') || executable('cmd.exe')
+      let cmd = [
+      \   (has('unix') ? 'sh' : 'cmd.exe'),
+      \   (has('unix') ? '-c' : '/c'),
+      \   join(cmds, ' && ')
+      \ ]
+      let job = jetpack#jobstart(cmd, function({status, pkg, output -> [
+      \   add(pkg.status, status),
+      \   execute("let pkg.output = output")
+      \ ]}, [status, pkg]))
+      call add(jobs, job)
+      call jetpack#jobwait(jobs, g:jetpack_njobs)
+    else
+      let pkg.output = join(map(cmds, { _, cmd -> system(cmd) }), "\n")
+      call add(pkg.status, status)
+    endif
   endfor
-  call s:jobwait(jobs, 0)
+  call jetpack#jobwait(jobs, 0)
 endfunction
 
-function! s:switch_plugins() abort
+function! jetpack#switch_plugins() abort
   if g:jetpack_download_method !=# 'git'
     return
   endif
@@ -330,7 +355,7 @@ function! s:switch_plugins() abort
     call add(pkg.status, s:status.pending)
   endfor
   for [pkg_name, pkg] in items(s:declared_packages)
-    call s:show_progress('Switch Plugins')
+    call jetpack#show_progress('Switch Plugins')
     if !isdirectory(pkg.path)
       call add(pkg.status, s:status.skipped)
       continue
@@ -341,7 +366,7 @@ function! s:switch_plugins() abort
   endfor
 endfunction
 
-function! s:postupdate_plugins() abort
+function! jetpack#postupdate_plugins() abort
   for [pkg_name, pkg] in items(s:declared_packages)
     if empty(pkg.do) || pkg.output =~# 'Already up to date.'
       continue
@@ -375,15 +400,15 @@ function! s:postupdate_plugins() abort
 endfunction
 
 function! jetpack#sync() abort
-  call s:initialize_buffer()
-  call s:clean_plugins()
-  call s:download_plugins()
-  call s:switch_plugins()
-  call s:show_result()
+  call jetpack#initialize_buffer()
+  call jetpack#clean_plugins()
+  call jetpack#download_plugins()
+  call jetpack#switch_plugins()
+  call jetpack#show_result()
   let s:available_packages = deepcopy(s:declared_packages)
   for pkg in values(s:available_packages) | unlet pkg.do | endfor
   call writefile([json_encode(s:available_packages)], s:optdir . '/available_packages.json')
-  call s:postupdate_plugins()
+  call jetpack#postupdate_plugins()
   if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.reset()
   endif
@@ -392,16 +417,16 @@ endfunction
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L479-L529
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
 if has('win32')
-  function! s:is_local_plug(repo) abort
+  function! jetpack#is_local_plug(repo) abort
     return a:repo =~? '^[a-z]:\|^[%~]'
   endfunction
 else
-  function! s:is_local_plug(repo) abort
+  function! jetpack#is_local_plug(repo) abort
     return a:repo[0] =~# '[/$~]'
   endfunction
 endif
 
-function! s:is_opt(pkg) abort
+function! jetpack#is_opt(pkg) abort
   return !empty(a:pkg.dependers_before)
        \ || !empty(a:pkg.dependers_after)
        \ || !empty(a:pkg.cmd)
@@ -409,7 +434,7 @@ function! s:is_opt(pkg) abort
        \ || !empty(a:pkg.event)
   endfunction
 
-function! s:gets(pkg, keys, default) abort
+function! jetpack#gets(pkg, keys, default) abort
   let values = []
   for key in a:keys
     if has_key(a:pkg, key)
@@ -428,26 +453,26 @@ function! jetpack#add(plugin, ...) abort
     return
   endif
   let opts = a:0 > 0 ? a:1 : {}
-  let local = s:is_local_plug(a:plugin)
+  let local = jetpack#is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# '.\+://' ? 'https://github.com/' : '') . a:plugin
   let path = s:optdir . '/' .  substitute(url, '.\+/\(.\+\)', '\1', '')
-  let path = expand(local ? a:plugin : s:gets(opts, ['dir', 'path'], [path])[0])
-  let name = s:gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
-  let dependees = s:gets(opts, ['requires', 'depends'], [])
+  let path = expand(local ? a:plugin : jetpack#gets(opts, ['dir', 'path'], [path])[0])
+  let name = jetpack#gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
+  let dependees = jetpack#gets(opts, ['requires', 'depends'], [])
   call map(dependees, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
-  let dependers_before = s:gets(opts, ['before', 'on_source'], [])
+  let dependers_before = jetpack#gets(opts, ['before', 'on_source'], [])
   call map(dependers_before, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
-  let dependers_after = s:gets(opts, ['after', 'on_post_source'], [])
+  let dependers_after = jetpack#gets(opts, ['after', 'on_post_source'], [])
   call map(dependers_after, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
-  let keys_on = s:gets(opts, ['on'], [])
+  let keys_on = jetpack#gets(opts, ['on'], [])
   call filter(keys_on, { _, k -> k =~? '^<Plug>' })
-  let keys = keys_on + s:gets(opts, ['keys', 'on_map'], [])
-  let cmd_on = s:gets(opts, ['on'], [])
+  let keys = keys_on + jetpack#gets(opts, ['keys', 'on_map'], [])
+  let cmd_on = jetpack#gets(opts, ['on'], [])
   call filter(cmd_on, { _, k -> k =~? '^[A-Z]' })
-  let cmd = cmd_on + s:gets(opts, ['cmd', 'on_cmd'], [])
-  let event = s:gets(opts, ['on', 'event', 'on_event'], [])
+  let cmd = cmd_on + jetpack#gets(opts, ['cmd', 'on_cmd'], [])
+  let event = jetpack#gets(opts, ['on', 'event', 'on_event'], [])
   call filter(event, { _, v -> exists('##' . substitute(v, ' .*', '', ''))})
-  let filetypes = s:gets(opts, ['for', 'ft', 'on_ft'], [])
+  let filetypes = jetpack#gets(opts, ['for', 'ft', 'on_ft'], [])
   call extend(event, map(filetypes, {_, ft -> 'FileType ' . ft}))
   let pkg  = {
   \   'keys': keys,
@@ -459,9 +484,9 @@ function! jetpack#add(plugin, ...) abort
   \   'tag': get(opts, 'tag', ''),
   \   'commit': get(opts, 'commit', 'HEAD'),
   \   'rtp': get(opts, 'rtp', ''),
-  \   'do': s:gets(opts, ['do', 'run', 'build'], [''])[0],
-  \   'frozen': s:gets(opts, ['frozen', 'lock'], [v:false])[0],
-  \   'dir': s:gets(opts, ['dir', 'path'], [''])[0],
+  \   'do': jetpack#gets(opts, ['do', 'run', 'build'], [''])[0],
+  \   'frozen': jetpack#gets(opts, ['frozen', 'lock'], [v:false])[0],
+  \   'dir': jetpack#gets(opts, ['dir', 'path'], [''])[0],
   \   'path': path,
   \   'status': [s:status.pending],
   \   'output': '',
@@ -472,9 +497,9 @@ function! jetpack#add(plugin, ...) abort
   \   'dependers_before': dependers_before,
   \   'dependers_after': dependers_after,
   \ }
-  let pkg.opt = get(opts, 'opt', s:is_opt(pkg))
+  let pkg.opt = get(opts, 'opt', jetpack#is_opt(pkg))
   let s:declared_packages[name] = pkg
-  call s:execute(pkg.hook_add)
+  call jetpack#execute(pkg.hook_add)
 endfunction
 
 function! jetpack#load_toml(path) abort
@@ -515,7 +540,7 @@ function! jetpack#begin(...) abort
   command! -nargs=+ -bar Jetpack call jetpack#add(<args>)
 endfunction
 
-function! s:doautocmd(ord, pkg_name) abort
+function! jetpack#doautocmd(ord, pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
   if jetpack#tap(a:pkg_name) || (pkg.local && isdirectory(pkg.path . '/' . pkg.rtp))
     let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
@@ -530,14 +555,14 @@ function! s:doautocmd(ord, pkg_name) abort
   endif
 endfunction
 
-function! s:load_plugin(pkg_name) abort
+function! jetpack#load_plugin(pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
   for dep_name in pkg.dependees
-    call s:load_plugin(dep_name)
+    call jetpack#load_plugin(dep_name)
   endfor
   let &runtimepath = pkg.path . '/' . pkg.rtp . ',' . &runtimepath
   if v:vim_did_enter
-    call s:doautocmd('pre', a:pkg_name)
+    call jetpack#doautocmd('pre', a:pkg_name)
     for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
       execute 'source' file
     endfor
@@ -545,12 +570,12 @@ function! s:load_plugin(pkg_name) abort
       execute 'luafile' file
     endfor
   else
-    let cmd = 'call s:doautocmd("pre", "'.a:pkg_name.'")'
+    let cmd = 'call jetpack#doautocmd("pre", "'.a:pkg_name.'")'
     execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
   endif
 endfunction
 
-function! s:load_after_plugin(pkg_name) abort
+function! jetpack#load_after_plugin(pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
   let &runtimepath = &runtimepath . ',' . pkg.path . '/' . pkg.rtp
   if v:vim_did_enter
@@ -560,23 +585,23 @@ function! s:load_after_plugin(pkg_name) abort
     for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.lua', '', 1)
       execute 'luafile' file
     endfor
-    call s:doautocmd('post', a:pkg_name)
+    call jetpack#doautocmd('post', a:pkg_name)
   else
-    let cmd = 'call s:doautocmd("post", "'.a:pkg_name.'")'
+    let cmd = 'call jetpack#doautocmd("post", "'.a:pkg_name.'")'
     execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
   endif
   for dep_name in pkg.dependees
-    call s:load_after_plugin(dep_name)
+    call jetpack#load_after_plugin(dep_name)
   endfor
 endfunction
 
-function! s:check_dependees(pkg_name) abort
+function! jetpack#check_dependees(pkg_name) abort
   if !jetpack#tap(a:pkg_name)
     return v:false
   endif
   let pkg = jetpack#get(a:pkg_name)
   for dep_name in pkg.dependees
-    if !s:check_dependees(dep_name)
+    if !jetpack#check_dependees(dep_name)
       return v:false
     endif
   endfor
@@ -584,17 +609,17 @@ function! s:check_dependees(pkg_name) abort
 endfunction
 
 function! jetpack#load(pkg_name) abort
-  if !s:check_dependees(a:pkg_name)
+  if !jetpack#check_dependees(a:pkg_name)
     return v:false
   endif
-  call s:load_plugin(a:pkg_name)
-  call s:load_after_plugin(a:pkg_name)
+  call jetpack#load_plugin(a:pkg_name)
+  call jetpack#load_after_plugin(a:pkg_name)
   return v:true
 endfunction
 
 " Original: https://github.com/junegunn/vim-plug/blob/e3001/plug.vim#L683-L693
 "  License: MIT, https://raw.githubusercontent.com/junegunn/vim-plug/e3001/LICENSE
-function! s:load_map(map, names, with_prefix, prefix)
+function! jetpack#load_map(map, names, with_prefix, prefix)
   for name in a:names
     call jetpack#load(name)
   endfor
@@ -618,7 +643,7 @@ function! s:load_map(map, names, with_prefix, prefix)
   call feedkeys(substitute(a:map, '^<Plug>', "\<Plug>", 'i') . extra)
 endfunction
 
-function! s:load_cmd(cmd, names, ...) abort
+function! jetpack#load_cmd(cmd, names, ...) abort
   execute 'delcommand' a:cmd
   for name in a:names
     call jetpack#load(name)
@@ -668,10 +693,10 @@ function! jetpack#end() abort
     endfor
     for it in pkg.keys
       let s:maps[it] = add(get(s:maps, it, []), pkg_name)
-      execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call <SID>load_map("%s", %s, 0, "")<CR>', it, it, s:maps[it])
-      execute printf('nnoremap <silent> %s :<C-U>call <SID>load_map("%s", %s, 1, "")<CR>', it, it, s:maps[it])
-      execute printf('vnoremap <silent> %s :<C-U>call <SID>load_map("%s", %s, 1, "gv")<CR>', it, it, s:maps[it])
-      execute printf('onoremap <silent> %s :<C-U>call <SID>load_map("%s", %s, 1, "")<CR>', it, it, s:maps[it])
+      execute printf('inoremap <silent> %s <C-\><C-O>:<C-U>call jetpack#load_map("%s", %s, 0, "")<CR>', it, it, s:maps[it])
+      execute printf('nnoremap <silent> %s :<C-U>call jetpack#load_map("%s", %s, 1, "")<CR>', it, it, s:maps[it])
+      execute printf('vnoremap <silent> %s :<C-U>call jetpack#load_map("%s", %s, 1, "gv")<CR>', it, it, s:maps[it])
+      execute printf('onoremap <silent> %s :<C-U>call jetpack#load_map("%s", %s, 1, "")<CR>', it, it, s:maps[it])
     endfor
     for it in pkg.event
       let cmd = 'call jetpack#load("'.pkg_name.'")'
@@ -681,25 +706,25 @@ function! jetpack#end() abort
     for it in pkg.cmd
       let cmd_name = substitute(it, '^:', '', '')
       let s:cmds[cmd_name] = add(get(s:cmds, cmd_name, []), pkg_name)
-      let cmd = printf('call <SID>load_cmd("%s", %s, <f-args>)', cmd_name, s:cmds[cmd_name])
+      let cmd = printf('call jetpack#load_cmd("%s", %s, <f-args>)', cmd_name, s:cmds[cmd_name])
       execute 'command! -range -nargs=*' cmd_name ':' cmd
     endfor
     if !empty(pkg.hook_source)
       let pattern = 'JetpackPre:'.pkg_name
-      let cmd = 'call s:execute(s:declared_packages["'.pkg_name.'"].hook_source)'
+      let cmd = 'call jetpack#execute(s:declared_packages["'.pkg_name.'"].hook_source)'
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
     if !empty(pkg.hook_post_source)
       let pattern = 'JetpackPost:'.pkg_name
-      let cmd = 'call s:execute(s:declared_packages["'.pkg_name.'"].hook_post_source)'
+      let cmd = 'call jetpack#execute(s:declared_packages["'.pkg_name.'"].hook_post_source)'
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
     if !pkg.opt
       let runtimepath = extend([pkg.path . '/' . pkg.rtp], runtimepath)
       let runtimepath = extend(runtimepath, [pkg.path . '/' . pkg.rtp . '/after'])
-      let cmd = 'call s:doautocmd("pre", "'.pkg_name.'")'
+      let cmd = 'call jetpack#doautocmd("pre", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
-      let cmd = 'call s:doautocmd("post", "'.pkg_name.'")'
+      let cmd = 'call jetpack#doautocmd("post", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPost:init ++once' cmd
     endif
   endfor
