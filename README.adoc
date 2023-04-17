@@ -666,6 +666,8 @@ Thus, we recommend you not to use unlisted ones.
 * `jetpack#load(name)`
 ** This is a wrapper function for `packadd`; since it fires config options,
     etc., it is recommended to use this instead of `packadd`.
+* `jetpack#load_toml(path)`
+** This function load dein-style toml settings.
 
 === Lua Function
 
@@ -676,6 +678,8 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 * `require('jetpack.paq')(config)`
 ** This function loads plugins described in config like `paq.nvim`.
 * `require('jetpack.packer').startup(config)`
+** This function loads plugins described by `use` function like `packer.nvim`.
+* `require('jetpack.packer').add(config)`
 ** This function loads plugins described by `use` function like `packer.nvim`.
 * `require('jetpack.packer').init(option)`
 ** Now supported option is only `package_root`.
