@@ -10,7 +10,40 @@ the built-in plugin manager only.
 
 --------------------------------------------------------------------------------
 
+INSTALLATION *jetpack-installation*
+
+The installation is very simple.
+You just need to download a single file and put it on the runtimepath.
+
+https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+
+The following is an example of installation with cURL command.
+
+Vim for Linux and macOS
+>
+    curl -fLo ~/.vim/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+
+Neovim for Linux and macOS
+>
+    curl -fLo ~/.local/share/nvim/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+
+Vim for Windows
+>
+    curl -fLo %USERPROFILE%\vimfiles\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim
+
+Neovim for Windows
+>
+    curl -fLo %USERPROFILE%\AppData\Local\nvim-data\site\pack\jetpack\opt\vim-jetpack\plugin\jetpack.vim --create-dirs https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim 
+
+--------------------------------------------------------------------------------
+
 USAGE *jetpack-usage*
+
+Jetpack was initially implemented as a successor of vim-plug.
+Nowadays, we also provide compatibility layers for other plugin managers,
+dein.vim, packer.nvim.nvim, and paq.nvim.nvim.
+You can use Jetpack as a drop-in replacement of them.
+In personal opinion, vim-plug style is the most stable and easy to use.
 
 VIM-PLUG STYLE *jetpack-vim-plug*
 >
@@ -45,8 +78,17 @@ options
 DEIN.VIM *jetpack-dein.vim*
 >
     call jetpack#begin()
+    call jetpack#load_toml('path/to/plugins.toml')
     call jetpack#add('user/repo', { ... opts })
     call jetpack#end()
+>
+    [[plugin]]
+    repo = 'user/repo'
+    opt = true
+
+    [[plugin]]
+    repo = 'user/other'
+    tag = 'tag-name'
 
 options
     `opt` *jetpack-dein.vim-opt* (`bool`):
@@ -218,6 +260,76 @@ EVENT *jetpack-event*
 *JetpackPre* (`User JetpackPre:{{plugin-name}}`)
 *JetpackPost* (`User JetpackPost:{{plugin-name}}`)
     This event will be fired if the specified plugin is loaded.
+
+--------------------------------------------------------------------------------
+
+TIPS *jetpack-tips*
+
+BOOTSTRAP *jetpack-bootstrap*
+
+Vim
+>
+    let s:jetpackfile = expand('<sfile>:p:h') .. '/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+    let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+    if !filereadable(s:jetpackfile)
+      call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
+    endif
+
+Neovim
+>
+    let s:jetpackfile = stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+    let s:jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+    if !filereadable(s:jetpackfile)
+      call system(printf('curl -fsSLo %s --create-dirs %s', s:jetpackfile, s:jetpackurl))
+    endif
+
+Neovim with Lua
+>
+    local jetpackfile = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+    local jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+    if vim.fn.filereadable(jetpackfile) == 0 then
+      vim.fn.system(string.format('curl -fsSLo %s --create-dirs %s', jetpackfile, jetpackurl))
+    end
+
+AUTOMATIC-INSTALLATION *jetpack-automatic-installation*
+
+Vim and Neovim
+>
+    for name in jetpack#names()
+      if !jetpack#tap(name)
+        call jetpack#sync()
+        break
+      endif
+    endfor
+
+Neovim with Lua
+>
+    local jetpack = require('jetpack')
+    for _, name in ipairs(jetpack.names()) do
+      if not jetpack.tap(name) then
+        jetpack.sync()
+        break
+      end
+    end
+
+TREESITTER *jetpack-treesitter*
+
+Set the different directory to download parsers.
+>
+     local parser_install_dir = vim.fn.stdpath "data" .. "/treesitter"
+     vim.opt.runtimepath:append(parser_install_dir)
+     require("nvim-treesitter.configs").setup {
+         parser_install_dir = parser_install_dir,
+         ...
+     }
+--------------------------------------------------------------------------------
+
+LICENSE *jetpack-license*
+
+Copyright (c) 2022 -- 2023 Masaya Taniguchi
+
+The software is released under the MIT License,
+see the header of the source code.
 
 ================================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
