@@ -719,7 +719,16 @@ function! jetpack#end() abort
       let cmd = 'call jetpack#execute(s:declared_packages["'.pkg_name.'"].hook_post_source)'
       execute 'autocmd Jetpack User' pattern '++once' cmd
     endif
-    if !pkg.opt
+    if pkg.opt
+      for file in glob(pkg.path . '/ftdetect/*.vim', '', 1)
+        "echomsg '[[source' file ']]'
+        execute 'source' file
+      endfor
+      for file in glob(pkg.path . '/ftdetect/*.lua', '', 1)
+        "echomsg '[[luafile' file ']]'
+        execute 'luafile' file
+      endfor
+    else
       let runtimepath = extend([pkg.path . '/' . pkg.rtp], runtimepath)
       let runtimepath = extend(runtimepath, [pkg.path . '/' . pkg.rtp . '/after'])
       let cmd = 'call jetpack#doautocmd("pre", "'.pkg_name.'")'

@@ -33,6 +33,16 @@ function Setup(...)
   endfor
   call jetpack#end()
   call jetpack#sync()
+  call jetpack#begin(g:vimhome)
+  for plugin in a:000
+    if len(plugin) == 2
+      call jetpack#add(plugin[0], plugin[1])
+    else
+      call jetpack#add(plugin[0])
+    endif
+  endfor
+  call jetpack#end()
+
   for pkg_name in jetpack#names()
     if !jetpack#get(pkg_name).opt
       call jetpack#load(pkg_name)
@@ -217,7 +227,7 @@ function s:suite.on_ft()
   call s:assert.isdirectory(s:optdir.'/'.g:id)
   call s:assert.not_exists('g:loaded_'.g:id)
   let filetype = &filetype
-  setf c
+  edit dummy.c
   call s:assert.exists('g:loaded_'.g:id)
   let &filetype = filetype
 endfunction
@@ -488,6 +498,22 @@ function s:suite.curl()
   call Setup(['tani/vim-jetpack', {'opt': 1}])
   call s:assert.isdirectory(s:optdir . '/vim-jetpack')
   let g:jetpack_download_method = 'git'
+endfunction
+
+function s:suite.ftdetect()
+  let g:id = UniqueId()
+  call mkdir(DummyPath(g:id).'/ftdetect', 'p')
+  call writefile(
+  \ ['autocmd BufRead,BufNewFile *.foo set filetype=foo'],
+  \ DummyPath(g:id).'/ftdetect/foo.vim'
+  \ )
+  call Git(DummyPath(g:id), ['init', 'add -A', 'commit -m "Initial commit"'])
+  call Setup([DummyUrl(g:id), { 'on_ft': 'foo' }])
+  call s:assert.filereadable(s:optdir . '/'.g:id.'/ftdetect/foo.vim')
+  let filetype = &filetype
+  edit dummy.foo
+  call s:assert.equals(&filetype, 'foo')
+  let &filetype = filetype
 endfunction
 
 if !has('nvim') && !(has('lua') && has('patch-8.2.0775'))
