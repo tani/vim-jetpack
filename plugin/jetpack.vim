@@ -542,7 +542,7 @@ endfunction
 
 function! jetpack#doautocmd(ord, pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
-  if jetpack#tap(a:pkg_name) || (pkg.local && isdirectory(pkg.path . '/' . pkg.rtp))
+  if jetpack#tap(a:pkg_name) || (pkg.local && isdirectory(pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp)))
     let pattern_a = 'jetpack_' . a:pkg_name . '_' . a:ord
     let pattern_a = substitute(pattern_a, '\W\+', '_', 'g')
     let pattern_a = substitute(pattern_a, '\(^\|_\)\(.\)', '\u\2', 'g')
@@ -560,13 +560,13 @@ function! jetpack#load_plugin(pkg_name) abort
   for dep_name in pkg.dependees
     call jetpack#load_plugin(dep_name)
   endfor
-  let &runtimepath = pkg.path . '/' . pkg.rtp . ',' . &runtimepath
+  let &runtimepath = pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . ',' . &runtimepath
   if v:vim_did_enter
     call jetpack#doautocmd('pre', a:pkg_name)
-    for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.vim', '', 1)
+    for file in glob(pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . '/plugin/**/*.vim', '', 1)
       execute 'source' file
     endfor
-    for file in glob(pkg.path . '/' . pkg.rtp . '/plugin/**/*.lua', '', 1)
+    for file in glob(pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . '/plugin/**/*.lua', '', 1)
       execute 'luafile' file
     endfor
   else
@@ -577,12 +577,12 @@ endfunction
 
 function! jetpack#load_after_plugin(pkg_name) abort
   let pkg = jetpack#get(a:pkg_name)
-  let &runtimepath = &runtimepath . ',' . pkg.path . '/' . pkg.rtp
+  let &runtimepath = &runtimepath . ',' . pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp)
   if v:vim_did_enter
-    for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.vim', '', 1)
+    for file in glob(pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . '/after/plugin/**/*.vim', '', 1)
       execute 'source' file
     endfor
-    for file in glob(pkg.path . '/' . pkg.rtp . '/after/plugin/**/*.lua', '', 1)
+    for file in glob(pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . '/after/plugin/**/*.lua', '', 1)
       execute 'luafile' file
     endfor
     call jetpack#doautocmd('post', a:pkg_name)
@@ -729,8 +729,8 @@ function! jetpack#end() abort
         execute 'luafile' file
       endfor
     else
-      let runtimepath = extend([pkg.path . '/' . pkg.rtp], runtimepath)
-      let runtimepath = extend(runtimepath, [pkg.path . '/' . pkg.rtp . '/after'])
+      let runtimepath = extend([pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp)], runtimepath)
+      let runtimepath = extend(runtimepath, [pkg.path . (empty(pkg.rtp) ? '' : '/' . pkg.rtp) . '/after'])
       let cmd = 'call jetpack#doautocmd("pre", "'.pkg_name.'")'
       execute 'autocmd Jetpack User JetpackPre:init ++once' cmd
       let cmd = 'call jetpack#doautocmd("post", "'.pkg_name.'")'
