@@ -659,12 +659,10 @@ function! jetpack#load_cmd(cmd, names, ...) abort
 endfunction
 
 function! jetpack#end() abort
-  let runtimepath = []
+  filetype plugin indent off
+  let runtimepath = split(&runtimepath, ',')
   delcommand Jetpack
   command! -bar JetpackSync call jetpack#sync()
-
-  syntax off
-  filetype plugin indent off
 
   if !has_key(s:declared_packages, 'vim-jetpack')
     echomsg 'vim-jetpack is not declared. Please add jetpack#add("tani/vim-jetpack") .'
@@ -739,9 +737,7 @@ function! jetpack#end() abort
   endfor
   let runtimepath = extend([s:optdir . '/_'], runtimepath)
   let runtimepath = extend(runtimepath, [s:optdir . '/_/after'])
-  let &runtimepath .= ',' . join(runtimepath, ',')
-  syntax enable
-  filetype plugin indent on
+  let &runtimepath = join(runtimepath, ',')
   if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.enable()
   endif
