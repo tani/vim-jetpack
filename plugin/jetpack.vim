@@ -738,9 +738,12 @@ function! jetpack#end() abort
   let runtimepath = extend([s:optdir . '/_'], runtimepath)
   let runtimepath = extend(runtimepath, [s:optdir . '/_/after'])
   let &runtimepath = join(runtimepath, ',')
+
   if has('nvim') && !empty(luaeval('vim.loader'))
     lua vim.loader.enable()
   endif
+
+  filetype plugin indent on
 endfunction
 
 function! jetpack#tap(name) abort
