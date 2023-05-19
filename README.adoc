@@ -123,7 +123,6 @@ call jetpack#end()
 ----
 [[plugins]]
 repo = 'tani/vim-jetpack'
-opt = true
 
 [[plugins]]
 repo = 'tpope/vim-fugitive'
@@ -143,7 +142,7 @@ echom 'fugitive is loaded'
 -- Packer.nvim v1
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').startup(function(use)
-  use { 'tani/vim-jetpack', opt = 1 } -- bootstrap
+  use { 'tani/vim-jetpack' } -- bootstrap
   use 'https://github.com/dense-analysis/ale'
   use 'junegunn/fzf.vim'
   use {'junegunn/fzf', run = 'call fzf#install()' }
@@ -171,7 +170,7 @@ end)
 -- Packer.nvim v2
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').add {
-  {'tani/vim-jetpack', opt = 1}, -- bootstrap
+  {'tani/vim-jetpack'}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
   {'junegunn/fzf', run = 'call fzf#install()' },
@@ -197,7 +196,7 @@ require('jetpack.packer').add {
 -- Paq.nvim
 vim.cmd('packadd vim-jetpack')
 require('jetpack.paq') {
-  {'tani/vim-jetpack', opt = 1}, -- bootstrap
+  {'tani/vim-jetpack'}, -- bootstrap
   'https://github.com/dense-analysis/ale',
   'junegunn/fzf.vim',
   {'junegunn/fzf', run = './install' },
