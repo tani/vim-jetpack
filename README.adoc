@@ -10,8 +10,6 @@ image::https://user-images.githubusercontent.com/5019902/154419764-d246c45c-8940
 
 == Features
 
-* Lightning-fast startup time
-** It optimizes the search path of plugins and runtime files.
 * Single file installation
 ** You need to just download a single file and put it.
 * First-class Lua support
