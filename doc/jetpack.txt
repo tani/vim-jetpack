@@ -215,7 +215,7 @@ FUNCTION *jetpack-function*
     options, etc., it is recommended to use this instead of |:packadd|.
 
 *jetpack#load_toml()*
-    It loads *jetpack-dein.vim* style package configuration writtein in TOML.
+    It loads |jetpack-dein.vim| style package configuration writtein in TOML.
 
 LUA *jetpack-lua*
 
