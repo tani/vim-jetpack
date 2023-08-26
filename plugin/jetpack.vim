@@ -520,7 +520,7 @@ function! jetpack#begin(...) abort
   elseif has('win32')
     let s:home = expand('~/vimfiles')
   else
-    let s:home = expand('~/.vim')
+    let s:home = split(&packpath, ',')[0]
   endif
   let s:cmds = {}
   let s:maps = {}
