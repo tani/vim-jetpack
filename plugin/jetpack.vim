@@ -250,7 +250,11 @@ function! jetpack#clean_plugins() abort
 endfunction
 
 function! jetpack#make_download_cmd(pkg) abort
-  if g:jetpack_download_method ==# 'git'
+  let download_method = g:jetpack_download_method
+  if a:pkg.url ~=# '\.tar\.gz$'
+    let download_method = 'curl'
+  endif
+  if download_method ==# 'git'
     if isdirectory(a:pkg.path)
       return [join(['git', '-C', a:pkg.path, 'pull', '--rebase'], ' ')]
     else
@@ -283,13 +287,13 @@ function! jetpack#make_download_cmd(pkg) abort
     else
       let label = a:pkg.commit
     endif
-    if g:jetpack_download_method ==# 'curl'
+    if download_method ==# 'curl'
       let curl_flags = has('ivim') ? ' -kfsSL ' : ' -fsSL '
       let download_cmd = 'curl' . curl_flags .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -o ' . temp
-    elseif g:jetpack_download_method ==# 'wget'
+    elseif download_method ==# 'wget'
       let download_cmd = 'wget ' .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -O ' . temp
     else
-      throw 'g:jetpack_download_method: ' . g:jetpack_download_method . ' is not a valid value'
+      throw 'g:jetpack_download_method: ' . download_method . ' is not a valid value'
     endif
     let extract_cmd = 'tar -zxf ' . temp . ' -C ' . a:pkg.path . ' --strip-components 1'
     if has('unix')
