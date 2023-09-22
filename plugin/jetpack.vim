@@ -289,9 +289,17 @@ function! jetpack#make_download_cmd(pkg) abort
     endif
     if download_method ==# 'curl'
       let curl_flags = has('ivim') ? ' -kfsSL ' : ' -fsSL '
-      let download_cmd = 'curl' . curl_flags .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -o ' . temp
+      if a:pkg.url =~? '\.tar\.gz$'
+        let download_cmd = 'curl' . curl_flags .  a:pkg.url . ' -o ' . temp
+      else
+        let download_cmd = 'curl' . curl_flags .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -o ' . temp
+      endif
     elseif download_method ==# 'wget'
-      let download_cmd = 'wget ' .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -O ' . temp
+      if a:pkg.url =~? '\.tar\.gz$'
+        let download_cmd = 'wget ' .  a:pkg.url . ' -O ' . temp
+      else
+        let download_cmd = 'wget ' .  a:pkg.url . '/archive/' . label . '.tar.gz' . ' -O ' . temp
+      endif
     else
       throw 'g:jetpack_download_method: ' . download_method . ' is not a valid value'
     endif
