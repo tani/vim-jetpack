@@ -251,7 +251,7 @@ endfunction
 
 function! jetpack#make_download_cmd(pkg) abort
   let download_method = g:jetpack_download_method
-  if a:pkg.url ~=# '\.tar\.gz$'
+  if a:pkg.url =~? '\.tar\.gz$'
     let download_method = 'curl'
   endif
   if download_method ==# 'git'
