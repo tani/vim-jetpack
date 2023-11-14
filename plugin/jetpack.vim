@@ -444,7 +444,7 @@ function! jetpack#is_opt(pkg) abort
        \ || !empty(a:pkg.cmd)
        \ || !empty(a:pkg.keys)
        \ || !empty(a:pkg.event)
-  endfunction
+endfunction
 
 function! jetpack#gets(pkg, keys, default) abort
   let values = []
@@ -461,15 +461,15 @@ function! jetpack#gets(pkg, keys, default) abort
 endfunction
 
 function! jetpack#add(plugin, ...) abort
-  if has_key(s:declared_packages, a:plugin)
+  let opts = a:0 > 0 ? a:1 : {}
+  let name = jetpack#gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
+  if has_key(s:declared_packages, name)
     return
   endif
-  let opts = a:0 > 0 ? a:1 : {}
   let local = jetpack#is_local_plug(a:plugin)
   let url = local ? expand(a:plugin) : (a:plugin !~# '.\+://' ? 'https://github.com/' : '') . a:plugin
   let path = s:optdir . '/' .  substitute(url, '.\+/\(.\+\)', '\1', '')
   let path = expand(local ? a:plugin : jetpack#gets(opts, ['dir', 'path'], [path])[0])
-  let name = jetpack#gets(opts, ['as', 'name'], [fnamemodify(a:plugin, ':t')])[0]
   let dependees = jetpack#gets(opts, ['requires', 'depends'], [])
   call map(dependees, { _, r -> r =~# '/' ? substitute(r, '.*/', '', '') : r })
   let dependers_before = jetpack#gets(opts, ['before', 'on_source'], [])
