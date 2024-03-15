@@ -208,7 +208,7 @@ require('jetpack.paq') {
 
 === Configuration Variables
 
-We provides configuration variables to change the internal behaviors:
+We provide configuration variables to change the internal behaviors:
 copying files, downloading plugins.
 
 `g:jetpack_download_method`::
@@ -229,7 +229,7 @@ let g:jetpack_download_method = 'curl'
 ----
 ====
 
-=== Configuration Prameters
+=== Configuration Parameters
 
 CAUTION: You might be able to use another configuration parameters,
 you can use `on_cmd` in vim-plug style for example,
@@ -478,7 +478,7 @@ You have to declare the specified plugins by `use` function.
 
 ==== Modern packer.nvim/ paq.nvim style
 
-WARNING: Mordern packer.nvim style is still experimental.
+WARNING: Modern packer.nvim style is still experimental.
 The configuration parameters might be changed in the future.
 
 You can pass the configuration parameters to a table as follows.
