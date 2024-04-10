@@ -18,12 +18,10 @@ jobs:
       - name: Clone vim-jetpack
         uses: actions/checkout@v3
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Install Lua
+        uses: leafo/gh-actions-lua@v10
         if: ${{ contains(matrix.os, 'windows') }}
-        run: |
-          Invoke-WebRequest -Uri https://joedf.ahkscript.org/LuaBuilds/hdata/lua-5.4.4_Win64_bin.zip -OutFile .\Lua.zip
-          Expand-Archive .\Lua.zip C:\Lua
-          Add-Content $env:GITHUB_PATH C:\Lua
 
       - name: Install vim-themis
         uses: actions/checkout@v3
