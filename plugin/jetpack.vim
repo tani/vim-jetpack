@@ -160,6 +160,10 @@ if has('nvim')
     \   'on_exit': { _, st -> st != 0 ? execute("echoerr '`'.join(a:cmd, ' ').'`:'.join(buf, '')") : a:cb(join(buf, '')) }
     \ })
   endfunction
+
+  function! jetpack#system(cmd) abort
+    return a:cmd->split(" ")->system()
+  endfunction
 else
   function! jetpack#jobstart(cmd, cb) abort
     let buf = []
@@ -170,6 +174,15 @@ else
     \   'err_cb': { _, data -> extend(buf, split(data, "\n")) },
     \   'exit_cb': function('jetpack#nvim_exit_cb', [a:cmd, buf, a:cb])
     \ })
+  endfunction
+
+  function! jetpack#system(cmd) abort
+    let buf = []
+    let job = job_start(a:cmd, {
+          \ 'out_cb': { _, data -> extend(buf, split(data, "\n")) }
+          \})
+    call jetpack#jobwait([job], 0)
+    return buf->join("\n")
   endfunction
 endif
 
@@ -235,8 +248,8 @@ function! jetpack#clean_plugins() abort
       continue
     endif
     if isdirectory(pkg.path)
-      call system(printf('git -C %s reset --hard', pkg.path))
-      let branch = trim(system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
+      call jetpack#system(printf('git -C %s reset --hard', pkg.path))
+      let branch = trim(jetpack#system(printf('git -C %s rev-parse --abbrev-ref %s', pkg.path, pkg.commit)))
       if v:shell_error && !empty(pkg.commit)
         call delete(pkg.path, 'rf')
         continue
@@ -356,7 +369,7 @@ function! jetpack#download_plugins() abort
       call add(jobs, job)
       call jetpack#jobwait(jobs, g:jetpack_njobs)
     else
-      let pkg.output = join(map(cmds, { _, cmd -> system(cmd) }), "\n")
+      let pkg.output = join(map(cmds, { _, cmd -> jetpack#system(cmd) }), "\n")
       call add(pkg.status, status)
     endif
   endfor
@@ -378,7 +391,7 @@ function! jetpack#switch_plugins() abort
     else
       call add(pkg.status, s:status.switched)
     endif
-    call system(printf('git -C %s checkout %s', pkg.path, pkg.commit))
+    call jetpack#system(printf('git -C %s checkout %s', pkg.path, pkg.commit))
   endfor
 endfunction
 
@@ -395,7 +408,7 @@ function! jetpack#postupdate_plugins() abort
       if pkg.do =~# '^:'
         execute pkg.do
       else
-        call system(pkg.do)
+        call jetpack#system(pkg.do)
       endif
     endif
     call chdir(pwd)
