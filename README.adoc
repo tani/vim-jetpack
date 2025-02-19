@@ -1,21 +1,32 @@
+// Document Settings
+:imagesdir: .
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
 = Jetpack.vim
 
 Jetpack.vim is a plugin manager for https://vim.org[Vim], https://neovim.io[Neovim], and https://github.com/terrychou/iVim[iVim].
 
 The **lightning-fast** minimalist plugin manager for Vim/ Neovim. vim-jetpack is
-a jetpack for the most of vimmers. Unbelievably, it is faster than vimrc uses
-the built-in plugin manager only.
+a jetpack for the most of vimmers. Unbelievably, it is faster than managing
+plugins via vimrc with the built-in plugin manager only.
 
 image::https://user-images.githubusercontent.com/5019902/154419764-d246c45c-8940-4e60-9658-9ed3424cbeaa.gif[]
 
 == Features
 
 * Single file installation
-** You need to just download a single file and put it.
+** You just need to download a single file and put it on the runtimepath.
 * First-class Lua support
 ** This plugin is not written in Lua but we provide a Lua API.
 * Fancy User Interface
-** You can see a progress of installation with a graphical progress bar.
+** You can see a progress of the installation with a graphical progress bar.
 * `pack/*/start` -free installation
 ** You can install plugins without `pack/*/start` directory.
 * Git-free installation
@@ -74,11 +85,11 @@ Fore more details, see Configuration Snippets.
 
 == Usage
 
-Jetpack was initially implemented as a successor of vim-plug.
-Nowadays, we also provide compatibility layers for other plugin managers,
-dein.vim, packer.nvim.nvim, and paq.nvim.nvim.
-You can use Jetpack as a drop-in replacement of them.
-In personal opinion, vim-plug style is the most stable and easy to use.
+Jetpack was initially implemented as a successor of **vim-plug**.
+Nowadays, we also provide compatibility layers for other plugin managers:
+**dein.vim**, **packer.nvim.nvim**, and **paq.nvim.nvim**.
+You can use Jetpack as a drop-in replacement for any of them.
+In personal opinion, the vim-plug style is the most stable and easy to use.
 
 === Vim-plug style
 
@@ -231,10 +242,9 @@ let g:jetpack_download_method = 'curl'
 
 === Configuration Parameters
 
-CAUTION: You might be able to use another configuration parameters,
-you can use `on_cmd` in vim-plug style for example,
-but it might be going to be removed in the future.
-Thus, we recommend you not to use unlisted configuration parameters.
+CAUTION: While it is possible to use other, unlisted configuration parameters,
+such as `on_cmd` in vim-plug style, for example, but as they might be removed in
+the future, we recommend you not to use unlisted configuration parameters.
 
 ==== Vim-plug style
 
@@ -724,7 +734,7 @@ Additionally, functions compatible with packer.nvim and paq.nvim are available.
 
 == License
 
-Copyright (c) 2022 -- 2023 Masaya Taniguchi
+Copyright (c) 2022 -- 2025 Masaya Taniguchi
 
 The software is released under the MIT License,
 see the header of the source code.
